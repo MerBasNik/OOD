@@ -1,9 +1,10 @@
-#include "lib/Duck/DecoyDuck.h"
-#include "lib/Duck/MallardDuck.h"
-#include "lib/Duck/ModelDuck.h"
-#include "lib/Duck/RedheadDuck.h"
-#include "lib/Duck/RubberDuck.h"
-#include "lib/DuckFunctions.h"
+#include "DuckFunctions.h"
+#include "Duck/DecoyDuck.h"
+#include "Duck/MallardDuck.h"
+#include "Duck/RedheadDuck.h"
+#include "Duck/ModelDuck.h"
+#include "Duck/RubberDuck.h"
+
 #include <cstdlib>
 
 int main()

@@ -1,5 +1,5 @@
-#ifndef IQUAKBEHAVIOR_H
-#define IQUAKBEHAVIOR_H
+#ifndef QUAKBEHAVIOR_H
+#define QUAKBEHAVIOR_H
 
 struct IQuackBehavior
 {

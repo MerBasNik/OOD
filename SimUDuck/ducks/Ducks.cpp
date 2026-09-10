@@ -2,8 +2,6 @@
 // Created by Вадим Патрушев on 06.09.2026.
 //
 
-#include "Ducks.h"
-
 #include <memory>
 
 using namespace std;
@@ -59,8 +57,3 @@ public:
     m_flyBehavior = make_unique<CFlyWithWings>();
   }
 };
-
-int main()
-{
-
-}
