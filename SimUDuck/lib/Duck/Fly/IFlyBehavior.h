@@ -3,8 +3,9 @@
 
 struct IFlyBehavior
 {
-	virtual ~IFlyBehavior() {};
-	virtual void Fly() const = 0;
+	virtual ~IFlyBehavior() = default;
+	virtual void Fly() = 0;
+	virtual bool CanFly() = 0;
 };
 
 #endif

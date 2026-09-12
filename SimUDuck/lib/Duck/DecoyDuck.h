@@ -5,7 +5,6 @@
 #include "Duck.h"
 #include "Fly/FlyNoWay.h"
 #include "Quack/MuteQuackBehavior.h"
-#include "QuackBehavior.h"
 #include <iostream>
 #include <memory>
 
