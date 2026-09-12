@@ -6,16 +6,15 @@
 #define OOD_DANCEMINUET_H
 #include "IDanceBehavior.h"
 
-
 #include <iostream>
 
 class DanceMinuet : public IDanceBehavior
 {
 public:
-	void Dance() override
+	void Dance() const override
 	{
 		std::cout << "I'm dancing minuet!!" << std::endl;
 	}
 };
 
-#endif //OOD_DANCEMINUET_H
+#endif // OOD_DANCEMINUET_H

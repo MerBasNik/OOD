@@ -1,8 +1,8 @@
 #ifndef MODELDUCK_H
 #define MODELDUCK_H
 
-#include "Duck.h"
 #include "Dance/DanceNoWay.h"
+#include "Duck.h"
 #include "Fly/FlyNoWay.h"
 #include "Quack/QuackBehavior.h"
 
@@ -11,10 +11,9 @@ class ModelDuck : public Duck
 public:
 	ModelDuck()
 		: Duck(
-			std::make_unique<FlyNoWay>(),
-			std::make_unique<QuackBehavior>(),
-			std::make_unique<DanceNoWay>()
-		)
+			  std::make_unique<FlyNoWay>(),
+			  std::make_unique<QuackBehavior>(),
+			  std::make_unique<DanceNoWay>())
 	{
 	}
 

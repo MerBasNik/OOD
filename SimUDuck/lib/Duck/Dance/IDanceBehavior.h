@@ -11,4 +11,4 @@ struct IDanceBehavior
 	virtual void Dance() const = 0;
 };
 
-#endif //OOD_IDANCEBEHAVIOR_H
+#endif // OOD_IDANCEBEHAVIOR_H

@@ -15,9 +15,9 @@ public:
 	Duck(std::unique_ptr<IFlyBehavior>&& flyBehavior,
 		std::unique_ptr<IQuackBehavior>&& quackBehavior,
 		std::unique_ptr<IDanceBehavior>&& danceBehavior)
-		: m_flyBehavior(std::move(flyBehavior)),
-			m_quackBehavior(std::move(quackBehavior)),
-			m_danceBehavior(std::move(danceBehavior))
+		: m_flyBehavior(std::move(flyBehavior))
+		, m_quackBehavior(std::move(quackBehavior))
+		, m_danceBehavior(std::move(danceBehavior))
 	{
 		assert(m_quackBehavior);
 		assert(m_flyBehavior);

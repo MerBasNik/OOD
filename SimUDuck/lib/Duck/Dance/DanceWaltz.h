@@ -11,10 +11,10 @@
 class DanceWaltz : public IDanceBehavior
 {
 public:
-	void Dance() override
+	void Dance() const override
 	{
 		std::cout << "I'm dancing waltz!!" << std::endl;
 	}
 };
 
-#endif //OOD_DANCEWALTZ_H
+#endif // OOD_DANCEWALTZ_H
