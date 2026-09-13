@@ -1,10 +1,10 @@
 #ifndef DUCK_H
 #define DUCK_H
 
-#include "IFlyObserver.h"
 #include "Dance/IDanceBehavior.h"
 #include "Fly/FliesCounter.h"
 #include "Fly/IFlyBehavior.h"
+#include "IFlyObserver.h"
 #include "Quack/IQuackBehavior.h"
 
 #include <cassert>

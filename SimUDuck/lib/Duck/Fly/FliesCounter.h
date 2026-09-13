@@ -5,6 +5,7 @@
 #ifndef OOD_FLIESCOUNTER_H
 #define OOD_FLIESCOUNTER_H
 #include "IFlyBehavior.h"
+#include "IFlyObserver.h"
 
 #include <iostream>
 #include <memory>
@@ -15,8 +16,8 @@ public:
 	explicit FliesCounter(
 		std::unique_ptr<IFlyBehavior>&& flyBehavior,
 		IFlyObserver* flyObserver)
-		: m_flyBehavior(std::move(flyBehavior)),
-			m_flyObserver(flyObserver)
+		: m_flyBehavior(std::move(flyBehavior))
+		, m_flyObserver(flyObserver)
 	{
 	}
 
@@ -31,10 +32,11 @@ public:
 		std::cout << "Fly count: " << m_fliesCount << std::endl;
 	}
 
-	bool CanFly() override
+	bool CanFly() const override
 	{
 		return true;
 	}
+
 private:
 	std::unique_ptr<IFlyBehavior> m_flyBehavior;
 	IFlyObserver* m_flyObserver;
@@ -46,4 +48,4 @@ private:
 	};
 };
 
-#endif //OOD_FLIESCOUNTER_H
+#endif // OOD_FLIESCOUNTER_H

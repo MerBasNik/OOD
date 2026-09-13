@@ -11,4 +11,4 @@ struct IFlyObserver
 	virtual ~IFlyObserver() = default;
 };
 
-#endif //OOD_IFLYOBSERVER_H
+#endif // OOD_IFLYOBSERVER_H

@@ -12,7 +12,7 @@ public:
 		std::cout << "I'm flying with wings!!" << std::endl;
 	}
 
-	bool CanFly() override
+	bool CanFly() const override
 	{
 		return true;
 	}

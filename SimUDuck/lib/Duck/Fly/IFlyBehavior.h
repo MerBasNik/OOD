@@ -5,7 +5,7 @@ struct IFlyBehavior
 {
 	virtual ~IFlyBehavior() = default;
 	virtual void Fly() = 0;
-	virtual bool CanFly() = 0;
+	virtual bool CanFly() const = 0;
 };
 
 #endif
