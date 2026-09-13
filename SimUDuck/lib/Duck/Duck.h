@@ -4,14 +4,14 @@
 #include "Dance/IDanceBehavior.h"
 #include "Fly/FliesCounter.h"
 #include "Fly/IFlyBehavior.h"
-#include "IFlyObserver.h"
+#include "IFlyAction.h"
 #include "Quack/IQuackBehavior.h"
 
 #include <cassert>
 #include <iostream>
 #include <memory>
 
-class Duck : public IFlyObserver
+class Duck : public IFlyAction
 {
 public:
 	Duck(std::unique_ptr<IFlyBehavior>&& flyBehavior,
