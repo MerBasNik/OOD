@@ -7,9 +7,14 @@
 class FlyWithWings : public IFlyBehavior
 {
 public:
-	void Fly() const override
+	void Fly() override
 	{
 		std::cout << "I'm flying with wings!!" << std::endl;
+	}
+
+	bool CanFly() const override
+	{
+		return true;
 	}
 };
 

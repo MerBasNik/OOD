@@ -15,6 +15,7 @@ target_include_directories(SimUDuck PUBLIC
 
 add_executable(SimUDuck_tests
         tests/DanceTest.cpp
+        tests/FliesCountTest.cpp
         ducks/Ducks.cpp
 )
 

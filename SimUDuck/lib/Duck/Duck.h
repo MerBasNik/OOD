@@ -2,26 +2,27 @@
 #define DUCK_H
 
 #include "Dance/IDanceBehavior.h"
+#include "Fly/FliesCounter.h"
 #include "Fly/IFlyBehavior.h"
+#include "IFlyObserver.h"
 #include "Quack/IQuackBehavior.h"
 
 #include <cassert>
 #include <iostream>
 #include <memory>
 
-class Duck
+class Duck : public IFlyObserver
 {
 public:
 	Duck(std::unique_ptr<IFlyBehavior>&& flyBehavior,
 		std::unique_ptr<IQuackBehavior>&& quackBehavior,
 		std::unique_ptr<IDanceBehavior>&& danceBehavior)
-		: m_flyBehavior(std::move(flyBehavior))
-		, m_quackBehavior(std::move(quackBehavior))
+		: m_quackBehavior(std::move(quackBehavior))
 		, m_danceBehavior(std::move(danceBehavior))
 	{
 		assert(m_quackBehavior);
-		assert(m_flyBehavior);
 		assert(m_danceBehavior);
+		SetFlyBehavior(std::move(flyBehavior));
 	}
 
 	void Quack() const
@@ -47,7 +48,19 @@ public:
 	void SetFlyBehavior(std::unique_ptr<IFlyBehavior>&& flyBehavior)
 	{
 		assert(flyBehavior);
-		m_flyBehavior = std::move(flyBehavior);
+		if (flyBehavior->CanFly())
+		{
+			m_flyBehavior = std::make_unique<FliesCounter>(std::move(flyBehavior), this);
+		}
+		else
+		{
+			m_flyBehavior = std::move(flyBehavior);
+		}
+	}
+
+	void FlyAction() override
+	{
+		Quack();
 	}
 
 	virtual void Display() const = 0;
