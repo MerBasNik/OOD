@@ -7,11 +7,6 @@ class FlyNoWay : public IFlyBehavior
 {
 public:
 	void Fly() override {}
-
-	bool CanFly() const override
-	{
-		return false;
-	}
 };
 
 #endif

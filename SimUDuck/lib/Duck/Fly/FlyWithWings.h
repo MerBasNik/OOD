@@ -11,11 +11,6 @@ public:
 	{
 		std::cout << "I'm flying with wings!!" << std::endl;
 	}
-
-	bool CanFly() const override
-	{
-		return true;
-	}
 };
 
 #endif

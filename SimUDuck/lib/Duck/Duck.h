@@ -2,7 +2,6 @@
 #define DUCK_H
 
 #include "Dance/IDanceBehavior.h"
-#include "Fly/FliesCounter.h"
 #include "Fly/IFlyBehavior.h"
 #include "IFlyAction.h"
 #include "Quack/IQuackBehavior.h"
@@ -38,6 +37,11 @@ public:
 	void Fly() const
 	{
 		m_flyBehavior->Fly();
+		const auto fliesCount = m_flyBehavior->GetCount();
+		if (NeedDoAction(fliesCount))
+		{
+			Quack();
+		}
 	}
 
 	void Dance() const
@@ -48,14 +52,7 @@ public:
 	void SetFlyBehavior(std::unique_ptr<IFlyBehavior>&& flyBehavior)
 	{
 		assert(flyBehavior);
-		if (flyBehavior->CanFly())
-		{
-			m_flyBehavior = std::make_unique<FliesCounter>(std::move(flyBehavior), this);
-		}
-		else
-		{
-			m_flyBehavior = std::move(flyBehavior);
-		}
+		m_flyBehavior = std::move(flyBehavior);
 	}
 
 	void FlyAction() override
@@ -70,6 +67,11 @@ private:
 	std::unique_ptr<IFlyBehavior> m_flyBehavior;
 	std::unique_ptr<IQuackBehavior> m_quackBehavior;
 	std::unique_ptr<IDanceBehavior> m_danceBehavior;
+
+	static bool NeedDoAction(const int fliesCount)
+	{
+		return fliesCount % 2 != 0;
+	};
 };
 
 #endif
