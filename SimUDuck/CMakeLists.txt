@@ -1,32 +1,22 @@
 add_executable(SimUDuck
-        lib/SimUDuck.cpp
-        ducks/Ducks.cpp
+        SimUDuck.cpp
 )
 
 target_include_directories(SimUDuck PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/Duck
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/Duck/Fly
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/Duck/Quack
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/Duck/Dance
-        ${CMAKE_CURRENT_SOURCE_DIR}/ducks
+        ${CMAKE_CURRENT_SOURCE_DIR}/behavior
+        ${CMAKE_CURRENT_SOURCE_DIR}/duck
 )
 
 add_executable(SimUDuck_tests
-        tests/DanceTest.cpp
-        tests/FliesCountTest.cpp
-        ducks/Ducks.cpp
+        tests/DuckTest.cpp
+        tests/FlyActionTest.cpp
 )
 
 target_include_directories(SimUDuck_tests PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/Duck
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/Duck/Fly
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/Duck/Quack
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/Duck/Dance
-        ${CMAKE_CURRENT_SOURCE_DIR}/ducks
+        ${CMAKE_CURRENT_SOURCE_DIR}/behavior
+        ${CMAKE_CURRENT_SOURCE_DIR}/duck
 )
 
 target_link_libraries(SimUDuck_tests PRIVATE
