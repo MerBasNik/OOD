@@ -37,7 +37,9 @@ public:
 	void Fly() const
 	{
 		m_flyBehavior->Fly();
+		m_flyBehavior->IncrementCounter();
 		const auto fliesCount = m_flyBehavior->GetCount();
+		std::cout << "Number fly: " << fliesCount << std::endl;
 		if (NeedDoAction(fliesCount))
 		{
 			Quack();
@@ -70,7 +72,7 @@ private:
 
 	static bool NeedDoAction(const int fliesCount)
 	{
-		return fliesCount % 2 != 0;
+		return fliesCount == 3;
 	};
 };
 

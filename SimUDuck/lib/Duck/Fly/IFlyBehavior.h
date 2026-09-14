@@ -10,6 +10,11 @@ public:
 	{
 		return m_count;
 	}
+
+	void IncrementCounter()
+	{
+		m_count++;
+	}
 private:
 	int m_count = 0;
 };
