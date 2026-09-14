@@ -17,6 +17,7 @@ public:
 TEST(TestMockDance, NoDance)
 {
 	auto mockDance = std::make_unique<DanceMock>();
+	const DanceMock* dance = mockDance.get();
 
 	const TestDuck duck(
 		std::make_unique<FlyWithWings>(),
@@ -25,12 +26,13 @@ TEST(TestMockDance, NoDance)
 
 	duck.Quack();
 
-	EXPECT_EQ(mockDance->GetCount(), 0);
+	EXPECT_EQ(dance->GetCount(), 0);
 }
 
 TEST(TestMockDance, DanceOneTime)
 {
 	auto mockDance = std::make_unique<DanceMock>();
+	const DanceMock* dance = mockDance.get();
 
 	const TestDuck duck(
 		std::make_unique<FlyWithWings>(),
@@ -39,12 +41,13 @@ TEST(TestMockDance, DanceOneTime)
 
 	duck.Dance();
 
-	EXPECT_EQ(mockDance->GetCount(), 1);
+	EXPECT_EQ(dance->GetCount(), 1);
 }
 
 TEST(TestMockDance, DanceTwoTime)
 {
 	auto mockDance = std::make_unique<DanceMock>();
+	const DanceMock* dance = mockDance.get();
 
 	const TestDuck duck(
 		std::make_unique<FlyWithWings>(),
@@ -54,5 +57,5 @@ TEST(TestMockDance, DanceTwoTime)
 	duck.Dance();
 	duck.Dance();
 
-	EXPECT_EQ(mockDance->GetCount(), 2);
+	EXPECT_EQ(dance->GetCount(), 2);
 }
