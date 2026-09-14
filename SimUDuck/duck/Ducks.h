@@ -1,6 +1,8 @@
 //
 // Created by Вадим Патрушев on 14.09.2026.
 //
+#ifndef DUCKS_H
+#define DUCKS_H
 
 #include "Duck.h"
 
@@ -58,3 +60,4 @@ inline Duck RubberDuck()
 		display
 	};
 }
+#endif // DUCKS_H
