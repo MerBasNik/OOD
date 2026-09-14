@@ -5,10 +5,8 @@
 #include "DanceWaltz.h"
 #include "Duck.h"
 #include "FlyMock.h"
-#include "QuackBehavior.h"
 #include "QuackMock.h"
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 class TestDuck : public Duck
@@ -23,10 +21,8 @@ TEST(TestMockFliesCount, OneFlyNoQuack)
 	auto mockFly = std::make_unique<FlyMock>();
 	auto mockQuack = std::make_unique<QuackMock>();
 
-	ON_CALL(*mockFly, CanFly()).WillByDefault(::testing::Return(true));
-
-	EXPECT_CALL(*mockFly, Fly()).Times(1);
-	EXPECT_CALL(*mockQuack, Quack()).Times(0);
+	const auto* fly = mockFly.get();
+	const auto* quack = mockQuack.get();
 
 	const TestDuck duck(
 		std::move(mockFly),
@@ -34,6 +30,9 @@ TEST(TestMockFliesCount, OneFlyNoQuack)
 		std::make_unique<DanceWaltz>());
 
 	duck.Fly();
+
+	EXPECT_EQ(fly->GetCount(), 1);
+	EXPECT_EQ(quack->GetCount(), 0);
 }
 
 TEST(TestMockFliesCount, TwoFliesOneQuack)
@@ -41,10 +40,8 @@ TEST(TestMockFliesCount, TwoFliesOneQuack)
 	auto mockFly = std::make_unique<FlyMock>();
 	auto mockQuack = std::make_unique<QuackMock>();
 
-	ON_CALL(*mockFly, CanFly()).WillByDefault(::testing::Return(true));
-
-	EXPECT_CALL(*mockFly, Fly()).Times(2);
-	EXPECT_CALL(*mockQuack, Quack()).Times(1);
+	const auto* fly = mockFly.get();
+	const auto* quack = mockQuack.get();
 
 	const TestDuck duck(
 		std::move(mockFly),
@@ -53,6 +50,9 @@ TEST(TestMockFliesCount, TwoFliesOneQuack)
 
 	duck.Fly();
 	duck.Fly();
+
+	EXPECT_EQ(fly->GetCount(), 2);
+	EXPECT_EQ(quack->GetCount(), 1);
 }
 
 TEST(TestMockFliesCount, ThreeFliesOneQuack)
@@ -60,10 +60,8 @@ TEST(TestMockFliesCount, ThreeFliesOneQuack)
 	auto mockFly = std::make_unique<FlyMock>();
 	auto mockQuack = std::make_unique<QuackMock>();
 
-	ON_CALL(*mockFly, CanFly()).WillByDefault(::testing::Return(true));
-
-	EXPECT_CALL(*mockFly, Fly()).Times(3);
-	EXPECT_CALL(*mockQuack, Quack()).Times(1);
+	const auto* fly = mockFly.get();
+	const auto* quack = mockQuack.get();
 
 	const TestDuck duck(
 		std::move(mockFly),
@@ -73,6 +71,9 @@ TEST(TestMockFliesCount, ThreeFliesOneQuack)
 	duck.Fly();
 	duck.Fly();
 	duck.Fly();
+
+	EXPECT_EQ(fly->GetCount(), 3);
+	EXPECT_EQ(quack->GetCount(), 1);
 }
 
 TEST(TestMockFliesCount, FourFliesTwoQuack)
@@ -80,10 +81,8 @@ TEST(TestMockFliesCount, FourFliesTwoQuack)
 	auto mockFly = std::make_unique<FlyMock>();
 	auto mockQuack = std::make_unique<QuackMock>();
 
-	ON_CALL(*mockFly, CanFly()).WillByDefault(::testing::Return(true));
-
-	EXPECT_CALL(*mockFly, Fly()).Times(4);
-	EXPECT_CALL(*mockQuack, Quack()).Times(2);
+	const auto* fly = mockFly.get();
+	const auto* quack = mockQuack.get();
 
 	const TestDuck duck(
 		std::move(mockFly),
@@ -94,4 +93,7 @@ TEST(TestMockFliesCount, FourFliesTwoQuack)
 	duck.Fly();
 	duck.Fly();
 	duck.Fly();
+
+	EXPECT_EQ(fly->GetCount(), 4);
+	EXPECT_EQ(quack->GetCount(), 2);
 }

@@ -6,12 +6,21 @@
 #define OOD_QUACKMOCK_H
 #include "IQuackBehavior.h"
 
-#include <gmock/gmock.h>
-
 class QuackMock : public IQuackBehavior
 {
 public:
-	MOCK_METHOD(void, Quack, (), (const, override));
+	void Quack() const override
+	{
+		m_count++;
+	}
+
+	int GetCount() const
+	{
+		return m_count;
+	}
+
+private:
+	mutable int m_count = 0;
 };
 
-#endif //OOD_QUACKMOCK_H
+#endif // OOD_QUACKMOCK_H

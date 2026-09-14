@@ -18,6 +18,7 @@ public:
 	{
 		return m_count;
 	}
+
 private:
 	mutable int m_count = 0;
 };

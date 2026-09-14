@@ -4,8 +4,8 @@
 
 #ifndef OOD_FLIESCOUNTER_H
 #define OOD_FLIESCOUNTER_H
-#include "IFlyBehavior.h"
 #include "IFlyAction.h"
+#include "IFlyBehavior.h"
 
 #include <iostream>
 #include <memory>

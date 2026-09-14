@@ -11,8 +11,23 @@
 class FlyMock : public IFlyBehavior
 {
 public:
-	MOCK_METHOD(void, Fly, (), (override));
-	MOCK_METHOD(bool, CanFly, (), (const, override));
+	void Fly() override
+	{
+		m_count++;
+	}
+
+	bool CanFly() const override
+	{
+		return true;
+	}
+
+	int GetCount() const
+	{
+		return m_count;
+	}
+
+private:
+	mutable int m_count = 0;
 };
 
-#endif //OOD_FLYMOCK_H
+#endif // OOD_FLYMOCK_H
