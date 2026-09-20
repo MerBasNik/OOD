@@ -6,6 +6,7 @@
 #include "MallardDuck.h"
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 class TestDuck : public Duck
 {
@@ -26,7 +27,7 @@ TEST(TestMockDance, NoDance)
 
 	duck.Quack();
 
-	EXPECT_EQ(dance->GetCount(), 0);
+	EXPECT_CALL(*dance, Dance()).Times(0);
 }
 
 TEST(TestMockDance, DanceOneTime)
@@ -41,7 +42,7 @@ TEST(TestMockDance, DanceOneTime)
 
 	duck.Dance();
 
-	EXPECT_EQ(dance->GetCount(), 1);
+	EXPECT_CALL(*dance, Dance()).Times(1);
 }
 
 TEST(TestMockDance, DanceTwoTime)
@@ -57,5 +58,5 @@ TEST(TestMockDance, DanceTwoTime)
 	duck.Dance();
 	duck.Dance();
 
-	EXPECT_EQ(dance->GetCount(), 2);
+	EXPECT_CALL(*dance, Dance()).Times(2);
 }
