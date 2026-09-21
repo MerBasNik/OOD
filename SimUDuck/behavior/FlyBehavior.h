@@ -8,33 +8,22 @@
 #include <iostream>
 #include <ostream>
 
-using FlyBehavior = std::function<void()>;
+using FlyBehavior = std::function<int()>;
 
 inline FlyBehavior FlyWithWings()
 {
-	return [] {
+	int fliesCount = 0;
+	return [fliesCount]() mutable {
+		fliesCount++;
 		std::cout << "I'm flying with wings!!" << std::endl;
+		return fliesCount;
 	};
 }
 
 inline FlyBehavior FlyNoWay()
 {
-	return [] {};
-}
-
-inline FlyBehavior FliesCounter(
-	FlyBehavior flyBehavior,
-	std::function<void()> flyAction = {})
-{
-	return [flyBehavior, flyAction, fliesCount = 0]() mutable {
-		const bool needDoAction = fliesCount % 2 != 0;
-		if (needDoAction)
-		{
-			flyAction();
-		}
-		flyBehavior();
-		fliesCount++;
-		std::cout << "Fly number: " << fliesCount << std::endl;
+	return []() {
+		return 0;
 	};
 }
 

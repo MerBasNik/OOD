@@ -19,7 +19,7 @@ inline Duck MallardDuck()
 {
 	auto display = [] { std::cout << "I'm mallard duck" << std::endl; };
 	return {
-		FliesCounter(FlyWithWings(), Quack()),
+		FlyWithWings(),
 		DanceWaltz(),
 		Quack(),
 		display
@@ -41,7 +41,7 @@ inline Duck RedheadDuck()
 {
 	auto display = [] { std::cout << "I'm redhead duck" << std::endl; };
 	return {
-		FliesCounter(FlyWithWings(), Quack()),
+		FlyWithWings(),
 		DanceMinuet(),
 		Quack(),
 		display

@@ -12,15 +12,9 @@ TEST(TestFlyAction, NoFlyOneQuack)
 	int quackCount = 0;
 	int fliesCount = 0;
 	QuackBehavior quackBehavior = [&quackCount] { quackCount++; };
-	FlyBehavior flyBehavior = [&fliesCount, quackBehavior] {
-		if (fliesCount % 2 == 0)
-		{
-			quackBehavior();
-		}
-		fliesCount++;
-	};
+	FlyBehavior flyBehavior = [&fliesCount] { return fliesCount++; };
 
-	const Duck duck(
+	Duck duck(
 		std::move(flyBehavior),
 		DanceNoWay(),
 		std::move(quackBehavior),
@@ -37,15 +31,9 @@ TEST(TestFlyAction, FlyOneTime)
 	int quackCount = 0;
 	int fliesCount = 0;
 	QuackBehavior quackBehavior = [&quackCount] { quackCount++; };
-	FlyBehavior flyBehavior = [&fliesCount, quackBehavior] {
-		if (fliesCount % 2 == 0)
-		{
-			quackBehavior();
-		}
-		fliesCount++;
-	};
+	FlyBehavior flyBehavior = [&fliesCount] { return fliesCount++; };
 
-	const Duck duck(
+	Duck duck(
 		std::move(flyBehavior),
 		DanceNoWay(),
 		std::move(quackBehavior),
@@ -62,15 +50,9 @@ TEST(TestFlyAction, FlyTwoTimes)
 	int quackCount = 0;
 	int fliesCount = 0;
 	QuackBehavior quackBehavior = [&quackCount] { quackCount++; };
-	FlyBehavior flyBehavior = [&fliesCount, quackBehavior] {
-		if (fliesCount % 2 == 0)
-		{
-			quackBehavior();
-		}
-		fliesCount++;
-	};
+	FlyBehavior flyBehavior = [&fliesCount] { return fliesCount++; };
 
-	const Duck duck(
+	Duck duck(
 		std::move(flyBehavior),
 		DanceNoWay(),
 		std::move(quackBehavior),
@@ -88,15 +70,9 @@ TEST(TestFlyAction, FlyThreeTimes)
 	int quackCount = 0;
 	int fliesCount = 0;
 	QuackBehavior quackBehavior = [&quackCount] { quackCount++; };
-	FlyBehavior flyBehavior = [&fliesCount, quackBehavior] {
-		if (fliesCount % 2 == 0)
-		{
-			quackBehavior();
-		}
-		fliesCount++;
-	};
+	FlyBehavior flyBehavior = [&fliesCount] { return fliesCount++; };
 
-	const Duck duck(
+	Duck duck(
 		std::move(flyBehavior),
 		DanceNoWay(),
 		std::move(quackBehavior),

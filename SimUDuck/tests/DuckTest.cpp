@@ -7,17 +7,34 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-TEST(TestDance, NoWayDance)
+TEST(TestDance, NoWayDanceOneDance)
 {
 	const int danceCount = 0;
 	DanceBehavior mockDance = [] {};
 
-	const Duck duck(
+	Duck duck(
 		FlyNoWay(),
 		std::move(mockDance),
 		MuteQuack(),
 		[] {});
 
+	duck.Dance();
+
+	EXPECT_EQ(danceCount, 0);
+}
+
+TEST(TestDance, NoWayDanceTwoDance)
+{
+	const int danceCount = 0;
+	DanceBehavior mockDance = [] {};
+
+	Duck duck(
+		FlyNoWay(),
+		std::move(mockDance),
+		MuteQuack(),
+		[] {});
+
+	duck.Dance();
 	duck.Dance();
 
 	EXPECT_EQ(danceCount, 0);
@@ -42,7 +59,7 @@ TEST(TestDance, DanceOneTime)
 	int danceCount = 0;
 	DanceBehavior mockDance = [&danceCount] { danceCount++; };
 
-	const Duck duck(
+	Duck duck(
 		FlyNoWay(),
 		std::move(mockDance),
 		MuteQuack(),
@@ -58,7 +75,7 @@ TEST(TestDance, DanceTwoTimes)
 	int danceCount = 0;
 	DanceBehavior mockDance = [&danceCount] { danceCount++; };
 
-	const Duck duck(
+	Duck duck(
 		FlyNoWay(),
 		std::move(mockDance),
 		MuteQuack(),
@@ -73,7 +90,7 @@ TEST(TestDance, DanceTwoTimes)
 TEST(TestFly, NoWayFly)
 {
 	const int fliesCount = 0;
-	FlyBehavior flyBehavior = [] {};
+	FlyBehavior flyBehavior = [] { return 0; };
 
 	Duck duck(
 		std::move(flyBehavior),
@@ -87,7 +104,7 @@ TEST(TestFly, NoWayFly)
 TEST(TestFly, NoFly)
 {
 	int fliesCount = 0;
-	FlyBehavior flyBehavior = [&fliesCount] { fliesCount++; };
+	FlyBehavior flyBehavior = [&fliesCount] { return fliesCount++; };
 
 	Duck duck(
 		std::move(flyBehavior),
@@ -101,9 +118,9 @@ TEST(TestFly, NoFly)
 TEST(TestFly, FlyOneTime)
 {
 	int fliesCount = 0;
-	FlyBehavior flyBehavior = [&fliesCount] { fliesCount++; };
+	FlyBehavior flyBehavior = [&fliesCount] { return fliesCount++; };
 
-	const Duck duck(
+	Duck duck(
 		std::move(flyBehavior),
 		DanceNoWay(),
 		MuteQuack(),
@@ -117,9 +134,9 @@ TEST(TestFly, FlyOneTime)
 TEST(TestFly, FlyTwoTimes)
 {
 	int fliesCount = 0;
-	FlyBehavior flyBehavior = [&fliesCount] { fliesCount++; };
+	FlyBehavior flyBehavior = [&fliesCount] { return fliesCount++; };
 
-	const Duck duck(
+	Duck duck(
 		std::move(flyBehavior),
 		DanceNoWay(),
 		MuteQuack(),
@@ -136,7 +153,7 @@ TEST(TestQuack, NoWayQuack)
 	const int quackCount = 0;
 	QuackBehavior quackBehavior = [] {};
 
-	const Duck duck(
+	Duck duck(
 		FlyNoWay(),
 		DanceNoWay(),
 		std::move(quackBehavior),
@@ -166,7 +183,7 @@ TEST(TestQuack, QuackOneTime)
 	int quackCount = 0;
 	QuackBehavior quackBehavior = [&quackCount] { quackCount++; };
 
-	const Duck duck(
+	Duck duck(
 		FlyNoWay(),
 		DanceNoWay(),
 		std::move(quackBehavior),
@@ -182,7 +199,7 @@ TEST(TestQuack, QuackTwoTimes)
 	int quackCount = 0;
 	QuackBehavior quackBehavior = [&quackCount] { quackCount++; };
 
-	const Duck duck(
+	Duck duck(
 		FlyNoWay(),
 		DanceNoWay(),
 		std::move(quackBehavior),

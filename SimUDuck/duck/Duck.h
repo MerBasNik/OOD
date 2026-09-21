@@ -55,22 +55,27 @@ public:
 		m_display = std::move(display);
 	}
 
-	void Fly() const
+	void Fly()
 	{
-		m_fly();
+		m_fliesCount = m_fly();
+		if (NeedDoAction(m_fliesCount))
+		{
+			m_quack();
+		}
+		std::cout << "Fly number: " << m_fliesCount << std::endl;
 	}
 
-	void Quack() const
+	void Quack()
 	{
 		m_quack();
 	}
 
-	void Dance() const
+	void Dance()
 	{
 		m_dance();
 	}
 
-	void Display() const
+	void Display()
 	{
 		m_display();
 	}
@@ -85,6 +90,13 @@ private:
 	DanceBehavior m_dance;
 	QuackBehavior m_quack;
 	DisplayBehavior m_display;
+
+	int m_fliesCount = 0;
+
+	static bool NeedDoAction(const int fliesCount)
+	{
+		return fliesCount % 2 == 0;
+	};
 };
 
 #endif // OOD_DUCK_H
