@@ -7,7 +7,7 @@
 class SqueakBehavior : public IQuackBehavior
 {
 public:
-	void Quack() const override
+	void Quack() override
 	{
 		std::cout << "Squeek!!!" << std::endl;
 	}

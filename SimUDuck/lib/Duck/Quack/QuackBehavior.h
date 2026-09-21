@@ -7,7 +7,7 @@
 class QuackBehavior : public IQuackBehavior
 {
 public:
-	void Quack() const override
+	void Quack() override
 	{
 		std::cout << "Quack Quack!!!" << std::endl;
 	}

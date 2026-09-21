@@ -31,6 +31,7 @@ target_include_directories(SimUDuck_tests PUBLIC
 
 target_link_libraries(SimUDuck_tests PRIVATE
         GTest::gtest
+        GTest::gmock
         GTest::gtest_main
 )
 

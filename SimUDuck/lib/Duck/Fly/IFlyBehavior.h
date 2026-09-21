@@ -15,6 +15,7 @@ public:
 	{
 		m_count++;
 	}
+
 private:
 	int m_count = 0;
 };

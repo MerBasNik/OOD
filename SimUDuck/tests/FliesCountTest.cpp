@@ -7,6 +7,7 @@
 #include "FlyMock.h"
 #include "QuackMock.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 class TestDuck : public Duck
@@ -21,18 +22,17 @@ TEST(TestMockFliesCount, OneFlyNoQuack)
 	auto mockFly = std::make_unique<FlyMock>();
 	auto mockQuack = std::make_unique<QuackMock>();
 
-	const auto* fly = mockFly.get();
-	const auto* quack = mockQuack.get();
+	auto* fly = mockFly.get();
+	auto* quack = mockQuack.get();
 
 	const TestDuck duck(
 		std::move(mockFly),
 		std::move(mockQuack),
 		std::make_unique<DanceWaltz>());
+	EXPECT_CALL(*fly, Fly()).Times(1);
+	EXPECT_CALL(*quack, Quack()).Times(0);
 
 	duck.Fly();
-
-	EXPECT_EQ(fly->GetCount(), 1);
-	EXPECT_EQ(quack->GetCount(), 0);
 }
 
 TEST(TestMockFliesCount, TwoFliesOneQuack)
@@ -40,19 +40,18 @@ TEST(TestMockFliesCount, TwoFliesOneQuack)
 	auto mockFly = std::make_unique<FlyMock>();
 	auto mockQuack = std::make_unique<QuackMock>();
 
-	const auto* fly = mockFly.get();
-	const auto* quack = mockQuack.get();
+	auto* fly = mockFly.get();
+	auto* quack = mockQuack.get();
 
 	const TestDuck duck(
 		std::move(mockFly),
 		std::move(mockQuack),
 		std::make_unique<DanceWaltz>());
+	EXPECT_CALL(*fly, Fly()).Times(2);
+	EXPECT_CALL(*quack, Quack()).Times(1);
 
 	duck.Fly();
 	duck.Fly();
-
-	EXPECT_EQ(fly->GetCount(), 2);
-	EXPECT_EQ(quack->GetCount(), 1);
 }
 
 TEST(TestMockFliesCount, ThreeFliesOneQuack)
@@ -60,20 +59,19 @@ TEST(TestMockFliesCount, ThreeFliesOneQuack)
 	auto mockFly = std::make_unique<FlyMock>();
 	auto mockQuack = std::make_unique<QuackMock>();
 
-	const auto* fly = mockFly.get();
-	const auto* quack = mockQuack.get();
+	auto* fly = mockFly.get();
+	auto* quack = mockQuack.get();
 
 	const TestDuck duck(
 		std::move(mockFly),
 		std::move(mockQuack),
 		std::make_unique<DanceWaltz>());
+	EXPECT_CALL(*fly, Fly()).Times(3);
+	EXPECT_CALL(*quack, Quack()).Times(1);
 
 	duck.Fly();
 	duck.Fly();
 	duck.Fly();
-
-	EXPECT_EQ(fly->GetCount(), 3);
-	EXPECT_EQ(quack->GetCount(), 1);
 }
 
 TEST(TestMockFliesCount, FourFliesTwoQuack)
@@ -81,19 +79,18 @@ TEST(TestMockFliesCount, FourFliesTwoQuack)
 	auto mockFly = std::make_unique<FlyMock>();
 	auto mockQuack = std::make_unique<QuackMock>();
 
-	const auto* fly = mockFly.get();
-	const auto* quack = mockQuack.get();
+	auto* fly = mockFly.get();
+	auto* quack = mockQuack.get();
 
 	const TestDuck duck(
 		std::move(mockFly),
 		std::move(mockQuack),
 		std::make_unique<DanceWaltz>());
+	EXPECT_CALL(*fly, Fly()).Times(4);
+	EXPECT_CALL(*quack, Quack()).Times(2);
 
 	duck.Fly();
 	duck.Fly();
 	duck.Fly();
 	duck.Fly();
-
-	EXPECT_EQ(fly->GetCount(), 4);
-	EXPECT_EQ(quack->GetCount(), 2);
 }

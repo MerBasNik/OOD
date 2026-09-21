@@ -72,7 +72,7 @@ private:
 
 	static bool NeedDoAction(const int fliesCount)
 	{
-		return fliesCount == 3;
+		return fliesCount % 2 == 0;
 	};
 };
 

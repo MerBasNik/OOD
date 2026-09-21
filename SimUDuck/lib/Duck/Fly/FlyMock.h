@@ -6,25 +6,12 @@
 #define OOD_FLYMOCK_H
 #include "IFlyBehavior.h"
 
+#include <gmock/gmock.h>
+
 class FlyMock : public IFlyBehavior
 {
 public:
-	void Fly() const
-	{
-		m_count++;
-	}
-
-	void IncrementCount() const
-	{
-		m_count++;
-	}
-
-	int GetCount() const override
-	{
-		return m_count;
-	}
-private:
-	mutable int m_count = 0;
+	MOCK_METHOD(void, Fly, (), (override));
 };
 
 #endif // OOD_FLYMOCK_H
