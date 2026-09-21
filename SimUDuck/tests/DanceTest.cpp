@@ -5,8 +5,8 @@
 #include "DanceMock.h"
 #include "MallardDuck.h"
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 class TestDuck : public Duck
 {
@@ -24,10 +24,9 @@ TEST(TestMockDance, NoDance)
 		std::make_unique<FlyWithWings>(),
 		std::make_unique<QuackBehavior>(),
 		std::move(mockDance));
+	EXPECT_CALL(*dance, Dance()).Times(0);
 
 	duck.Quack();
-
-	EXPECT_CALL(*dance, Dance()).Times(0);
 }
 
 TEST(TestMockDance, DanceOneTime)
@@ -39,10 +38,9 @@ TEST(TestMockDance, DanceOneTime)
 		std::make_unique<FlyWithWings>(),
 		std::make_unique<QuackBehavior>(),
 		std::move(mockDance));
+	EXPECT_CALL(*dance, Dance()).Times(1);
 
 	duck.Dance();
-
-	EXPECT_CALL(*dance, Dance()).Times(1);
 }
 
 TEST(TestMockDance, DanceTwoTime)
@@ -54,9 +52,8 @@ TEST(TestMockDance, DanceTwoTime)
 		std::make_unique<FlyWithWings>(),
 		std::make_unique<QuackBehavior>(),
 		std::move(mockDance));
-
-	duck.Dance();
-	duck.Dance();
-
 	EXPECT_CALL(*dance, Dance()).Times(2);
+
+	duck.Dance();
+	duck.Dance();
 }
