@@ -4,13 +4,11 @@
 
 #ifndef OOD_CANVAS_H
 #define OOD_CANVAS_H
+#include "ICanvas.h"
 
-
-
-class Canvas {
+class Canvas : public ICanvas
+{
 
 };
-
-
 
 #endif //OOD_CANVAS_H
