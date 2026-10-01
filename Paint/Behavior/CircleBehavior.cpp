@@ -4,30 +4,41 @@
 
 #include "CircleBehavior.h"
 
+#include <sstream>
+#include <iomanip>
 #include <iostream>
-#include <ostream>
 
-CircleBehavior::~CircleBehavior()
+CircleBehavior::CircleBehavior(const Point position, const double radius)
+	: m_position(position), m_radius(radius)
 {
-	std::cout << "delete circle behavior" << std::endl;
 }
 
-void CircleBehavior::Draw(ICanvas& canvas, Color color)
+void CircleBehavior::Draw(ICanvas& canvas, const Color color) const
 {
+	canvas.SetColor(color);
 	std::cout << "draw circle behavior" << std::endl;
 }
 
-std::string CircleBehavior::GetInfo()
+std::string CircleBehavior::GetInfo() const
 {
-	return "circle behavior";
+	std::ostringstream output;
+	output << std::fixed << std::setprecision(2)
+		<< m_position.m_x << " " << m_position.m_y << " " << m_radius;
+	return output.str();
 }
 
-std::string CircleBehavior::GetName()
+std::string CircleBehavior::GetName() const
 {
 	return "circle";
 }
 
 void CircleBehavior::Move(const Point position)
 {
-	m_position = position;
+	m_position.m_x += position.m_x;
+	m_position.m_y += position.m_y;
+}
+
+std::unique_ptr<IShapeBehavior> CircleBehavior::Clone() const
+{
+	return std::make_unique<CircleBehavior>(*this);
 }

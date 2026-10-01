@@ -14,10 +14,11 @@ class IShapeBehavior
 {
 public:
 	virtual ~IShapeBehavior() = default;
-	virtual void Move(Point position);
-	virtual void Draw(ICanvas& canvas, Color color);
-	virtual std::string GetInfo();
-	virtual std::string GetName();
+	virtual void Move(Point position) = 0;
+	virtual void Draw(ICanvas& canvas, Color color) const = 0;
+	virtual std::string GetInfo() const = 0;
+	virtual std::string GetName() const = 0;
+	virtual std::unique_ptr<IShapeBehavior> Clone() const = 0;
 };
 
 

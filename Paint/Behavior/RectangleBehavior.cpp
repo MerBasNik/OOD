@@ -3,29 +3,41 @@
 //
 
 #include "RectangleBehavior.h"
+#include <sstream>
+#include <iomanip>
 #include <iostream>
 
-RectangleBehavior::~RectangleBehavior()
+RectangleBehavior::RectangleBehavior(const Point position, const double width, const double height)
+	: m_position(position), m_width(width), m_height(height)
 {
-	std::cout << "delete rectangle behavior" << std::endl;
 }
 
-void RectangleBehavior::Draw(ICanvas& canvas, Color color)
+void RectangleBehavior::Draw(ICanvas& canvas, const Color color) const
 {
+	canvas.SetColor(color);
 	std::cout << "draw rectangle behavior" << std::endl;
 }
 
-std::string RectangleBehavior::GetName()
+std::string RectangleBehavior::GetName() const
 {
 	return "rectangle";
 }
 
-std::string RectangleBehavior::GetInfo()
+std::string RectangleBehavior::GetInfo() const
 {
-	return "rectangle behavior";
+	std::ostringstream output;
+	output << std::fixed << std::setprecision(2)
+		<< m_position.m_x << " " << m_position.m_y;
+	return output.str();
 }
 
-void RectangleBehavior::Move(Point position)
+void RectangleBehavior::Move(const Point position)
 {
-	m_position = position;
+	m_position.m_x += position.m_x;
+	m_position.m_y += position.m_y;
+}
+
+std::unique_ptr<IShapeBehavior> RectangleBehavior::Clone() const
+{
+	return std::make_unique<RectangleBehavior>(*this);
 }

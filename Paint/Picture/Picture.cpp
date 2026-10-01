@@ -17,34 +17,32 @@ void Picture::AddShape(std::unique_ptr<IShape> shape)
 	m_shapes.push_back(std::move(shape));
 }
 
-IShape Picture::GetShape(const std::string& id) const
+IShape* Picture::GetShape(const std::string& id)
 {
-	for (const auto &it : m_shapes)
+	for (const auto &shape : m_shapes)
 	{
-		if (it->GetId() == id)
+		if (shape->GetId() == id)
 		{
-			return *it;
+			return shape.get();
 		}
 	}
-	return {};
+	return nullptr;
 }
 
-void Picture::MoveShape(const std::string& id, const Point position) const
+void Picture::MoveShape(const std::string& id, const Point position)
 {
-	for (const auto &it : m_shapes)
+	auto* shape = GetShape(id);
+	if (shape != nullptr)
 	{
-		if (it->GetId() == id)
-		{
-			it->Move(position);
-		}
+		shape->Move(position);
 	}
 }
 
-void Picture::MovePicture(const Point position) const
+void Picture::MovePicture(const Point position)
 {
-	for (const auto &it : m_shapes)
+	for (const auto &shape : m_shapes)
 	{
-		it->Move(position);
+		shape->Move(position);
 	}
 }
 
@@ -59,36 +57,30 @@ void Picture::DeleteShape(const std::string& id)
 	}
 }
 
-void Picture::ChangeColor(const std::string& id, const Color color) const
+void Picture::ChangeColor(const std::string& id, const Color color)
 {
-	for (const auto &it : m_shapes)
+	auto* shape = GetShape(id);
+	if (shape != nullptr)
 	{
-		if (it->GetId() == id)
-		{
-			it->ChangeColor(color);
-		}
+		shape->ChangeColor(color);
 	}
 }
 
 void Picture::ChangeShape(const std::string& id, std::unique_ptr<IShapeBehavior>& newBehavior)
 {
-	for (const auto &it : m_shapes)
+	auto* shape = GetShape(id);
+	if (shape != nullptr)
 	{
-		// if (it->GetId() == id)
-		// {
-		// 	it->ChangeBehavior(newBehavior);
-		// }
+		shape->ChangeBehavior(std::move(newBehavior));
 	}
 }
 
 void Picture::DrawShape(const std::string& id, ICanvas& canvas) const
 {
-	for (const auto &it : m_shapes)
+	const auto* shape = GetShape(id);
+	if (shape != nullptr)
 	{
-		if (it->GetId() == id)
-		{
-			it->Draw(canvas);
-		}
+		shape->Draw(canvas);
 	}
 }
 
@@ -102,13 +94,17 @@ void Picture::DrawPicture(ICanvas& canvas) const
 
 void Picture::List() const
 {
-	for (const auto &it : m_shapes)
+	for (size_t i = 0; i < m_shapes.size(); i++)
 	{
-		PrintShape(*it);
+		PrintShape(i + 1, *m_shapes[i]);
 	}
 }
 
-void Picture::PrintShape(IShape& shape) const
+void Picture::PrintShape(const size_t index, const IShape& shape)
 {
-	std::cout << shape.GetId() << std::endl;
+	std::cout << index << " "
+		<< shape.GetName() << " "
+		<< shape.GetId() << " "
+		<< shape.GetColor().ToString() << " "
+		<< shape.GetInfo() << std::endl;
 }

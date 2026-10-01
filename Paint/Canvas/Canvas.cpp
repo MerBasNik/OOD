@@ -20,9 +20,14 @@ void Canvas::SetColor(Color color)
 	std::cout << "Set color in canvas" << std::endl;
 }
 
-void Canvas::MoveTop(Point position)
+void Canvas::MoveTo(Point position)
 {
-	std::cout << "Move top in canvas" << std::endl;
+	std::cout << "Move to in canvas" << std::endl;
+}
+
+void Canvas::LineTo(Point position)
+{
+	std::cout << "Line to in canvas" << std::endl;
 }
 
 void Canvas::DrawEllipse(Point position, Point newPosition)

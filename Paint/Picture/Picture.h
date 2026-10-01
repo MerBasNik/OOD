@@ -12,20 +12,20 @@ class Picture
 public:
 	Picture();
 	void AddShape(std::unique_ptr<IShape> shape);
-	IShape GetShape(const std::string &id) const;
-	void MoveShape(const std::string& id, Point position)const;
-	void MovePicture(Point position)const;
+	IShape* GetShape(const std::string &id);
+	void MoveShape(const std::string& id, Point position);
+	void MovePicture(Point position);
 	void DeleteShape(const std::string& id);
-	void ChangeColor(const std::string& id, Color color)const;
+	void ChangeColor(const std::string& id, Color color);
 	void ChangeShape(const std::string& id, std::unique_ptr<IShapeBehavior>& newBehavior);
-	void DrawShape(const std::string& id, ICanvas& canvas)const;
-	void DrawPicture(ICanvas& canvas)const;
+	void DrawShape(const std::string& id, ICanvas& canvas )const;
+	void DrawPicture(ICanvas& canvas) const;
 	void List() const;
 
 private:
 	std::vector<std::unique_ptr<IShape>> m_shapes;
 
-	void PrintShape(IShape& shape)const;
+	static void PrintShape(size_t, const IShape& shape) ;
 };
 
 #endif //OOD_PICTURE_H

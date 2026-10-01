@@ -5,29 +5,36 @@
 #include "TriangleBehavior.h"
 #include <iostream>
 
-TriangleBehavior::~TriangleBehavior()
+TriangleBehavior::TriangleBehavior(Point v1, Point v2, Point v3)
+	: m_v1(v1), m_v2(v2), m_v3(v3)
 {
-	std::cout << "delete trangle behavior" << std::endl;
 }
 
-void TriangleBehavior::Draw(ICanvas& canvas, Color color)
+void TriangleBehavior::Draw(ICanvas& canvas, const Color color) const
 {
+	canvas.SetColor(color);
 	std::cout << "draw triangle behavior" << std::endl;
 }
 
-std::string TriangleBehavior::GetName()
+std::string TriangleBehavior::GetName() const
 {
 	return "triangle";
 }
 
-std::string TriangleBehavior::GetInfo()
+std::string TriangleBehavior::GetInfo() const
 {
 	return "triangle behavior";
 }
 
-void TriangleBehavior::Move(Point position)
+void TriangleBehavior::Move(const Point position)
 {
-	m_v1 = position;
-	m_v2 = position;
-	m_v3 = position;
+	MoveVertex(m_v1, position);
+	MoveVertex(m_v2, position);
+	MoveVertex(m_v3, position);
+}
+
+void TriangleBehavior::MoveVertex(Point& vertex, const Point position)
+{
+	vertex.m_x += position.m_x;
+	vertex.m_y += position.m_y;
 }

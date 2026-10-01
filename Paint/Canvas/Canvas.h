@@ -12,7 +12,8 @@ public:
 	Canvas();
 	~Canvas() override;
 	void SetColor(Color color) override;
-	void MoveTop(Point position) override;
+	void MoveTo(Point position) override;
+	void LineTo(Point position) override;
 	void DrawEllipse(Point position, Point newPosition) override;
 	void DrawText(Point position, double fontSize, std::string& text) override;
 };
