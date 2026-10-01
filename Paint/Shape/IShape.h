@@ -10,13 +10,16 @@ class IShape
 {
 public:
 	virtual ~IShape() = default;
-	virtual void Shape(const std::string& id, Color color, std::unique_ptr<IShapeBehavior> behavior);
-	virtual std::string GetId();
-	virtual Color GetColor();
-	virtual void ChangeColor(Color color);
-	virtual void Move(Point position);
-	virtual void Draw(ICanvas& canvas);
+	virtual std::string GetId() const = 0;
+	virtual Color GetColor() const = 0;
+	virtual std::string GetName() const = 0;
+	virtual std::string GetInfo() const = 0;
+	virtual void ChangeColor(Color color) = 0;
+	virtual void Move(Point position) = 0;
+	virtual void Draw(ICanvas& canvas) const = 0;
 	virtual void ChangeBehavior(std::unique_ptr<IShapeBehavior> newBehavior);
+
+	virtual std::unique_ptr<IShape> Clone() const = 0;
 };
 
 #endif //OOD_ISHAPE_H

@@ -9,14 +9,17 @@
 class Shape : public IShape
 {
 public:
-	~Shape() override;
+	~Shape() override = default;
 	Shape(const std::string &id, Color color, std::unique_ptr<IShapeBehavior> behavior);
-	std::string GetId() override;
-	Color GetColor() override;
+	std::string GetId() const override;
+	Color GetColor() const override;
+	std::string GetName() const override;
+	std::string GetInfo() const override;
 	void ChangeColor(Color color) override;
 	void Move(Point position) override;
-	void Draw(ICanvas& canvas) override;
+	void Draw(ICanvas& canvas) const override;
 	void ChangeBehavior(std::unique_ptr<IShapeBehavior> newBehavior) override;
+	std::unique_ptr<IShape> Clone() const override;
 
 private:
 	std::string m_id;

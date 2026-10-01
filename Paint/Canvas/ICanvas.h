@@ -4,7 +4,7 @@
 
 #ifndef OOD_ICANVAS_H
 #define OOD_ICANVAS_H
-#include "Color.h"
+#include "../Lib/Color/Color.h"
 #include "Point.h"
 
 class ICanvas

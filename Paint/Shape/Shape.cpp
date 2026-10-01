@@ -14,19 +14,24 @@ Shape::Shape(
 {
 }
 
-Shape::~Shape()
-{
-	delete m_behavior.get();
-}
-
-std::string Shape::GetId()
+std::string Shape::GetId() const
 {
 	return m_id;
 }
 
-Color Shape::GetColor()
+Color Shape::GetColor() const
 {
 	return m_color;
+}
+
+std::string Shape::GetName() const
+{
+	return m_behavior->GetName();
+}
+
+std::string Shape::GetInfo() const
+{
+	return m_behavior->GetInfo();
 }
 
 void Shape::ChangeColor(const Color color)
@@ -34,17 +39,22 @@ void Shape::ChangeColor(const Color color)
 	m_color = color;
 }
 
-void Shape::Move(Point position)
+void Shape::Move(const Point position)
 {
-
+	m_behavior->Move(position);
 }
 
-void Shape::Draw(ICanvas& canvas)
+void Shape::Draw(ICanvas& canvas) const
 {
-
+	m_behavior->Draw(canvas, m_color);
 }
 
 void Shape::ChangeBehavior(std::unique_ptr<IShapeBehavior> newBehavior)
 {
 	m_behavior = std::move(newBehavior);
+}
+
+std::unique_ptr<IShape> Shape::Clone() const
+{
+	return std::make_unique<Shape>(m_id, m_color, std::move(m_behavior));
 }
