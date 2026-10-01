@@ -3,6 +3,8 @@
 //
 
 #include "TriangleBehavior.h"
+#include <sstream>
+#include <iomanip>
 #include <iostream>
 
 TriangleBehavior::TriangleBehavior(Point v1, Point v2, Point v3)
@@ -23,7 +25,10 @@ std::string TriangleBehavior::GetName() const
 
 std::string TriangleBehavior::GetInfo() const
 {
-	return "triangle behavior";
+	std::ostringstream output;
+	output << std::fixed << std::setprecision(2)
+		<< m_v1.m_x << " " << m_v1.m_y << " " << m_v2.m_x << " " << m_v2.m_y << " " << m_v3.m_x << " " << m_v3.m_y;
+	return output.str();
 }
 
 void TriangleBehavior::Move(const Point position)

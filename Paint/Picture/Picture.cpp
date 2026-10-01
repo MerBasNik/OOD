@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <ostream>
+#include <set>
 
 Picture::Picture()
 	: m_shapes()
@@ -17,7 +18,7 @@ void Picture::AddShape(std::unique_ptr<IShape> shape)
 	m_shapes.push_back(std::move(shape));
 }
 
-IShape* Picture::GetShape(const std::string& id)
+IShape* Picture::GetShape(const std::string& id) const
 {
 	for (const auto &shape : m_shapes)
 	{
@@ -48,13 +49,9 @@ void Picture::MovePicture(const Point position)
 
 void Picture::DeleteShape(const std::string& id)
 {
-	for (const auto &it : m_shapes)
-	{
-		if (it->GetId() == id)
-		{
-			m_shapes.erase(m_shapes.begin(), m_shapes.begin() + 1);
-		}
-	}
+	std::erase_if(m_shapes, [&id](const auto& shape) {
+		return shape->GetId() == id;
+	});
 }
 
 void Picture::ChangeColor(const std::string& id, const Color color)
