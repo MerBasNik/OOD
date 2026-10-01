@@ -12,13 +12,13 @@ class Picture
 public:
 	Picture();
 	void AddShape(std::unique_ptr<IShape> shape);
-	IShape GetShape(std::string id);
-	void MoveShape(std::string id, Point position);
+	IShape GetShape(const std::string &id) const;
+	void MoveShape(const std::string& id, Point position);
 	void MovePicture(Point position);
-	void DeleteShape(std::string id);
-	void ChangeColor(std::string id, Color color);
-	void ChangeShape(std::string id, std::unique_ptr<IShapeBehavior> newBehavior);
-	void DrawShape(std::string id, ICanvas& canvas);
+	void DeleteShape(const std::string& id);
+	void ChangeColor(const std::string& id, Color color);
+	void ChangeShape(const std::string& id, std::unique_ptr<IShapeBehavior> newBehavior);
+	void DrawShape(const std::string& id, ICanvas& canvas);
 	void DrawPicture(ICanvas& canvas);
 	void List();
 

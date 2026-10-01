@@ -10,7 +10,7 @@ class IShape
 {
 public:
 	virtual ~IShape() = default;
-	virtual void Shape(std::string id, Color color, std::unique_ptr<IShapeBehavior> behavior);
+	virtual void Shape(const std::string& id, Color color, std::unique_ptr<IShapeBehavior> behavior);
 	virtual std::string GetId();
 	virtual Color GetColor();
 	virtual void ChangeColor(Color color);

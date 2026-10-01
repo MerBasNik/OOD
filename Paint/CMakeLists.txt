@@ -1,5 +1,7 @@
 add_executable(Paint
         main.cpp
+        Shape/Shape.cpp
+        Picture/Picture.cpp
 )
 
 target_include_directories(Paint PUBLIC

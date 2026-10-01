@@ -10,7 +10,7 @@ class Shape : public IShape
 {
 public:
 	~Shape() override;
-	void Shape(std::string id, Color color, std::unique_ptr<IShapeBehavior> behavior) override;
+	Shape(const std::string &id, Color color, std::unique_ptr<IShapeBehavior> behavior);
 	std::string GetId() override;
 	Color GetColor() override;
 	void ChangeColor(Color color) override;

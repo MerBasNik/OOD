@@ -11,7 +11,7 @@ class ICanvas
 {
 public:
 	virtual ~ICanvas() = default;
-	virtual void SetColor(Color c);
+	virtual void SetColor(Color color);
 	virtual void MoveTop(Point position);
 	virtual void DrawEllipse(Point position, Point newPosition);
 	virtual void DrawText(Point position, double fontSize, std::string& text);
