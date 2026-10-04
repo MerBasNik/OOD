@@ -22,8 +22,7 @@ void CircleBehavior::Draw(ICanvas& canvas, const Color color) const
 std::string CircleBehavior::GetInfo() const
 {
 	std::ostringstream output;
-	output << std::fixed << std::setprecision(2)
-		<< m_position.m_x << " " << m_position.m_y << " " << m_radius;
+	output << m_position.m_x << " " << m_position.m_y << " " << m_radius;
 	return output.str();
 }
 

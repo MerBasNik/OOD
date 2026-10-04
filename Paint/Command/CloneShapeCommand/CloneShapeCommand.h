@@ -2,14 +2,14 @@
 // Created by Вадим Патрушев on 04.10.2026.
 //
 
-#ifndef OOD_CLONECOMMAND_H
-#define OOD_CLONECOMMAND_H
+#ifndef OOD_CLONESHAPECOMMAND_H
+#define OOD_CLONESHAPECOMMAND_H
 #include "Command/ICommand.h"
 
-class CloneCommand : public ICommand
+class CloneShapeCommand : public ICommand
 {
 public:
-	CloneCommand(std::stringstream& input);
+	CloneShapeCommand(std::stringstream& input);
 	void Execute(Picture& picture, ICanvas& canvas) override;
 
 private:
@@ -17,4 +17,4 @@ private:
 	std::string m_newId;
 };
 
-#endif //OOD_CLONECOMMAND_H
+#endif //OOD_CLONESHAPECOMMAND_H

@@ -2,16 +2,14 @@
 // Created by Вадим Патрушев on 04.10.2026.
 //
 
-#ifndef OOD_CHANGECOLOR_H
-#define OOD_CHANGECOLOR_H
+#ifndef OOD_CHANGECOLORCOMMAND_H
+#define OOD_CHANGECOLORCOMMAND_H
 #include "Command/ICommand.h"
 
-
-
-class ChangeColor : public ICommand
+class ChangeColorCommand : public ICommand
 {
 public:
-	ChangeColor(std::stringstream& input);
+	ChangeColorCommand(std::stringstream& input);
 	void Execute(Picture& picture, ICanvas& canvas) override;
 
 private:
@@ -19,6 +17,4 @@ private:
 	Color m_color;
 };
 
-
-
-#endif //OOD_CHANGECOLOR_H
+#endif //OOD_CHANGECOLORCOMMAND_H

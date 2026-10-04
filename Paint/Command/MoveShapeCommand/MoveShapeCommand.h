@@ -2,8 +2,8 @@
 // Created by Вадим Патрушев on 04.10.2026.
 //
 
-#ifndef OOD_MOVECOMMAND_H
-#define OOD_MOVECOMMAND_H
+#ifndef OOD_MOVESHAPECOMMAND_H
+#define OOD_MOVESHAPECOMMAND_H
 
 #include "../ICommand.h"
 #include "Shape.h"
@@ -20,4 +20,4 @@ private:
 	double m_dy;
 };
 
-#endif //OOD_MOVECOMMAND_H
+#endif //OOD_MOVESHAPECOMMAND_H

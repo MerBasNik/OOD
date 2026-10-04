@@ -2,10 +2,10 @@
 // Created by Вадим Патрушев on 04.10.2026.
 //
 
-#include "DrawCommand.h"
+#include "DrawShapeCommand.h"
 #include <sstream>
 
-DrawCommand::DrawCommand(std::stringstream& input)
+DrawShapeCommand::DrawShapeCommand(std::stringstream& input)
 {
 	if (!(input >> m_id))
 	{
@@ -13,7 +13,7 @@ DrawCommand::DrawCommand(std::stringstream& input)
 	}
 }
 
-void DrawCommand::Execute(Picture& picture, ICanvas& canvas)
+void DrawShapeCommand::Execute(Picture& picture, ICanvas& canvas)
 {
 	picture.DrawShape(m_id, canvas);
 }

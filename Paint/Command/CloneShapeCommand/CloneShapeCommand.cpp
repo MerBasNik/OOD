@@ -2,10 +2,10 @@
 // Created by Вадим Патрушев on 04.10.2026.
 //
 
-#include "CloneCommand.h"
+#include "CloneShapeCommand.h"
 #include <sstream>
 
-CloneCommand::CloneCommand(std::stringstream& input)
+CloneShapeCommand::CloneShapeCommand(std::stringstream& input)
 {
 	if (!(input >> m_id >> m_newId))
 	{
@@ -13,7 +13,7 @@ CloneCommand::CloneCommand(std::stringstream& input)
 	}
 }
 
-void CloneCommand::Execute(Picture& picture, ICanvas& canvas)
+void CloneShapeCommand::Execute(Picture& picture, ICanvas& canvas)
 {
 	auto* shape = picture.GetShape(m_id);
 	if (!shape)

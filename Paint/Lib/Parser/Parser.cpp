@@ -3,15 +3,15 @@
 //
 
 #include "Parser.h"
-#include "Command/AddCommand/AddCommand.h"
-#include "Command/ChangeColor/ChangeColor.h"
-#include "Command/ChangeCommand/ChangeCommand.h"
-#include "Command/CloneCommand/CloneCommand.h"
-#include "Command/DeleteCommand/DeleteCommand.h"
-#include "Command/DrawCommand/DrawCommand.h"
+#include "Command/AddShapeCommand/AddShapeCommand.h"
+#include "Command/ChangeColorCommand/ChangeColorCommand.h"
+#include "Command/ChangeShapeCommand/ChangeShapeCommand.h"
+#include "Command/CloneShapeCommand/CloneShapeCommand.h"
+#include "Command/DeleteShapeCommand/DeleteShapeCommand.h"
+#include "Command/DrawShapeCommand/DrawShapeCommand.h"
 #include "Command/DrawPictureCommand/DrawPictureCommand.h"
 #include "Command/ListCommand/ListCommand.h"
-#include "Command/MoveCommand/MoveCommand.h"
+#include "Command/MoveShapeCommand/MoveShapeCommand.h"
 #include "Command/MovePictureCommand/MovePictureCommand.h"
 #include <sstream>
 #include <string>
@@ -22,7 +22,7 @@ std::unique_ptr<ICommand> Parser::ParseCommand(std::stringstream& input)
 	input >> command;
 	if (command == "AddShape")
 	{
-		return std::make_unique<AddCommand>(input);
+		return std::make_unique<AddShapeCommand>(input);
 	}
 	if (command == "MoveShape")
 	{
@@ -34,19 +34,19 @@ std::unique_ptr<ICommand> Parser::ParseCommand(std::stringstream& input)
 	}
 	if (command == "ChangeShape")
 	{
-		return std::make_unique<ChangeCommand>(input);
+		return std::make_unique<ChangeShapeCommand>(input);
 	}
 	if (command == "ChangeColor")
 	{
-		return std::make_unique<ChangeColor>(input);
+		return std::make_unique<ChangeColorCommand>(input);
 	}
 	if (command == "DeleteShape")
 	{
-		return std::make_unique<DeleteCommand>(input);
+		return std::make_unique<DeleteShapeCommand>(input);
 	}
 	if (command == "DrawShape")
 	{
-		return std::make_unique<DrawCommand>(input);
+		return std::make_unique<DrawShapeCommand>(input);
 	}
 	if (command == "DrawPicture")
 	{
@@ -58,7 +58,7 @@ std::unique_ptr<ICommand> Parser::ParseCommand(std::stringstream& input)
 	}
 	if (command == "CloneShape")
 	{
-		return std::make_unique<CloneCommand>(input);
+		return std::make_unique<CloneShapeCommand>(input);
 	}
 
 	throw std::invalid_argument("undefined command: " + command);

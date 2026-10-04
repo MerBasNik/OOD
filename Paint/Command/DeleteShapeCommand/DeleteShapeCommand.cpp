@@ -2,10 +2,10 @@
 // Created by Вадим Патрушев on 04.10.2026.
 //
 
-#include "DeleteCommand.h"
+#include "DeleteShapeCommand.h"
 #include <sstream>
 
-DeleteCommand::DeleteCommand(std::stringstream& input)
+DeleteShapeCommand::DeleteShapeCommand(std::stringstream& input)
 {
 	if (!(input >> m_id))
 	{
@@ -13,7 +13,7 @@ DeleteCommand::DeleteCommand(std::stringstream& input)
 	}
 }
 
-void DeleteCommand::Execute(Picture& picture, ICanvas& canvas)
+void DeleteShapeCommand::Execute(Picture& picture, ICanvas& canvas)
 {
 	if (!picture.GetShape(m_id))
 	{

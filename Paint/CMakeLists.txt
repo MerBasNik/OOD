@@ -9,13 +9,13 @@ add_executable(Paint
         Behavior/RectangleBehavior.cpp
         Behavior/TriangleBehavior.cpp
         Behavior/TextBehavior.cpp
-        Command/AddCommand/AddCommand.cpp
-        Command/ChangeColor/ChangeColor.cpp
-        Command/DrawCommand/DrawCommand.cpp
-        Command/CloneCommand/CloneCommand.cpp
-        Command/ChangeCommand/ChangeCommand.cpp
-        Command/DeleteCommand/DeleteCommand.cpp
-        Command/MoveCommand/MoveCommand.cpp
+        Command/AddShapeCommand/AddShapeCommand.cpp
+        Command/ChangeColorCommand/ChangeColorCommand.cpp
+        Command/DrawShapeCommand/DrawShapeCommand.cpp
+        Command/CloneShapeCommand/CloneShapeCommand.cpp
+        Command/ChangeShapeCommand/ChangeShapeCommand.cpp
+        Command/DeleteShapeCommand/DeleteShapeCommand.cpp
+        Command/MoveShapeCommand/MoveShapeCommand.cpp
         Command/MovePictureCommand/MovePictureCommand.cpp
         Command/ListCommand/ListCommand.cpp
         Command/DrawPictureCommand/DrawPictureCommand.cpp

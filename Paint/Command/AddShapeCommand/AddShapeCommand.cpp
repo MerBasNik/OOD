@@ -2,13 +2,13 @@
 // Created by Вадим Патрушев on 04.10.2026.
 //
 
-#include "AddCommand.h"
+#include "AddShapeCommand.h"
 #include "Picture.h"
 #include "Parser/ParseBehavior.h"
 #include <sstream>
 #include <string>
 
-AddCommand::AddCommand(std::stringstream& input)
+AddShapeCommand::AddShapeCommand(std::stringstream& input)
 {
 	std::string colorStr;
 	if (!(input >> m_id >> colorStr >> m_type))
@@ -22,7 +22,7 @@ AddCommand::AddCommand(std::stringstream& input)
 	std::getline(input, m_params);
 }
 
-void AddCommand::Execute(Picture& picture, ICanvas& canvas)
+void AddShapeCommand::Execute(Picture& picture, ICanvas& canvas)
 {
 	if (picture.GetShape(m_id) != nullptr)
 	{
@@ -35,3 +35,10 @@ void AddCommand::Execute(Picture& picture, ICanvas& canvas)
 	auto shape = std::make_unique<Shape>(m_id, m_color, std::move(behavior));
 	picture.AddShape(std::move(shape));
 }
+
+// AddShape sh1 #ff00ff circle 100 110 15
+// AddShape sh2 #febb38 circle 100 200 25
+// AddShape sh3 #123456 rectangle 10 20 30 40
+// AddShape sh4 #00fefe triangle 0 0 10 0 0 10
+// AddShape sh5 #fefefe line 10 20 35 -88
+// AddShape sh6 #ffaa88 text 100.3 100.2 12.8 Hello world

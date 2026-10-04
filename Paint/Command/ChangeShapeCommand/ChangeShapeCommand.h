@@ -2,15 +2,15 @@
 // Created by Вадим Патрушев on 04.10.2026.
 //
 
-#ifndef OOD_CHANGECOMMAND_H
-#define OOD_CHANGECOMMAND_H
+#ifndef OOD_CHANGESHAPECOMMAND_H
+#define OOD_CHANGESHAPECOMMAND_H
 
 #include "Command/ICommand.h"
 
-class ChangeCommand : public ICommand
+class ChangeShapeCommand : public ICommand
 {
 public:
-	ChangeCommand(std::stringstream& input);
+	ChangeShapeCommand(std::stringstream& input);
 	void Execute(Picture& picture, ICanvas& canvas) override;
 
 private:
@@ -19,4 +19,4 @@ private:
 	std::string m_params;
 };
 
-#endif //OOD_CHANGECOMMAND_H
+#endif //OOD_CHANGESHAPECOMMAND_H

@@ -97,6 +97,6 @@ void Picture::PrintShape(const size_t index, const IShape& shape)
 	std::cout << index << ". "
 		<< shape.GetName() << " "
 		<< shape.GetId() << " "
-		<< std::format("#{:06X}", shape.GetColor()) << " "
+		<< std::format("#{:06x}", shape.GetColor()) << " "
 		<< shape.GetInfo() << std::endl;
 }

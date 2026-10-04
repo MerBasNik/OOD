@@ -26,8 +26,7 @@ std::string RectangleBehavior::GetName() const
 std::string RectangleBehavior::GetInfo() const
 {
 	std::ostringstream output;
-	output << std::fixed << std::setprecision(2)
-		<< m_position.m_x << " " << m_position.m_y;
+	output << m_position.m_x << " " << m_position.m_y;
 	return output.str();
 }
 

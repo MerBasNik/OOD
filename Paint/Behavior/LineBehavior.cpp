@@ -26,17 +26,16 @@ std::string LineBehavior::GetName() const
 std::string LineBehavior::GetInfo() const
 {
 	std::ostringstream output;
-	output << std::fixed << std::setprecision(2)
-		<< m_start.m_x << " " << m_start.m_y << " " << m_end.m_x << " " << m_end.m_y;
+	output << m_start.m_x << " " << m_start.m_y << " " << m_end.m_x << " " << m_end.m_y;
 	return output.str();
 }
 
 void LineBehavior::Move(const Point position)
 {
-	m_start.m_x = position.m_x;
-	m_start.m_y = position.m_y;
-	m_end.m_x = position.m_x;
-	m_end.m_y = position.m_y;
+	m_start.m_x += position.m_x;
+	m_start.m_y += position.m_y;
+	m_end.m_x += position.m_x;
+	m_end.m_y += position.m_y;
 }
 
 std::unique_ptr<IShapeBehavior> LineBehavior::Clone() const

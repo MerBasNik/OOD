@@ -2,16 +2,16 @@
 // Created by Вадим Патрушев on 04.10.2026.
 //
 
-#ifndef OOD_ADDCOMMAND_H
-#define OOD_ADDCOMMAND_H
+#ifndef OOD_ADDSHAPECOMMAND_H
+#define OOD_ADDSHAPECOMMAND_H
 
 #include "../ICommand.h"
 #include "Shape.h"
 
-class AddCommand : public ICommand
+class AddShapeCommand : public ICommand
 {
 public:
-	explicit AddCommand(std::stringstream& input);
+	explicit AddShapeCommand(std::stringstream& input);
 	void Execute(Picture& picture, ICanvas& canvas) override;
 
 private:
@@ -21,4 +21,4 @@ private:
 	std::string m_params;
 };
 
-#endif //OOD_ADDCOMMAND_H
+#endif //OOD_ADDSHAPECOMMAND_H

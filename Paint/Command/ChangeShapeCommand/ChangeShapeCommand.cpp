@@ -2,13 +2,11 @@
 // Created by Вадим Патрушев on 04.10.2026.
 //
 
-#include "ChangeCommand.h"
-
+#include "ChangeShapeCommand.h"
 #include "Parser/ParseBehavior.h"
-
 #include <sstream>
 
-ChangeCommand::ChangeCommand(std::stringstream& input)
+ChangeShapeCommand::ChangeShapeCommand(std::stringstream& input)
 {
 	if (!(input >> m_id >> m_type))
 	{
@@ -18,7 +16,7 @@ ChangeCommand::ChangeCommand(std::stringstream& input)
 	std::getline(input, m_params);
 }
 
-void ChangeCommand::Execute(Picture& picture, ICanvas&)
+void ChangeShapeCommand::Execute(Picture& picture, ICanvas&)
 {
 	auto* shape = picture.GetShape(m_id);
 	if (!shape)

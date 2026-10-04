@@ -26,8 +26,7 @@ std::string TriangleBehavior::GetName() const
 std::string TriangleBehavior::GetInfo() const
 {
 	std::ostringstream output;
-	output << std::fixed << std::setprecision(2)
-		<< m_v1.m_x << " " << m_v1.m_y << " " << m_v2.m_x << " " << m_v2.m_y << " " << m_v3.m_x << " " << m_v3.m_y;
+	output << m_v1.m_x << " " << m_v1.m_y << " " << m_v2.m_x << " " << m_v2.m_y << " " << m_v3.m_x << " " << m_v3.m_y;
 	return output.str();
 }
 

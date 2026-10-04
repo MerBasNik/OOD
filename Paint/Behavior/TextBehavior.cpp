@@ -26,8 +26,7 @@ std::string TextBehavior::GetName() const
 std::string TextBehavior::GetInfo() const
 {
 	std::ostringstream output;
-	output << std::fixed << std::setprecision(2)
-		<< m_position.m_x << " " << m_position.m_y << m_fontSize << " " << m_text;
+	output << m_position.m_x << " " << m_position.m_y << " " << m_fontSize << " " << m_text;
 	return output.str();
 }
 
