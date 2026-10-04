@@ -9,7 +9,7 @@ DrawShapeCommand::DrawShapeCommand(std::stringstream& input)
 {
 	if (!(input >> m_id))
 	{
-		throw std::invalid_argument("Invalid input");
+		throw std::invalid_argument("Неправильный аргумент");
 	}
 }
 

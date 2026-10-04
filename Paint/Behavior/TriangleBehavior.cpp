@@ -15,7 +15,10 @@ TriangleBehavior::TriangleBehavior(Point v1, Point v2, Point v3)
 void TriangleBehavior::Draw(ICanvas& canvas, const Color color) const
 {
 	canvas.SetColor(color);
-	std::cout << "draw triangle behavior" << std::endl;
+	canvas.MoveTo(Point{ m_v1.m_x, m_v1.m_y });
+	canvas.LineTo(Point{ m_v2.m_x, m_v2.m_y });
+	canvas.LineTo(Point{ m_v3.m_x, m_v3.m_y });
+	canvas.LineTo(Point{ m_v1.m_x, m_v1.m_y });
 }
 
 std::string TriangleBehavior::GetName() const

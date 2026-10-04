@@ -7,13 +7,13 @@
 
 MovePictureCommand::MovePictureCommand(std::stringstream& input)
 {
-	if (!(input >> m_dx >> m_dy))
+	if (!(input >> m_position.m_x >> m_position.m_y))
 	{
-		throw std::invalid_argument("Invalid AddShape syntax");
+		throw std::invalid_argument("Неправильный аргумент");
 	}
 }
 
 void MovePictureCommand::Execute(Picture& picture, ICanvas& canvas)
 {
-	picture.MovePicture(Point{ m_dx, m_dy });
+	picture.MovePicture(m_position);
 }

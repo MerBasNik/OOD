@@ -10,7 +10,7 @@ ChangeColorCommand::ChangeColorCommand(std::stringstream& input)
 	std::string colorStr;
 	if (!(input >> m_id >> colorStr))
 	{
-		throw std::invalid_argument("Invalid input");
+		throw std::invalid_argument("Неправильный аргумент");
 	}
 
 	std::stringstream colorStream(colorStr.substr(1));
@@ -22,7 +22,7 @@ void ChangeColorCommand::Execute(Picture& picture, ICanvas& canvas)
 	auto* shape = picture.GetShape(m_id);
 	if (!shape)
 	{
-		throw std::runtime_error("Shape '" + m_id + "' not found");
+		throw std::runtime_error("Фигура с id: " + m_id + " не найдена");
 	}
 
 	shape->ChangeColor(m_color);

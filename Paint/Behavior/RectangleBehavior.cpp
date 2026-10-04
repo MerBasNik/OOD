@@ -15,7 +15,14 @@ RectangleBehavior::RectangleBehavior(const Point position, const double width, c
 void RectangleBehavior::Draw(ICanvas& canvas, const Color color) const
 {
 	canvas.SetColor(color);
-	std::cout << "draw rectangle behavior" << std::endl;
+	const double right = m_position.m_x + m_width;
+	const double bottom = m_position.m_y + m_height;
+
+	canvas.MoveTo(Point{ m_position.m_x, m_position.m_y });
+	canvas.LineTo(Point{ right, m_position.m_y });
+	canvas.LineTo(Point{ right, bottom });
+	canvas.LineTo(Point{ m_position.m_x, bottom });
+	canvas.LineTo(Point{ m_position.m_x, m_position.m_y });
 }
 
 std::string RectangleBehavior::GetName() const

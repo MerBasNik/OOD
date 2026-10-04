@@ -10,7 +10,7 @@ ChangeShapeCommand::ChangeShapeCommand(std::stringstream& input)
 {
 	if (!(input >> m_id >> m_type))
 	{
-		throw std::invalid_argument("Invalid shape '" + m_id + "' found");
+		throw std::invalid_argument("Неправильный агрумент");
 	}
 
 	std::getline(input, m_params);
@@ -21,7 +21,7 @@ void ChangeShapeCommand::Execute(Picture& picture, ICanvas&)
 	auto* shape = picture.GetShape(m_id);
 	if (!shape)
 	{
-		throw std::runtime_error("Shape '" + m_id + "' not found");
+		throw std::runtime_error("Фигура с id: " + m_id + " не найдена");
 	}
 	std::stringstream paramsStream(m_params);
 	auto behavior = ParseBehavior(m_type, paramsStream);

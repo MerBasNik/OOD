@@ -10,7 +10,7 @@
 class ChangeShapeCommand : public ICommand
 {
 public:
-	ChangeShapeCommand(std::stringstream& input);
+	explicit ChangeShapeCommand(std::stringstream& input);
 	void Execute(Picture& picture, ICanvas& canvas) override;
 
 private:

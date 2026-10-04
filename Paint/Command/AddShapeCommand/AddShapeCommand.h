@@ -16,7 +16,7 @@ public:
 
 private:
 	std::string m_id;
-	Color m_color;
+	Color m_color{};
 	std::string m_type;
 	std::string m_params;
 };

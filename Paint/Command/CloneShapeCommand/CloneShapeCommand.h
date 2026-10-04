@@ -9,7 +9,7 @@
 class CloneShapeCommand : public ICommand
 {
 public:
-	CloneShapeCommand(std::stringstream& input);
+	explicit CloneShapeCommand(std::stringstream& input);
 	void Execute(Picture& picture, ICanvas& canvas) override;
 
 private:

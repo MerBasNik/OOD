@@ -9,12 +9,12 @@
 class ChangeColorCommand : public ICommand
 {
 public:
-	ChangeColorCommand(std::stringstream& input);
+	explicit ChangeColorCommand(std::stringstream& input);
 	void Execute(Picture& picture, ICanvas& canvas) override;
 
 private:
 	std::string m_id;
-	Color m_color;
+	Color m_color{};
 };
 
 #endif //OOD_CHANGECOLORCOMMAND_H

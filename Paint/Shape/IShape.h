@@ -19,7 +19,6 @@ public:
 	virtual void Move(Point position) = 0;
 	virtual void Draw(ICanvas& canvas) const = 0;
 	virtual void ChangeBehavior(std::unique_ptr<IShapeBehavior> newBehavior) = 0;
-
 	virtual std::unique_ptr<IShape> Clone() const = 0;
 };
 

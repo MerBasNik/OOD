@@ -16,7 +16,7 @@ CircleBehavior::CircleBehavior(const Point position, const double radius)
 void CircleBehavior::Draw(ICanvas& canvas, const Color color) const
 {
 	canvas.SetColor(color);
-	std::cout << "draw circle behavior" << std::endl;
+	canvas.DrawEllipse(m_position, Point{ m_radius, m_radius });
 }
 
 std::string CircleBehavior::GetInfo() const

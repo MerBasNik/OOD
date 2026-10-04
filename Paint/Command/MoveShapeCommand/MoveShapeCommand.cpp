@@ -9,9 +9,9 @@
 
 MoveShapeCommand::MoveShapeCommand(std::stringstream& input)
 {
-	if (!(input >> m_id >> m_dx >> m_dy))
+	if (!(input >> m_id >> m_position.m_x >> m_position.m_y))
 	{
-		throw std::invalid_argument("Invalid MoveShape syntax");
+		throw std::invalid_argument("Неправильный аргумент");
 	}
 }
 
@@ -20,7 +20,7 @@ void MoveShapeCommand::Execute(Picture& picture, ICanvas&)
 	auto* shape = picture.GetShape(m_id);
 	if (!shape)
 	{
-		throw std::runtime_error("Shape '" + m_id + "' not found");
+		throw std::runtime_error("Фигура с id: " + m_id + " не найдена");
 	}
-	shape->Move(Point{m_dx, m_dy});
+	shape->Move(m_position);
 }

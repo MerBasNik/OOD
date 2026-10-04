@@ -8,20 +8,25 @@
 #include <iostream>
 #include <sstream>
 
+const unsigned CANVAS_WIDTH = 800;
+const unsigned CANVAS_HEIGHT = 600;
+
 int main()
 {
-	Canvas canvas;
+	Canvas canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
 	Picture picture;
+	Parser parser;
 
 	try
 	{
-		Parser parser;
 		std::string line;
+		canvas.HandleEvents();
 		while (getline(std::cin, line))
 		{
 			std::stringstream input(line);
-			auto command = parser.ParseCommand(input);
+			const auto command = parser.ParseCommand(input);
 			command->Execute(picture, canvas);
+			canvas.Display();
 		}
 	}
 	catch (std::exception& e)

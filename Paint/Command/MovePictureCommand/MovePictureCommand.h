@@ -14,8 +14,7 @@ public:
 	void Execute(Picture& picture, ICanvas& canvas) override;
 
 private:
-	double m_dx;
-	double m_dy;
+	Point m_position{};
 };
 
 #endif //OOD_MOVEPICTURECOMMAND_H

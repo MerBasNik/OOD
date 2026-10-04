@@ -15,7 +15,8 @@ LineBehavior::LineBehavior(const Point start, const Point end)
 void LineBehavior::Draw(ICanvas& canvas, Color color) const
 {
 	canvas.SetColor(color);
-	std::cout << "draw line behavior" << std::endl;
+	canvas.MoveTo(Point{ m_start.m_x, m_start.m_y });
+	canvas.LineTo(Point{ m_end.m_x, m_end.m_y });
 }
 
 std::string LineBehavior::GetName() const

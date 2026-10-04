@@ -15,7 +15,7 @@ TextBehavior::TextBehavior(const Point position, const double fontSize, const st
 void TextBehavior::Draw(ICanvas& canvas, const Color color) const
 {
 	canvas.SetColor(color);
-	std::cout << "draw text behavior" << std::endl;
+	canvas.DrawText(m_position, m_fontSize, m_text);
 }
 
 std::string TextBehavior::GetName() const

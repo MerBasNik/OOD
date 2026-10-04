@@ -16,8 +16,7 @@ public:
 
 private:
 	std::string m_id;
-	double m_dx;
-	double m_dy;
+	Point m_position{};
 };
 
 #endif //OOD_MOVESHAPECOMMAND_H

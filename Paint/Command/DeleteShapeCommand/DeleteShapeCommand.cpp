@@ -9,7 +9,7 @@ DeleteShapeCommand::DeleteShapeCommand(std::stringstream& input)
 {
 	if (!(input >> m_id))
 	{
-		throw std::invalid_argument("Invalid input");
+		throw std::invalid_argument("Неправильный агрумент");
 	}
 }
 
@@ -17,7 +17,7 @@ void DeleteShapeCommand::Execute(Picture& picture, ICanvas& canvas)
 {
 	if (!picture.GetShape(m_id))
 	{
-		throw std::runtime_error("Shape '" + m_id + "' not found");
+		throw std::runtime_error("Фигура с id: " + m_id + " не найдена");
 	}
 	picture.DeleteShape(m_id);
 }
