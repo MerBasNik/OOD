@@ -43,3 +43,8 @@ void TriangleBehavior::MoveVertex(Point& vertex, const Point position)
 	vertex.m_x += position.m_x;
 	vertex.m_y += position.m_y;
 }
+
+std::unique_ptr<IShapeBehavior> TriangleBehavior::Clone() const
+{
+	return std::make_unique<TriangleBehavior>(*this);
+}

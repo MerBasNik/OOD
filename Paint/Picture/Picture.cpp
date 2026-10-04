@@ -3,15 +3,9 @@
 //
 
 #include "Picture.h"
-
 #include <iostream>
 #include <ostream>
 #include <set>
-
-Picture::Picture()
-	: m_shapes()
-{
-}
 
 void Picture::AddShape(std::unique_ptr<IShape> shape)
 {
@@ -91,17 +85,18 @@ void Picture::DrawPicture(ICanvas& canvas) const
 
 void Picture::List() const
 {
-	for (size_t i = 0; i < m_shapes.size(); i++)
+	unsigned count = 0;
+	for (const auto &it : m_shapes)
 	{
-		PrintShape(i + 1, *m_shapes[i]);
+		PrintShape(++count, *it);
 	}
 }
 
 void Picture::PrintShape(const size_t index, const IShape& shape)
 {
-	std::cout << index << " "
+	std::cout << index << ". "
 		<< shape.GetName() << " "
 		<< shape.GetId() << " "
-		<< shape.GetColor().ToString() << " "
+		<< std::format("#{:06X}", shape.GetColor()) << " "
 		<< shape.GetInfo() << std::endl;
 }

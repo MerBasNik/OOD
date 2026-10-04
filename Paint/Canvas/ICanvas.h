@@ -6,6 +6,7 @@
 #define OOD_ICANVAS_H
 #include "../Lib/Color/Color.h"
 #include "Point.h"
+#include <string>
 
 class ICanvas
 {

@@ -19,6 +19,11 @@ std::string Shape::GetId() const
 	return m_id;
 }
 
+void Shape::SetId(const std::string& newId)
+{
+	m_id = newId;
+}
+
 Color Shape::GetColor() const
 {
 	return m_color;
@@ -56,5 +61,6 @@ void Shape::ChangeBehavior(std::unique_ptr<IShapeBehavior> newBehavior)
 
 std::unique_ptr<IShape> Shape::Clone() const
 {
-	return std::make_unique<Shape>(m_id, m_color, std::move(m_behavior));
+	auto clonedBehavior = m_behavior ? m_behavior->Clone() : nullptr;
+	return std::make_unique<Shape>(m_id, m_color, std::move(clonedBehavior));
 }

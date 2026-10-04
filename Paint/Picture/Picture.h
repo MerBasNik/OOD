@@ -4,13 +4,14 @@
 
 #ifndef OOD_PICTURE_H
 #define OOD_PICTURE_H
+
 #include "IShape.h"
-#include <vector>
+#include <list>
 
 class Picture
 {
 public:
-	Picture();
+	Picture() = default;
 	void AddShape(std::unique_ptr<IShape> shape);
 	IShape* GetShape(const std::string &id) const;
 	void MoveShape(const std::string& id, Point position);
@@ -23,7 +24,7 @@ public:
 	void List() const;
 
 private:
-	std::vector<std::unique_ptr<IShape>> m_shapes;
+	std::list<std::unique_ptr<IShape>> m_shapes;
 
 	static void PrintShape(size_t, const IShape& shape) ;
 };

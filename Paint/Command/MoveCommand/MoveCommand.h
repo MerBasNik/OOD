@@ -1,0 +1,23 @@
+//
+// Created by Вадим Патрушев on 04.10.2026.
+//
+
+#ifndef OOD_MOVECOMMAND_H
+#define OOD_MOVECOMMAND_H
+
+#include "../ICommand.h"
+#include "Shape.h"
+
+class MoveShapeCommand : public ICommand
+{
+public:
+	explicit MoveShapeCommand(std::stringstream& input);
+	void Execute(Picture& picture, ICanvas& canvas) override;
+
+private:
+	std::string m_id;
+	double m_dx;
+	double m_dy;
+};
+
+#endif //OOD_MOVECOMMAND_H

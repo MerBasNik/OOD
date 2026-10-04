@@ -12,6 +12,7 @@ public:
 	~Shape() override = default;
 	Shape(const std::string &id, Color color, std::unique_ptr<IShapeBehavior> behavior);
 	std::string GetId() const override;
+	void SetId(const std::string& newId) override;
 	Color GetColor() const override;
 	std::string GetName() const override;
 	std::string GetInfo() const override;
