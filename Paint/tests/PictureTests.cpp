@@ -1,12 +1,12 @@
 //
 // Created by Вадим Патрушев on 05.10.2026.
 //
+
 #include "CircleBehavior.h"
 #include "LineBehavior.h"
 #include "MockCanvas.h"
 #include "Picture.h"
 #include "Shape.h"
-
 #include <SFML/Graphics/Shape.hpp>
 #include <gtest/gtest.h>
 
