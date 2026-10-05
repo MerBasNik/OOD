@@ -70,6 +70,7 @@ void Canvas::DrawAllLines()
 			sf::Vertex(line.m_a, line.m_color),
 			sf::Vertex(line.m_b, line.m_color)
 		};
+
 		m_window.draw(vertices, 2, sf::PrimitiveType::Lines);
 	}
 }
@@ -80,6 +81,7 @@ void Canvas::DrawAllEllipses()
 	{
 		const float maxRadius = std::max(static_cast<float>(ellipse.m_rx), static_cast<float>(ellipse.m_ry));
 		sf::CircleShape circle(maxRadius, COUNT_ELLIPSE_DOTS);
+
 		circle.setOrigin(sf::Vector2f(maxRadius, maxRadius));
 		circle.setPosition(sf::Vector2f(ellipse.m_cx, ellipse.m_cy));
 		circle.setScale(sf::Vector2f(static_cast<float>(ellipse.m_rx) / maxRadius,
@@ -97,15 +99,17 @@ void Canvas::DrawAllTexts()
 	for (const auto& text : m_texts)
 	{
 		sf::Text sfText(m_font);
+
 		sfText.setString(text.m_text);
 		sfText.setCharacterSize(text.m_fontSize);
 		sfText.setFillColor(text.m_color);
 		sfText.setPosition(sf::Vector2f(text.m_x, text.m_y));
+
 		m_window.draw(sfText);
 	}
 }
 
-void Canvas::HandleEvents()
+void Canvas::HandleClose()
 {
 	while (const auto event = m_window.pollEvent())
 	{
