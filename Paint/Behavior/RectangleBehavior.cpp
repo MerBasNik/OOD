@@ -23,7 +23,7 @@ void RectangleBehavior::Draw(ICanvas& canvas, const Color color) const
 	canvas.MoveTo(Point{ m_position.m_x, m_position.m_y });
 	canvas.LineTo(Point{ right, m_position.m_y });
 	canvas.LineTo(Point{ right, bottom });
-	canvas.LineTo(Point{ m_position.m_x, bottom });
+	// canvas.LineTo(Point{ m_position.m_x, bottom });
 	canvas.LineTo(Point{ m_position.m_x, m_position.m_y });
 }
 

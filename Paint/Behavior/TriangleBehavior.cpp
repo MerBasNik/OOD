@@ -19,6 +19,8 @@ void TriangleBehavior::Draw(ICanvas& canvas, const Color color) const
 	canvas.SetColor(color);
 	canvas.MoveTo(Point{ m_v1.m_x, m_v1.m_y });
 	canvas.LineTo(Point{ m_v2.m_x, m_v2.m_y });
+	// TODO почему не отрисовался треугольник??
+	//  throw std::runtime_error("Draw behavior not implemented");
 	canvas.LineTo(Point{ m_v3.m_x, m_v3.m_y });
 	canvas.LineTo(Point{ m_v1.m_x, m_v1.m_y });
 }

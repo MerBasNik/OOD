@@ -26,6 +26,7 @@ int main()
 			std::stringstream input(line);
 			const auto command = parser.ParseCommand(input);
 			command->Execute(picture, canvas);
+			// TODO перенести display canvas внутрь команд draw
 			canvas.Display();
 		}
 	}
