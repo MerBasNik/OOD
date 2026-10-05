@@ -15,74 +15,75 @@ std::unique_ptr<IShapeBehavior> ParseBehavior(const std::string& typeName, std::
 {
 	if (typeName == "circle")
 	{
-		double x;
-		double y;
+		Point pos{};
 		double radius;
-		if (!(params >> x >> y >> radius))
+		if (!(params >> pos.m_x >> pos.m_y >> radius))
 		{
-			throw std::invalid_argument("Invalid circle parameters");
+			throw std::invalid_argument("Неправильный аргумент");
 		}
 		if (radius < 0)
 		{
-			throw std::invalid_argument("Circle radius must be non-negative");
+			throw std::invalid_argument("Радиус должен быть положительным");
 		}
-		return std::make_unique<CircleBehavior>(Point{ x, y }, radius);
+		return std::make_unique<CircleBehavior>(pos, radius);
 	}
 
 	if (typeName == "rectangle")
 	{
-		double left, top, width, height;
-		if (!(params >> left >> top >> width >> height))
+		Point pos{};
+		double width;
+		double height;
+		if (!(params >> pos.m_x >> pos.m_y >> width >> height))
 		{
-			throw std::invalid_argument("Invalid rectangle parameters");
+			throw std::invalid_argument("Неправильный аргумент");
 		}
 		if (width < 0 || height < 0)
 		{
-			throw std::invalid_argument("Rectangle dimensions must be non-negative");
+			throw std::invalid_argument("Ширина и высота должны быть положительными");
 		}
-		return std::make_unique<RectangleBehavior>(Point{ left, top }, width, height);
+		return std::make_unique<RectangleBehavior>(pos, width, height);
 	}
 
 	if (typeName == "triangle")
 	{
-		double x1, y1, x2, y2, x3, y3;
-		if (!(params >> x1 >> y1 >> x2 >> y2 >> x3 >> y3))
+		Point vert1{};
+		Point vert2{};
+		Point vert3{};
+		if (!(params >> vert1.m_x >> vert1.m_y >> vert2.m_x  >> vert2.m_y  >> vert3.m_x  >> vert3.m_y ))
 		{
-			throw std::invalid_argument("Invalid triangle parameters");
+			throw std::invalid_argument("Неправильный аргумент");
 		}
-		return std::make_unique<TriangleBehavior>(
-			Point{ x1, y1 }, Point{ x2, y2 }, Point{ x3, y3 });
+		return std::make_unique<TriangleBehavior>(vert1, vert2, vert3);
 	}
 
 	if (typeName == "line")
 	{
-		double x1, y1, x2, y2;
-		if (!(params >> x1 >> y1 >> x2 >> y2))
+		Point point1{};
+		Point point2{};
+		if (!(params >> point1.m_x >> point1.m_y >> point2.m_x >> point2.m_y))
 		{
-			throw std::invalid_argument("Invalid line parameters");
+			throw std::invalid_argument("Неправильный аргумент");
 		}
-		return std::make_unique<LineBehavior>(Point{ x1, y1 }, Point{ x2, y2 });
+		return std::make_unique<LineBehavior>(point1, point2);
 	}
 
 	if (typeName == "text")
 	{
-		double left, top, fontSize;
-		if (!(params >> left >> top >> fontSize))
+		Point pos{};
+		double fontSize;
+		if (!(params >> pos.m_x >> pos.m_y >> fontSize))
 		{
-			throw std::invalid_argument("Invalid text parameters");
+			throw std::invalid_argument("Неправильный аргумент");
 		}
 		if (fontSize < 0)
 		{
-			throw std::invalid_argument("Font size must be non-negative");
+			throw std::invalid_argument("fontSize must должен быть положительным");
 		}
+
 		std::string text;
 		std::getline(params, text);
-		if (!text.empty() && text[0] == ' ')
-		{
-			text = text.substr(1);
-		}
-		return std::make_unique<TextBehavior>(Point{ left, top }, fontSize, text);
+		return std::make_unique<TextBehavior>(pos, fontSize, text);
 	}
 
-	throw std::invalid_argument("Unknown shape type: " + typeName);
+	throw std::invalid_argument("Неизвестная фигура: " + typeName);
 }

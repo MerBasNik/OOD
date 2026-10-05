@@ -1,5 +1,5 @@
 //
-// Created by Вадим Патрушев on 28.09.2026.
+// Created by Вадим Патрушев on 05.10.2026.
 //
 
 #ifndef OOD_COLOR_H
@@ -8,4 +8,4 @@
 
 using Color = uint32_t;
 
-#endif // OOD_COLOR_H
+#endif //OOD_COLOR_H

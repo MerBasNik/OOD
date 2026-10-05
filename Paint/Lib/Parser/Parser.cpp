@@ -61,5 +61,5 @@ std::unique_ptr<ICommand> Parser::ParseCommand(std::stringstream& input)
 		return std::make_unique<CloneShapeCommand>(input);
 	}
 
-	throw std::invalid_argument("undefined command: " + command);
+	throw std::invalid_argument("Неизвестная команда: " + command);
 }
