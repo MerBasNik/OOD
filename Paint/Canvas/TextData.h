@@ -5,8 +5,8 @@
 #ifndef OOD_TEXTDATA_H
 #define OOD_TEXTDATA_H
 
-#include <string>
 #include <SFML/Graphics/Color.hpp>
+#include <string>
 
 struct TextData
 {
@@ -17,4 +17,4 @@ struct TextData
 	sf::Color m_color;
 };
 
-#endif //OOD_TEXTDATA_H
+#endif // OOD_TEXTDATA_H

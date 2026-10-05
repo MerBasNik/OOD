@@ -22,7 +22,7 @@ public:
 	void MoveTo(Point position) override;
 	void LineTo(Point position) override;
 	void DrawEllipse(Point position, Point radiuses) override;
-	void DrawText(Point position, double fontSize, const std::string&text) override;
+	void DrawText(Point position, double fontSize, const std::string& text) override;
 	void Display();
 	void HandleEvents();
 
@@ -40,4 +40,4 @@ private:
 	void DrawAllTexts();
 };
 
-#endif //OOD_CANVAS_H
+#endif // OOD_CANVAS_H

@@ -17,4 +17,4 @@ private:
 	std::string m_newId;
 };
 
-#endif //OOD_CLONESHAPECOMMAND_H
+#endif // OOD_CLONESHAPECOMMAND_H

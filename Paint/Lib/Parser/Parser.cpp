@@ -8,11 +8,11 @@
 #include "Command/ChangeShapeCommand/ChangeShapeCommand.h"
 #include "Command/CloneShapeCommand/CloneShapeCommand.h"
 #include "Command/DeleteShapeCommand/DeleteShapeCommand.h"
-#include "Command/DrawShapeCommand/DrawShapeCommand.h"
 #include "Command/DrawPictureCommand/DrawPictureCommand.h"
+#include "Command/DrawShapeCommand/DrawShapeCommand.h"
 #include "Command/ListCommand/ListCommand.h"
-#include "Command/MoveShapeCommand/MoveShapeCommand.h"
 #include "Command/MovePictureCommand/MovePictureCommand.h"
+#include "Command/MoveShapeCommand/MoveShapeCommand.h"
 #include <sstream>
 #include <string>
 

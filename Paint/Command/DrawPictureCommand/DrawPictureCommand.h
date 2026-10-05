@@ -13,4 +13,4 @@ public:
 	void Execute(Picture& picture, ICanvas& canvas) override;
 };
 
-#endif //OOD_DRAWPICTURECOMMAND_H
+#endif // OOD_DRAWPICTURECOMMAND_H

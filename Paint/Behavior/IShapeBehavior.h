@@ -21,5 +21,4 @@ public:
 	virtual std::unique_ptr<IShapeBehavior> Clone() const = 0;
 };
 
-
-#endif //OOD_ISHAPEBEHAVIOR_H
+#endif // OOD_ISHAPEBEHAVIOR_H

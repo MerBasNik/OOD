@@ -21,4 +21,4 @@ private:
 	std::string m_params;
 };
 
-#endif //OOD_ADDSHAPECOMMAND_H
+#endif // OOD_ADDSHAPECOMMAND_H

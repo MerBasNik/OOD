@@ -4,11 +4,12 @@
 
 #include "LineBehavior.h"
 #include <iomanip>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 
 LineBehavior::LineBehavior(const Point start, const Point end)
-	: m_start(start), m_end(end)
+	: m_start(start)
+	, m_end(end)
 {
 }
 

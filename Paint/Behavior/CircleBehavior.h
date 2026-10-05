@@ -22,4 +22,4 @@ private:
 	double m_radius = 0;
 };
 
-#endif //OOD_CIRCLEBEHAVIOR_H
+#endif // OOD_CIRCLEBEHAVIOR_H

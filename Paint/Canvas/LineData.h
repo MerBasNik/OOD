@@ -15,4 +15,4 @@ struct LineData
 	sf::Color m_color;
 };
 
-#endif //OOD_LINESTRUCT_H
+#endif // OOD_LINESTRUCT_H

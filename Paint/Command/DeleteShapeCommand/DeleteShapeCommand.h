@@ -17,4 +17,4 @@ private:
 	std::string m_id;
 };
 
-#endif //OOD_DELETESHAPECOMMAND_H
+#endif // OOD_DELETESHAPECOMMAND_H

@@ -3,12 +3,14 @@
 //
 
 #include "TextBehavior.h"
-#include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 TextBehavior::TextBehavior(const Point position, const double fontSize, const std::string& text)
-	: m_position(position), m_fontSize(fontSize), m_text(text)
+	: m_position(position)
+	, m_fontSize(fontSize)
+	, m_text(text)
 {
 }
 

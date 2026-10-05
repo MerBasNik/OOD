@@ -4,12 +4,13 @@
 
 #include "CircleBehavior.h"
 
-#include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 CircleBehavior::CircleBehavior(const Point position, const double radius)
-	: m_position(position), m_radius(radius)
+	: m_position(position)
+	, m_radius(radius)
 {
 }
 

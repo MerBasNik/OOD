@@ -19,4 +19,4 @@ private:
 	Point m_position{};
 };
 
-#endif //OOD_MOVESHAPECOMMAND_H
+#endif // OOD_MOVESHAPECOMMAND_H

@@ -10,4 +10,4 @@
 
 std::unique_ptr<IShapeBehavior> ParseBehavior(const std::string& typeName, std::stringstream& params);
 
-#endif //OOD_PARSEBEHAVIOR_H
+#endif // OOD_PARSEBEHAVIOR_H

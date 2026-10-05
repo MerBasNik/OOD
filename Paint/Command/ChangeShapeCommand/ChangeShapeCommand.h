@@ -19,4 +19,4 @@ private:
 	std::string m_params;
 };
 
-#endif //OOD_CHANGESHAPECOMMAND_H
+#endif // OOD_CHANGESHAPECOMMAND_H

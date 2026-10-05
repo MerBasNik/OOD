@@ -14,4 +14,4 @@ public:
 	std::unique_ptr<ICommand> ParseCommand(std::stringstream& input);
 };
 
-#endif //OOD_PARSER_H
+#endif // OOD_PARSER_H

@@ -8,8 +8,8 @@
 #include "RectangleBehavior.h"
 #include "TextBehavior.h"
 #include "TriangleBehavior.h"
-#include <string>
 #include <sstream>
+#include <string>
 
 std::unique_ptr<IShapeBehavior> ParseBehavior(const std::string& typeName, std::stringstream& params)
 {
@@ -26,7 +26,7 @@ std::unique_ptr<IShapeBehavior> ParseBehavior(const std::string& typeName, std::
 		{
 			throw std::invalid_argument("Circle radius must be non-negative");
 		}
-		return std::make_unique<CircleBehavior>(Point{x, y}, radius);
+		return std::make_unique<CircleBehavior>(Point{ x, y }, radius);
 	}
 
 	if (typeName == "rectangle")
@@ -40,7 +40,7 @@ std::unique_ptr<IShapeBehavior> ParseBehavior(const std::string& typeName, std::
 		{
 			throw std::invalid_argument("Rectangle dimensions must be non-negative");
 		}
-		return std::make_unique<RectangleBehavior>(Point{left, top}, width, height);
+		return std::make_unique<RectangleBehavior>(Point{ left, top }, width, height);
 	}
 
 	if (typeName == "triangle")
@@ -51,8 +51,7 @@ std::unique_ptr<IShapeBehavior> ParseBehavior(const std::string& typeName, std::
 			throw std::invalid_argument("Invalid triangle parameters");
 		}
 		return std::make_unique<TriangleBehavior>(
-			Point{x1, y1}, Point{x2, y2}, Point{x3, y3}
-		);
+			Point{ x1, y1 }, Point{ x2, y2 }, Point{ x3, y3 });
 	}
 
 	if (typeName == "line")
@@ -62,7 +61,7 @@ std::unique_ptr<IShapeBehavior> ParseBehavior(const std::string& typeName, std::
 		{
 			throw std::invalid_argument("Invalid line parameters");
 		}
-		return std::make_unique<LineBehavior>(Point{x1, y1}, Point{x2, y2});
+		return std::make_unique<LineBehavior>(Point{ x1, y1 }, Point{ x2, y2 });
 	}
 
 	if (typeName == "text")
@@ -82,7 +81,7 @@ std::unique_ptr<IShapeBehavior> ParseBehavior(const std::string& typeName, std::
 		{
 			text = text.substr(1);
 		}
-		return std::make_unique<TextBehavior>(Point{left, top}, fontSize, text);
+		return std::make_unique<TextBehavior>(Point{ left, top }, fontSize, text);
 	}
 
 	throw std::invalid_argument("Unknown shape type: " + typeName);

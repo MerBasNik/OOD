@@ -6,7 +6,7 @@
 #include <iostream>
 
 Canvas::Canvas(unsigned int width, unsigned int height)
-	: m_window(sf::VideoMode({width, height}), "Paint")
+	: m_window(sf::VideoMode({ width, height }), "Paint")
 {
 	bool isLoad = m_font.openFromFile("/System/Library/Fonts/Supplemental/Arial.ttf");
 	if (!isLoad)
@@ -29,33 +29,26 @@ void Canvas::LineTo(const Point position)
 {
 	const auto end = sf::Vector2f(static_cast<float>(position.m_x), static_cast<float>(position.m_y));
 
-	m_lines.push_back({m_position, end, m_color});
+	m_lines.push_back({ m_position, end, m_color });
 
 	m_position = end;
 }
 
 void Canvas::DrawEllipse(const Point position, const Point radiuses)
 {
-	if (radiuses.m_x <= 0 || radiuses.m_y <= 0)
-	{
-		return;
-	}
-
 	m_ellipses.push_back({
-		static_cast<float>(position.m_x), static_cast<float>(position.m_y),
-		static_cast<float>(radiuses.m_x), static_cast<float>(radiuses.m_y),
+		static_cast<float>(position.m_x),
+		static_cast<float>(position.m_y),
+		static_cast<float>(radiuses.m_x),
+		static_cast<float>(radiuses.m_y),
 		m_color,
 	});
 }
 
-void Canvas::DrawText(Point position, double fontSize, const std::string& text)
+void Canvas::DrawText(const Point position, const double fontSize, const std::string& text)
 {
-	if (fontSize <= 0 || text.empty()) return;
-
-	m_texts.push_back({
-		static_cast<float>(position.m_x), static_cast<float>(position.m_y),
-		static_cast<unsigned>(fontSize), text, m_color
-	});
+	m_texts.push_back({ static_cast<float>(position.m_x), static_cast<float>(position.m_y),
+		static_cast<unsigned>(fontSize), text, m_color });
 }
 
 void Canvas::Display()

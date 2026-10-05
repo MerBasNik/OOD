@@ -16,4 +16,4 @@ private:
 	std::string m_id;
 };
 
-#endif //OOD_DRAWSHAPECOMMAND_H
+#endif // OOD_DRAWSHAPECOMMAND_H

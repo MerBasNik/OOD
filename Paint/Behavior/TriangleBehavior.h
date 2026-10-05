@@ -25,4 +25,4 @@ private:
 	static void MoveVertex(Point& vertex, Point position);
 };
 
-#endif //OOD_TRIANGLEBEHAVIOR_H
+#endif // OOD_TRIANGLEBEHAVIOR_H

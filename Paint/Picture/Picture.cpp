@@ -14,7 +14,7 @@ void Picture::AddShape(std::unique_ptr<IShape> shape)
 
 IShape* Picture::GetShape(const std::string& id) const
 {
-	for (const auto &shape : m_shapes)
+	for (const auto& shape : m_shapes)
 	{
 		if (shape->GetId() == id)
 		{
@@ -35,7 +35,7 @@ void Picture::MoveShape(const std::string& id, const Point position)
 
 void Picture::MovePicture(const Point position)
 {
-	for (const auto &shape : m_shapes)
+	for (const auto& shape : m_shapes)
 	{
 		shape->Move(position);
 	}
@@ -57,7 +57,7 @@ void Picture::ChangeColor(const std::string& id, const Color color)
 	}
 }
 
-void Picture::ChangeShape(const std::string& id, std::unique_ptr<IShapeBehavior>& newBehavior)
+void Picture::ChangeShape(const std::string& id, std::unique_ptr<IShapeBehavior> newBehavior)
 {
 	auto* shape = GetShape(id);
 	if (shape != nullptr)
@@ -77,7 +77,7 @@ void Picture::DrawShape(const std::string& id, ICanvas& canvas) const
 
 void Picture::DrawPicture(ICanvas& canvas) const
 {
-	for (const auto &it : m_shapes)
+	for (const auto& it : m_shapes)
 	{
 		it->Draw(canvas);
 	}
@@ -86,7 +86,7 @@ void Picture::DrawPicture(ICanvas& canvas) const
 void Picture::List() const
 {
 	unsigned count = 0;
-	for (const auto &it : m_shapes)
+	for (const auto& it : m_shapes)
 	{
 		PrintShape(++count, *it);
 	}
@@ -95,8 +95,8 @@ void Picture::List() const
 void Picture::PrintShape(const size_t index, const IShape& shape)
 {
 	std::cout << index << ". "
-		<< shape.GetName() << " "
-		<< shape.GetId() << " "
-		<< std::format("#{:06x}", shape.GetColor()) << " "
-		<< shape.GetInfo() << std::endl;
+			  << shape.GetName() << " "
+			  << shape.GetId() << " "
+			  << std::format("#{:06x}", shape.GetColor()) << " "
+			  << shape.GetInfo() << std::endl;
 }

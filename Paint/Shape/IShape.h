@@ -22,4 +22,4 @@ public:
 	virtual std::unique_ptr<IShape> Clone() const = 0;
 };
 
-#endif //OOD_ISHAPE_H
+#endif // OOD_ISHAPE_H

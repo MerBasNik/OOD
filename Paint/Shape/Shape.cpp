@@ -8,9 +8,9 @@ Shape::Shape(
 	const std::string& id,
 	const Color color,
 	std::unique_ptr<IShapeBehavior> behavior)
-	: m_id(id),
-	m_color(color),
-	m_behavior(std::move(behavior))
+	: m_id(id)
+	, m_color(color)
+	, m_behavior(std::move(behavior))
 {
 }
 

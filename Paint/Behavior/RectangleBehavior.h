@@ -23,4 +23,4 @@ private:
 	double m_height = 0;
 };
 
-#endif //OOD_RECTANGLEBEHAVIOR_H
+#endif // OOD_RECTANGLEBEHAVIOR_H

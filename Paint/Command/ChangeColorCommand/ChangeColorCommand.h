@@ -17,4 +17,4 @@ private:
 	Color m_color{};
 };
 
-#endif //OOD_CHANGECOLORCOMMAND_H
+#endif // OOD_CHANGECOLORCOMMAND_H

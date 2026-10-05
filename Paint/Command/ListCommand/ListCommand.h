@@ -14,4 +14,4 @@ public:
 	void Execute(Picture& picture, ICanvas& canvas) override;
 };
 
-#endif //OOD_LISTCOMMAND_H
+#endif // OOD_LISTCOMMAND_H

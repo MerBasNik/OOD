@@ -3,8 +3,8 @@
 //
 
 #include "Canvas.h"
-#include "Picture.h"
 #include "Parser/Parser.h"
+#include "Picture.h"
 #include <iostream>
 #include <sstream>
 

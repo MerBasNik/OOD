@@ -5,10 +5,11 @@
 #ifndef OOD_MOVEPICTURECOMMAND_H
 #define OOD_MOVEPICTURECOMMAND_H
 
-#include "Picture.h"
 #include "Command/ICommand.h"
+#include "Picture.h"
 
-class MovePictureCommand : public ICommand {
+class MovePictureCommand : public ICommand
+{
 public:
 	explicit MovePictureCommand(std::stringstream& input);
 	void Execute(Picture& picture, ICanvas& canvas) override;
@@ -17,4 +18,4 @@ private:
 	Point m_position{};
 };
 
-#endif //OOD_MOVEPICTURECOMMAND_H
+#endif // OOD_MOVEPICTURECOMMAND_H

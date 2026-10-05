@@ -3,8 +3,8 @@
 //
 
 #include "AddShapeCommand.h"
-#include "Picture.h"
 #include "Parser/ParseBehavior.h"
+#include "Picture.h"
 #include <sstream>
 #include <string>
 

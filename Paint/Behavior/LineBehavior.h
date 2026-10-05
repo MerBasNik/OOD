@@ -22,4 +22,4 @@ private:
 	Point m_end = {};
 };
 
-#endif //OOD_LINEBEHAVIOR_H
+#endif // OOD_LINEBEHAVIOR_H

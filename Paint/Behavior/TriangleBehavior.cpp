@@ -3,12 +3,14 @@
 //
 
 #include "TriangleBehavior.h"
-#include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 TriangleBehavior::TriangleBehavior(Point v1, Point v2, Point v3)
-	: m_v1(v1), m_v2(v2), m_v3(v3)
+	: m_v1(v1)
+	, m_v2(v2)
+	, m_v3(v3)
 {
 }
 

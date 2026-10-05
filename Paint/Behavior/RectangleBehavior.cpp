@@ -3,12 +3,14 @@
 //
 
 #include "RectangleBehavior.h"
-#include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 RectangleBehavior::RectangleBehavior(const Point position, const double width, const double height)
-	: m_position(position), m_width(width), m_height(height)
+	: m_position(position)
+	, m_width(width)
+	, m_height(height)
 {
 }
 

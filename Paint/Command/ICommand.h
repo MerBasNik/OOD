@@ -14,4 +14,4 @@ public:
 	virtual void Execute(Picture& picture, ICanvas& canvas) = 0;
 };
 
-#endif //OOD_ICOMMAND_H
+#endif // OOD_ICOMMAND_H

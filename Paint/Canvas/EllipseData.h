@@ -16,4 +16,4 @@ struct EllipseData
 	sf::Color m_color;
 };
 
-#endif //OOD_ELLIPSEDATA_H
+#endif // OOD_ELLIPSEDATA_H
