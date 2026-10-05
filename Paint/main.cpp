@@ -20,7 +20,7 @@ int main()
 	try
 	{
 		std::string line;
-		canvas.HandleEvents();
+		canvas.HandleClose();
 		while (getline(std::cin, line))
 		{
 			std::stringstream input(line);
