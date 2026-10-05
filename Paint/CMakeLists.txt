@@ -57,7 +57,6 @@ target_include_directories(Google_test_run PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/Behavior
         ${CMAKE_CURRENT_SOURCE_DIR}/Canvas
         ${CMAKE_CURRENT_SOURCE_DIR}/Lib
-        ${CMAKE_CURRENT_SOURCE_DIR}/Lib/Color
         ${CMAKE_CURRENT_SOURCE_DIR}/Lib/Parser
         ${CMAKE_CURRENT_SOURCE_DIR}/Shape
         ${CMAKE_CURRENT_SOURCE_DIR}/Picture

@@ -6,7 +6,7 @@
 #define OOD_PICTURE_H
 
 #include "IShape.h"
-#include <list>
+#include <vector>
 
 class Picture
 {
@@ -24,7 +24,7 @@ public:
 	void List() const;
 
 private:
-	std::list<std::unique_ptr<IShape>> m_shapes;
+	std::vector<std::unique_ptr<IShape>> m_shapes;
 
 	static void PrintShape(size_t, const IShape& shape);
 };

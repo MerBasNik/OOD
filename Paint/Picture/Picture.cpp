@@ -37,15 +37,26 @@ void Picture::MovePicture(const Point position)
 {
 	for (const auto& shape : m_shapes)
 	{
-		shape->Move(position);
+		if (shape != nullptr)
+		{
+			shape->Move(position);
+		}
 	}
 }
 
 void Picture::DeleteShape(const std::string& id)
 {
-	std::erase_if(m_shapes, [&id](const auto& shape) {
-		return shape->GetId() == id;
-	});
+	for (auto shape = m_shapes.begin(); shape != m_shapes.end();)
+	{
+		if ((*shape)->GetId() == id)
+		{
+			shape = m_shapes.erase(shape);
+		}
+		else
+		{
+			++shape;
+		}
+	}
 }
 
 void Picture::ChangeColor(const std::string& id, const Color color)

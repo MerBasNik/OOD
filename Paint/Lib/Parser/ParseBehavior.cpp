@@ -49,7 +49,7 @@ std::unique_ptr<IShapeBehavior> ParseBehavior(const std::string& typeName, std::
 		Point vert1{};
 		Point vert2{};
 		Point vert3{};
-		if (!(params >> vert1.m_x >> vert1.m_y >> vert2.m_x  >> vert2.m_y  >> vert3.m_x  >> vert3.m_y ))
+		if (!(params >> vert1.m_x >> vert1.m_y >> vert2.m_x >> vert2.m_y >> vert3.m_x >> vert3.m_y))
 		{
 			throw std::invalid_argument("Неправильный аргумент");
 		}

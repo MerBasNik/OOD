@@ -8,4 +8,4 @@
 
 using Color = uint32_t;
 
-#endif //OOD_COLOR_H
+#endif // OOD_COLOR_H
