@@ -70,7 +70,7 @@ std::unique_ptr<IShape> Shape::Clone() const
 	return std::make_unique<Shape>(m_id, m_color, std::move(clonedBehavior));
 }
 
-void Shape::AddObserver(ShapeObserver& observer)
+void Shape::AddObserver(IShapeObserver& observer)
 {
 	for (const auto ob : m_observers)
 	{
@@ -82,14 +82,14 @@ void Shape::AddObserver(ShapeObserver& observer)
 	m_observers.push_back(&observer);
 }
 
-void Shape::DeleteObserver(const ShapeObserver& observer)
+void Shape::DeleteObserver(const IShapeObserver& observer)
 {
 	std::erase(m_observers, &observer);
 }
 
 void Shape::NotifyObservers() const
 {
-	for (const auto* ob : m_observers)
+	for (auto* ob : m_observers)
 	{
 		ob->Update();
 	}

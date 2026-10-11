@@ -51,8 +51,10 @@ add_executable(Paint main.cpp)
 target_link_libraries(Paint PRIVATE Paint_lib)
 
 add_executable(Google_test_run
-        tests/ShapeTests.cpp
-        tests/PictureTests.cpp
+        tests/CanvasTests/ShapeTests.cpp
+        tests/CanvasTests/PictureTests.cpp
+        tests/ObserverTests/ObserverPictureTests.cpp
+        tests/ObserverTests/ObserverShapeTests.cpp
 )
 
 target_include_directories(Google_test_run PRIVATE

@@ -32,6 +32,7 @@ void Picture::MoveShape(const std::string& id, const Point position)
 	if (shape != nullptr)
 	{
 		shape->Move(position);
+		// NotifyObservers();
 	}
 }
 
@@ -42,6 +43,7 @@ void Picture::MovePicture(const Point position)
 		if (shape != nullptr)
 		{
 			shape->Move(position);
+			// NotifyObservers();
 		}
 	}
 }
@@ -69,8 +71,8 @@ void Picture::ChangeColor(const std::string& id, const Color color)
 	if (shape != nullptr)
 	{
 		shape->ChangeColor(color);
+		// NotifyObservers();
 	}
-	NotifyObservers();
 }
 
 void Picture::ChangeShape(const std::string& id, std::unique_ptr<IShapeBehavior> newBehavior)
@@ -79,8 +81,8 @@ void Picture::ChangeShape(const std::string& id, std::unique_ptr<IShapeBehavior>
 	if (shape != nullptr)
 	{
 		shape->ChangeBehavior(std::move(newBehavior));
+		// NotifyObservers();
 	}
-	NotifyObservers();
 }
 
 void Picture::DrawShape(const std::string& id, ICanvas& canvas) const
@@ -148,7 +150,7 @@ void Picture::NotifyObservers()
 	}
 }
 
-void Picture::UpdateObserver()
+void Picture::Update()
 {
 	NotifyObservers();
 }

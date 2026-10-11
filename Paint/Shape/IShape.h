@@ -22,8 +22,8 @@ public:
 	virtual void Draw(ICanvas& canvas) const = 0;
 	virtual void ChangeBehavior(std::unique_ptr<IShapeBehavior> newBehavior) = 0;
 	virtual std::unique_ptr<IShape> Clone() const = 0;
-	virtual void AddObserver(ShapeObserver& observer) = 0;
-	virtual void DeleteObserver(const ShapeObserver& observer) = 0;
+	virtual void AddObserver(IShapeObserver& observer) = 0;
+	virtual void DeleteObserver(const IShapeObserver& observer) = 0;
 };
 
 #endif // OOD_ISHAPE_H

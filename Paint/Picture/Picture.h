@@ -8,11 +8,11 @@
 #include "ICanvas.h"
 #include "IShape.h"
 #include "IShapeBehavior.h"
-#include "Point.h"
 #include "Observer/PictureObserver.h"
+#include "Point.h"
 #include <vector>
 
-class Picture : public ShapeObserver
+class Picture : public IShapeObserver
 {
 public:
 	Picture() = default;
@@ -29,7 +29,7 @@ public:
 	size_t GetShapesCount() const;
 	void AddObserver(PictureObserver& observer);
 	void DeleteObserver(const PictureObserver& observer);
-	void UpdateObserver();
+	void Update() override;
 
 private:
 	std::vector<std::unique_ptr<IShape>> m_shapes;

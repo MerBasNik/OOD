@@ -23,14 +23,14 @@ public:
 	void Draw(ICanvas& canvas) const override;
 	void ChangeBehavior(std::unique_ptr<IShapeBehavior> newBehavior) override;
 	std::unique_ptr<IShape> Clone() const override;
-	void AddObserver(ShapeObserver& observer) override;
-	void DeleteObserver(const ShapeObserver& observer) override;
+	void AddObserver(IShapeObserver& observer) override;
+	void DeleteObserver(const IShapeObserver& observer) override;
 
 private:
 	std::string m_id;
 	Color m_color;
 	std::unique_ptr<IShapeBehavior> m_behavior;
-	std::vector<ShapeObserver*> m_observers;
+	std::vector<IShapeObserver*> m_observers;
 
 	void NotifyObservers() const;
 };

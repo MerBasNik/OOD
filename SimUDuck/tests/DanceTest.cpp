@@ -5,8 +5,8 @@
 #include "DanceMock.h"
 #include "MallardDuck.h"
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 class TestDuck : public Duck
 {

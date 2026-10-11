@@ -5,8 +5,6 @@
 #include "Canvas.h"
 #include "Parser/Parser.h"
 #include "Picture.h"
-#include "Observer/PictureObserver.h"
-
 #include <iostream>
 #include <sstream>
 
