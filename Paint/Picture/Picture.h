@@ -5,10 +5,14 @@
 #ifndef OOD_PICTURE_H
 #define OOD_PICTURE_H
 
+#include "ICanvas.h"
 #include "IShape.h"
+#include "IShapeBehavior.h"
+#include "Point.h"
+#include "Observer/PictureObserver.h"
 #include <vector>
 
-class Picture
+class Picture : public ShapeObserver
 {
 public:
 	Picture() = default;
@@ -22,11 +26,17 @@ public:
 	void DrawShape(const std::string& id, ICanvas& canvas) const;
 	void DrawPicture(ICanvas& canvas) const;
 	void List() const;
+	size_t GetShapesCount() const;
+	void AddObserver(PictureObserver& observer);
+	void DeleteObserver(const PictureObserver& observer);
+	void UpdateObserver();
 
 private:
 	std::vector<std::unique_ptr<IShape>> m_shapes;
+	std::vector<PictureObserver*> m_observers;
 
 	static void PrintShape(size_t, const IShape& shape);
+	void NotifyObservers();
 };
 
 #endif // OOD_PICTURE_H

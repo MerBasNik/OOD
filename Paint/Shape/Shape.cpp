@@ -22,6 +22,7 @@ std::string Shape::GetId() const
 void Shape::SetId(const std::string& newId)
 {
 	m_id = newId;
+	NotifyObservers();
 }
 
 Color Shape::GetColor() const
@@ -42,25 +43,54 @@ std::string Shape::GetInfo() const
 void Shape::ChangeColor(const Color color)
 {
 	m_color = color;
+	NotifyObservers();
 }
 
 void Shape::Move(const Point position)
 {
 	m_behavior->Move(position);
+	NotifyObservers();
 }
 
 void Shape::Draw(ICanvas& canvas) const
 {
 	m_behavior->Draw(canvas, m_color);
+	canvas.Display();
 }
 
 void Shape::ChangeBehavior(std::unique_ptr<IShapeBehavior> newBehavior)
 {
 	m_behavior = std::move(newBehavior);
+	NotifyObservers();
 }
 
 std::unique_ptr<IShape> Shape::Clone() const
 {
 	auto clonedBehavior = m_behavior ? m_behavior->Clone() : nullptr;
 	return std::make_unique<Shape>(m_id, m_color, std::move(clonedBehavior));
+}
+
+void Shape::AddObserver(ShapeObserver& observer)
+{
+	for (const auto ob : m_observers)
+	{
+		if (ob == &observer)
+		{
+			return;
+		}
+	}
+	m_observers.push_back(&observer);
+}
+
+void Shape::DeleteObserver(const ShapeObserver& observer)
+{
+	std::erase(m_observers, &observer);
+}
+
+void Shape::NotifyObservers() const
+{
+	for (const auto* ob : m_observers)
+	{
+		ob->Update();
+	}
 }

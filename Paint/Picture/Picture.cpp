@@ -9,7 +9,9 @@
 
 void Picture::AddShape(std::unique_ptr<IShape> shape)
 {
+	shape->AddObserver(*this);
 	m_shapes.push_back(std::move(shape));
+	NotifyObservers();
 }
 
 IShape* Picture::GetShape(const std::string& id) const
@@ -50,7 +52,9 @@ void Picture::DeleteShape(const std::string& id)
 	{
 		if ((*shape)->GetId() == id)
 		{
+			(*shape)->DeleteObserver(*this);
 			shape = m_shapes.erase(shape);
+			NotifyObservers();
 		}
 		else
 		{
@@ -66,6 +70,7 @@ void Picture::ChangeColor(const std::string& id, const Color color)
 	{
 		shape->ChangeColor(color);
 	}
+	NotifyObservers();
 }
 
 void Picture::ChangeShape(const std::string& id, std::unique_ptr<IShapeBehavior> newBehavior)
@@ -75,6 +80,7 @@ void Picture::ChangeShape(const std::string& id, std::unique_ptr<IShapeBehavior>
 	{
 		shape->ChangeBehavior(std::move(newBehavior));
 	}
+	NotifyObservers();
 }
 
 void Picture::DrawShape(const std::string& id, ICanvas& canvas) const
@@ -110,4 +116,39 @@ void Picture::PrintShape(const size_t index, const IShape& shape)
 			  << shape.GetId() << " "
 			  << std::format("#{:06x}", shape.GetColor()) << " "
 			  << shape.GetInfo() << std::endl;
+}
+
+size_t Picture::GetShapesCount() const
+{
+	return m_shapes.size();
+}
+
+void Picture::AddObserver(PictureObserver& observer)
+{
+	for (const auto ob : m_observers)
+	{
+		if (ob == &observer)
+		{
+			return;
+		}
+	}
+	m_observers.push_back(&observer);
+}
+
+void Picture::DeleteObserver(const PictureObserver& observer)
+{
+	std::erase(m_observers, &observer);
+}
+
+void Picture::NotifyObservers()
+{
+	for (auto* ob : m_observers)
+	{
+		ob->Update(GetShapesCount());
+	}
+}
+
+void Picture::UpdateObserver()
+{
+	NotifyObservers();
 }

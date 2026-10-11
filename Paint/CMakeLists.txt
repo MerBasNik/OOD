@@ -19,6 +19,8 @@ add_library(Paint_lib STATIC
         Command/MovePictureCommand/MovePictureCommand.cpp
         Command/ListCommand/ListCommand.cpp
         Command/DrawPictureCommand/DrawPictureCommand.cpp
+        Observer/PictureObserver.h
+        Observer/ShapeObserver.h
 )
 
 target_include_directories(Paint_lib PUBLIC
@@ -31,6 +33,7 @@ target_include_directories(Paint_lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/Shape
         ${CMAKE_CURRENT_SOURCE_DIR}/Picture
         ${CMAKE_CURRENT_SOURCE_DIR}/Command
+        ${CMAKE_CURRENT_SOURCE_DIR}/Observer
         ${SFML_INCLUDE_DIR}
 )
 
@@ -61,6 +64,7 @@ target_include_directories(Google_test_run PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/Shape
         ${CMAKE_CURRENT_SOURCE_DIR}/Picture
         ${CMAKE_CURRENT_SOURCE_DIR}/Command
+        ${CMAKE_CURRENT_SOURCE_DIR}/Observer
 )
 
 target_link_libraries(Google_test_run PRIVATE

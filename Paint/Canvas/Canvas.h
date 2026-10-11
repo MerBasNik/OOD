@@ -23,7 +23,7 @@ public:
 	void LineTo(Point position) override;
 	void DrawEllipse(Point position, Point radiuses) override;
 	void DrawText(Point position, double fontSize, const std::string& text) override;
-	void Display();
+	void Display() override;
 	void HandleClose();
 
 private:

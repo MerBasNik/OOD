@@ -16,6 +16,7 @@ public:
 	MOCK_METHOD(void, LineTo, (Point position), (override));
 	MOCK_METHOD(void, DrawEllipse, (Point position, Point radiuses), (override));
 	MOCK_METHOD(void, DrawText, (Point position, double fontSize, const std::string& text), (override));
+	MOCK_METHOD(void, Display, (), (override));
 };
 
 #endif // OOD_MOCKCANVAS_H

@@ -5,6 +5,8 @@
 #include "Canvas.h"
 #include "Parser/Parser.h"
 #include "Picture.h"
+#include "Observer/PictureObserver.h"
+
 #include <iostream>
 #include <sstream>
 
@@ -14,7 +16,9 @@ const unsigned CANVAS_HEIGHT = 600;
 int main()
 {
 	Canvas canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+	PictureObserver pictureObserver;
 	Picture picture;
+	picture.AddObserver(pictureObserver);
 	Parser parser;
 
 	try
@@ -27,7 +31,6 @@ int main()
 			const auto command = parser.ParseCommand(input);
 			command->Execute(picture, canvas);
 			// TODO перенести display canvas внутрь команд draw
-			canvas.Display();
 		}
 	}
 	catch (std::exception& e)

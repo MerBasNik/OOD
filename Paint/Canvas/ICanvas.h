@@ -17,6 +17,7 @@ public:
 	virtual void LineTo(Point position) = 0;
 	virtual void DrawEllipse(Point position, Point radiuses) = 0;
 	virtual void DrawText(Point position, double fontSize, const std::string& text) = 0;
+	virtual void Display() = 0;
 };
 
 #endif // OOD_ICANVAS_H
