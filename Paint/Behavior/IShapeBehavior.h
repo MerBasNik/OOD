@@ -4,7 +4,7 @@
 
 #ifndef OOD_ISHAPEBEHAVIOR_H
 #define OOD_ISHAPEBEHAVIOR_H
-#include "../Lib/Color.h"
+#include "../Types/Color.h"
 #include "ICanvas.h"
 #include "Point.h"
 

@@ -1,8 +1,8 @@
 add_library(Paint_lib STATIC
         Shape/Shape.cpp
         Picture/Picture.cpp
-        Lib/Parser/Parser.cpp
-        Lib/Parser/ParseBehavior.cpp
+        Parser/Parser.cpp
+        Parser/ParseBehavior.cpp
         Canvas/Canvas.cpp
         Behavior/CircleBehavior.cpp
         Behavior/LineBehavior.cpp
@@ -27,9 +27,9 @@ target_include_directories(Paint_lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/Behavior
         ${CMAKE_CURRENT_SOURCE_DIR}/Canvas
-        ${CMAKE_CURRENT_SOURCE_DIR}/Lib
-        ${CMAKE_CURRENT_SOURCE_DIR}/Lib/Color
-        ${CMAKE_CURRENT_SOURCE_DIR}/Lib/Parser
+        ${CMAKE_CURRENT_SOURCE_DIR}/Types
+        ${CMAKE_CURRENT_SOURCE_DIR}/Types/Color
+        ${CMAKE_CURRENT_SOURCE_DIR}/Parser
         ${CMAKE_CURRENT_SOURCE_DIR}/Shape
         ${CMAKE_CURRENT_SOURCE_DIR}/Picture
         ${CMAKE_CURRENT_SOURCE_DIR}/Command
@@ -62,8 +62,8 @@ target_include_directories(Google_test_run PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/Behavior
         ${CMAKE_CURRENT_SOURCE_DIR}/Canvas
-        ${CMAKE_CURRENT_SOURCE_DIR}/Lib
-        ${CMAKE_CURRENT_SOURCE_DIR}/Lib/Parser
+        ${CMAKE_CURRENT_SOURCE_DIR}/Types
+        ${CMAKE_CURRENT_SOURCE_DIR}/Parser
         ${CMAKE_CURRENT_SOURCE_DIR}/Shape
         ${CMAKE_CURRENT_SOURCE_DIR}/Picture
         ${CMAKE_CURRENT_SOURCE_DIR}/Command
