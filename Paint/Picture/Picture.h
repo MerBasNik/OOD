@@ -16,6 +16,8 @@ class Picture : public IShapeObserver
 {
 public:
 	Picture() = default;
+	Picture(const Picture& picture) = delete;
+	Picture& operator=(const Picture& picture) = delete;
 	void AddShape(std::unique_ptr<IShape> shape);
 	IShape* GetShape(const std::string& id) const;
 	void MoveShape(const std::string& id, Point position);
@@ -30,6 +32,7 @@ public:
 	void AddObserver(PictureObserver& observer);
 	void DeleteObserver(const PictureObserver& observer);
 	void Update() override;
+	std::unique_ptr<Picture> Clone() const;
 
 private:
 	std::vector<std::unique_ptr<IShape>> m_shapes;

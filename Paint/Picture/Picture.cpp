@@ -32,7 +32,6 @@ void Picture::MoveShape(const std::string& id, const Point position)
 	if (shape != nullptr)
 	{
 		shape->Move(position);
-		// NotifyObservers();
 	}
 }
 
@@ -43,7 +42,6 @@ void Picture::MovePicture(const Point position)
 		if (shape != nullptr)
 		{
 			shape->Move(position);
-			// NotifyObservers();
 		}
 	}
 }
@@ -71,7 +69,6 @@ void Picture::ChangeColor(const std::string& id, const Color color)
 	if (shape != nullptr)
 	{
 		shape->ChangeColor(color);
-		// NotifyObservers();
 	}
 }
 
@@ -81,7 +78,6 @@ void Picture::ChangeShape(const std::string& id, std::unique_ptr<IShapeBehavior>
 	if (shape != nullptr)
 	{
 		shape->ChangeBehavior(std::move(newBehavior));
-		// NotifyObservers();
 	}
 }
 
@@ -153,4 +149,17 @@ void Picture::NotifyObservers()
 void Picture::Update()
 {
 	NotifyObservers();
+}
+
+std::unique_ptr<Picture> Picture::Clone() const
+{
+	auto newPicture = std::make_unique<Picture>();
+
+	for (const auto& shape : m_shapes)
+	{
+		auto newShape = shape->Clone();
+		newPicture->AddShape(std::move(newShape));
+	}
+
+	return newPicture;
 }

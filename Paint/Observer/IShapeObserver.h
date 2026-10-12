@@ -12,4 +12,4 @@ public:
 	virtual void Update() = 0;
 };
 
-#endif //OOD_ISHAPEOBSERVER_H
+#endif // OOD_ISHAPEOBSERVER_H

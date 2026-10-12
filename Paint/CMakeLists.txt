@@ -55,6 +55,7 @@ add_executable(Google_test_run
         tests/CanvasTests/PictureTests.cpp
         tests/ObserverTests/ObserverPictureTests.cpp
         tests/ObserverTests/ObserverShapeTests.cpp
+        tests/CloneTests/ClonePictureTests.cpp
 )
 
 target_include_directories(Google_test_run PRIVATE
