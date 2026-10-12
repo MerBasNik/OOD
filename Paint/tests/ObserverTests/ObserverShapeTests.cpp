@@ -165,7 +165,7 @@ TEST_F(ObserverShapeTest, DeleteObserverAfterAction)
 	shape->ChangeColor(0xffffff);
 	shape->DeleteObserver(observer);
 
-	EXPECT_EQ(observer.GetCountCalls(), 1);
+	EXPECT_EQ(observer.GetCountCalls(), 0);
 }
 
 TEST_F(ObserverShapeTest, DeleteObserverBeforeAction)

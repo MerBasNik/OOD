@@ -29,17 +29,20 @@ public:
 	void DrawPicture(ICanvas& canvas) const;
 	void List() const;
 	size_t GetShapesCount() const;
-	void AddObserver(PictureObserver& observer);
-	void DeleteObserver(const PictureObserver& observer);
+	void AddObserver(IPictureObserver& observer);
+	void DeleteObserver(IPictureObserver& observer);
 	void Update() override;
 	std::unique_ptr<Picture> Clone() const;
+	void ResetCountCalls() override;
 
 private:
 	std::vector<std::unique_ptr<IShape>> m_shapes;
-	std::vector<PictureObserver*> m_observers;
+	std::vector<IPictureObserver*> m_observers;
+	std::vector<IPictureObserver*> m_unsubscribers;
 
 	static void PrintShape(size_t, const IShape& shape);
 	void NotifyObservers();
+	bool IsFindUnsubscribeObserver(const IPictureObserver& observer);
 };
 
 #endif // OOD_PICTURE_H

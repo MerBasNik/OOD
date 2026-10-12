@@ -82,15 +82,41 @@ void Shape::AddObserver(IShapeObserver& observer)
 	m_observers.push_back(&observer);
 }
 
-void Shape::DeleteObserver(const IShapeObserver& observer)
+void Shape::DeleteObserver(IShapeObserver& observer)
 {
+	for (const auto ob : m_unsubscribers)
+	{
+		if (ob == &observer)
+		{
+			return;
+		}
+	}
 	std::erase(m_observers, &observer);
+	observer.ResetCountCalls();
+	m_unsubscribers.push_back(&observer);
 }
 
-void Shape::NotifyObservers() const
+void Shape::NotifyObservers()
 {
-	for (auto* ob : m_observers)
+	auto observers = m_observers;
+	for (auto* ob : observers)
 	{
-		ob->Update();
+		if (!IsFindUnsubscribeObserver(*ob))
+		{
+			ob->Update();
+		}
 	}
+	m_unsubscribers.clear();
+}
+
+bool Shape::IsFindUnsubscribeObserver(const IShapeObserver& observer)
+{
+	for (const auto ob : m_unsubscribers)
+	{
+		if (ob == &observer)
+		{
+			return true;
+		}
+	}
+	return false;
 }

@@ -24,6 +24,11 @@ public:
 		return m_countCalls;
 	}
 
+	void ResetCountCalls() override
+	{
+		m_countCalls = 0;
+	}
+
 private:
 	int m_countCalls = 0;
 };

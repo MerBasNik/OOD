@@ -121,7 +121,7 @@ size_t Picture::GetShapesCount() const
 	return m_shapes.size();
 }
 
-void Picture::AddObserver(PictureObserver& observer)
+void Picture::AddObserver(IPictureObserver& observer)
 {
 	for (const auto ob : m_observers)
 	{
@@ -133,17 +133,43 @@ void Picture::AddObserver(PictureObserver& observer)
 	m_observers.push_back(&observer);
 }
 
-void Picture::DeleteObserver(const PictureObserver& observer)
+void Picture::DeleteObserver(IPictureObserver& observer)
 {
+	for (const auto ob : m_unsubscribers)
+	{
+		if (ob == &observer)
+		{
+			return;
+		}
+	}
 	std::erase(m_observers, &observer);
+	observer.ResetCountCalls();
+	m_unsubscribers.push_back(&observer);
 }
 
 void Picture::NotifyObservers()
 {
-	for (auto* ob : m_observers)
+	auto observers = m_observers;
+	for (auto* ob : observers)
 	{
-		ob->Update(GetShapesCount());
+		if (!IsFindUnsubscribeObserver(*ob))
+		{
+			ob->Update(GetShapesCount());
+		}
 	}
+	m_unsubscribers.clear();
+}
+
+bool Picture::IsFindUnsubscribeObserver(const IPictureObserver& observer)
+{
+	for (const auto ob : m_unsubscribers)
+	{
+		if (ob == &observer)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void Picture::Update()
@@ -162,4 +188,12 @@ std::unique_ptr<Picture> Picture::Clone() const
 	}
 
 	return newPicture;
+}
+
+void Picture::ResetCountCalls()
+{
+	for (const auto ob : m_unsubscribers)
+	{
+		ob->ResetCountCalls();
+	}
 }

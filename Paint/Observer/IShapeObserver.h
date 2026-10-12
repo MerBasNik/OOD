@@ -10,6 +10,7 @@ class IShapeObserver
 public:
 	virtual ~IShapeObserver() = default;
 	virtual void Update() = 0;
+	virtual void ResetCountCalls() = 0;
 };
 
 #endif // OOD_ISHAPEOBSERVER_H

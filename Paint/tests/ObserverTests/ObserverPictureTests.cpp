@@ -104,7 +104,7 @@ TEST_F(ObserverPictureTest, DeleteObserverAfterAction)
 	AddCircle("sh1", 0, 0, 10);
 	picture.DeleteObserver(observer);
 
-	EXPECT_EQ(observer.GetCountCalls(), 1);
+	EXPECT_EQ(observer.GetCountCalls(), 0);
 }
 
 TEST_F(ObserverPictureTest, DeleteObserverBeforeAction)

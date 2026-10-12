@@ -20,6 +20,9 @@ add_library(Paint_lib STATIC
         Command/ListCommand/ListCommand.cpp
         Command/DrawPictureCommand/DrawPictureCommand.cpp
         Observer/PictureObserver.h
+        Observer/PictureObserverUnsub.h
+        Observer/PictureObserverUnsubAndSub.h
+        Observer/PictureObserverSub.h
         Observer/ShapeObserver.h
 )
 
@@ -56,6 +59,7 @@ add_executable(Google_test_run
         tests/ObserverTests/ObserverPictureTests.cpp
         tests/ObserverTests/ObserverShapeTests.cpp
         tests/CloneTests/ClonePictureTests.cpp
+        tests/SubscribeTests/SubscribeTests.cpp
 )
 
 target_include_directories(Google_test_run PRIVATE

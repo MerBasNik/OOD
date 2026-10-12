@@ -26,15 +26,17 @@ public:
 	void ChangeBehavior(std::unique_ptr<IShapeBehavior> newBehavior) override;
 	std::unique_ptr<IShape> Clone() const override;
 	void AddObserver(IShapeObserver& observer) override;
-	void DeleteObserver(const IShapeObserver& observer) override;
+	void DeleteObserver(IShapeObserver& observer) override;
 
 private:
 	std::string m_id;
 	Color m_color;
 	std::unique_ptr<IShapeBehavior> m_behavior;
 	std::vector<IShapeObserver*> m_observers;
+	std::vector<IShapeObserver*> m_unsubscribers;
 
-	void NotifyObservers() const;
+	void NotifyObservers();
+	bool IsFindUnsubscribeObserver(const IShapeObserver& observer);
 };
 
 #endif // OOD_SHAPE_H
