@@ -7,6 +7,7 @@
 #include "Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.h"
 #include "Command/DeleteShapeCommand/DeleteShapeCommand.h"
 #include "FrameCalculator.h"
+#include "Model/EditorState/SelectionFrame.h"
 #include "Model/Serialization/DocumentSerializer.h"
 #include "Model/Shapes/Ellipse.h"
 #include "Model/Shapes/Rectangle.h"
@@ -116,11 +117,11 @@ HitResult EditorController::HitTest(const Point point) const
 	const auto selectedId = m_state.GetSelectedShapeId();
 	if (const auto selectedFrame = GetSelectedFrame())
 	{
-		if (const auto handle = SelectionGeometry::HitTestHandle(*selectedFrame, point))
+		if (const auto handle = SelectionFrame::HitTestHandle(*selectedFrame, point))
 		{
 			return { HitArea::ResizeHandle, selectedId, handle };
 		}
-		if (SelectionGeometry::HitTestBorder(*selectedFrame, point))
+		if (SelectionFrame::HitTestBorder(*selectedFrame, point))
 		{
 			return { HitArea::SelectionBorder, selectedId, std::nullopt };
 		}
@@ -195,7 +196,6 @@ void EditorController::SaveDocument(const std::filesystem::path& path)
 
 void EditorController::OpenDocument(const std::filesystem::path& path)
 {
-	// Сначала полностью строим и проверяем новое состояние, и только потом заменяем текущее
 	auto shapes = DocumentSerializer::LoadFromFile(path);
 	const Frame bounds = m_document.GetBounds();
 	for (const auto& shape : shapes)
@@ -240,7 +240,6 @@ void EditorController::ResetDrag()
 
 Frame EditorController::CalculateDraggedFrame(const Point point) const
 {
-	// Смещение считается от начала жеста, поэтому фигура не «прыгает» относительно курсора
 	const Point offset{ point.m_x - m_drag.m_startPoint.m_x, point.m_y - m_drag.m_startPoint.m_y };
 	const Frame bounds = m_document.GetBounds();
 	return m_drag.m_mode == DragMode::Move
@@ -250,10 +249,11 @@ Frame EditorController::CalculateDraggedFrame(const Point point) const
 
 void EditorController::StartDrag(const DragMode mode, const int id, const Point point, const ResizeHandle handle)
 {
+	// Предыдущий жест мог не получить OnMouseUp, например если кнопку отпустили за пределами окна
+	ResetDrag();
 	const IShape* shape = m_document.FindShape(id);
 	if (!shape)
 	{
-		ResetDrag();
 		return;
 	}
 	m_drag = { mode, id, handle, point, shape->GetFrame() };

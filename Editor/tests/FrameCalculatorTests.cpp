@@ -3,6 +3,7 @@
 //
 
 #include "Controller/FrameCalculator.h"
+#include "Model/EditorState/Enums/ResizeHandle.h"
 #include <gtest/gtest.h>
 
 class FrameCalculatorTest : public ::testing::Test

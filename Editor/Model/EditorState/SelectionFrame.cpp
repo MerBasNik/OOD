@@ -2,9 +2,9 @@
 // Created by Вадим Патрушев on 15.10.2026.
 //
 
-#include "SelectionGeometry.h"
+#include "SelectionFrame.h"
 
-Point SelectionGeometry::GetHandleCenter(const Frame& selection, const ResizeHandle handle)
+Point SelectionFrame::GetHandleCenter(const Frame& selection, const ResizeHandle handle)
 {
 	const double left = selection.m_left;
 	const double right = selection.GetRight();
@@ -34,13 +34,13 @@ Point SelectionGeometry::GetHandleCenter(const Frame& selection, const ResizeHan
 	return center;
 }
 
-Frame SelectionGeometry::GetHandleFrame(const Frame& selection, const ResizeHandle handle)
+Frame SelectionFrame::GetHandleFrame(const Frame& selection, const ResizeHandle handle)
 {
 	const Point center = GetHandleCenter(selection, handle);
 	return { center.m_x - HANDLE_SIZE / 2, center.m_y - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE };
 }
 
-std::optional<ResizeHandle> SelectionGeometry::HitTestHandle(const Frame& selection, const Point point)
+std::optional<ResizeHandle> SelectionFrame::HitTestHandle(const Frame& selection, const Point point)
 {
 	for (const auto handle : ALL_HANDLES)
 	{
@@ -52,7 +52,7 @@ std::optional<ResizeHandle> SelectionGeometry::HitTestHandle(const Frame& select
 	return std::nullopt;
 }
 
-bool SelectionGeometry::HitTestBorder(const Frame& selection, const Point point)
+bool SelectionFrame::HitTestBorder(const Frame& selection, const Point point)
 {
 	const Frame outer{
 		selection.m_left - BORDER_SELECT_SIZE,
@@ -70,22 +70,22 @@ bool SelectionGeometry::HitTestBorder(const Frame& selection, const Point point)
 	return outer.IsContains(point) && !insideInner;
 }
 
-bool SelectionGeometry::IsLeftMove(const ResizeHandle handle)
+bool SelectionFrame::IsLeftMove(const ResizeHandle handle)
 {
 	return handle == ResizeHandle::TopLeft || handle == ResizeHandle::Left || handle == ResizeHandle::BottomLeft;
 }
 
-bool SelectionGeometry::IsRightMove(const ResizeHandle handle)
+bool SelectionFrame::IsRightMove(const ResizeHandle handle)
 {
 	return handle == ResizeHandle::TopRight || handle == ResizeHandle::Right || handle == ResizeHandle::BottomRight;
 }
 
-bool SelectionGeometry::IsTopMove(const ResizeHandle handle)
+bool SelectionFrame::IsTopMove(const ResizeHandle handle)
 {
 	return handle == ResizeHandle::TopLeft || handle == ResizeHandle::Top || handle == ResizeHandle::TopRight;
 }
 
-bool SelectionGeometry::IsBottomMove(const ResizeHandle handle)
+bool SelectionFrame::IsBottomMove(const ResizeHandle handle)
 {
 	return handle == ResizeHandle::BottomLeft || handle == ResizeHandle::Bottom || handle == ResizeHandle::BottomRight;
 }

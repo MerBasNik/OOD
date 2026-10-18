@@ -5,11 +5,13 @@
 #ifndef OOD_EDITOR_EDITORWINDOW_H
 #define OOD_EDITOR_EDITORWINDOW_H
 
-#include "CanvasView.h"
 #include "Controller/EditorController.h"
 #include "Toolbar.h"
+#include "View/Canvas/CanvasView.h"
 #include <SFML/Graphics.hpp>
+#include <functional>
 #include <map>
+#include <string>
 
 class EditorWindow
 {
@@ -37,6 +39,7 @@ private:
 	void NewDocument();
 	void OpenDocument();
 	void SaveDocument();
+	void RunFileOperation(const std::string& errorMessage, const std::function<void()>& operation);
 
 	Point ToDocumentPoint(sf::Vector2i pixel) const;
 };

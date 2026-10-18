@@ -1,4 +1,3 @@
-# Модель и контроллер не зависят от SFML
 add_library(Editor_lib STATIC
         Model/Shapes/Shape.cpp
         Model/Shapes/Rectangle.cpp
@@ -6,7 +5,7 @@ add_library(Editor_lib STATIC
         Model/Shapes/Triangle.cpp
         Model/Document/Document.cpp
         Model/EditorState/EditorState.cpp
-        Model/EditorState/SelectionGeometry.cpp
+        Model/EditorState/SelectionFrame.cpp
         Model/Serialization/DocumentSerializer.cpp
         Command/AddShapeCommand/AddShapeCommand.cpp
         Command/DeleteShapeCommand/DeleteShapeCommand.cpp
@@ -20,11 +19,11 @@ target_include_directories(Editor_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(Editor
         main.cpp
-        View/Canvas.cpp
-        View/CanvasView.cpp
-        View/Toolbar.cpp
-        View/SystemDialogs.cpp
-        View/EditorWindow.cpp
+        View/Canvas/Canvas.cpp
+        View/Canvas/CanvasView.cpp
+        View/Window/Toolbar.cpp
+        View/Window/FileWindows.cpp
+        View/Window/EditorWindow.cpp
 )
 
 target_include_directories(Editor PRIVATE ${SFML_INCLUDE_DIR})
@@ -43,7 +42,7 @@ target_link_libraries(Editor PRIVATE
 add_executable(Editor_tests
         tests/ShapeTests.cpp
         tests/DocumentTests.cpp
-        tests/SelectionGeometryTests.cpp
+        tests/SelectionFrameTests.cpp
         tests/CommandTests.cpp
         tests/FrameCalculatorTests.cpp
         tests/EditorControllerTests.cpp

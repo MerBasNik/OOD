@@ -126,6 +126,13 @@ class DocumentSerializer {
 + Load(istream& input)$ vector~unique_ptr~IShape~~
 + SaveToFile(Document document, path path)$
 + LoadFromFile(path path)$ vector~unique_ptr~IShape~~
+- GetTypeName(ShapeType type)$ string
+- IsSupportedTypeName(string name)$ bool
+- LinePrefix(size_t lineNumber)$ string
+- ParseNumber(string token, string name, size_t lineNumber)$ double
+- ParseColor(string token, size_t lineNumber)$ Color
+- ParseShape(string line, size_t lineNumber)$ unique_ptr~IShape~
+- IsEmptyLine(string line)$ bool
 }
 
 class IEditorStateObserver {
@@ -161,7 +168,7 @@ BottomLeft
 Left
  }
 
-class SelectionGeometry {
+class SelectionFrame {
 + double HANDLE_SIZE$
 + double BORDER_SELECT_SIZE$
 + array~ResizeHandle~ ALL_HANDLES$
@@ -316,14 +323,13 @@ class Toolbar {
 + Contains(sf:: Vector2f point) bool
 }
 
-class SystemDialogs {
+class FileWindows {
 + ShowOpenFileDialog()$ optional~path~
 + ShowSaveFileDialog(string defaultName)$ optional~path~
 + ShowError(string message)$
-- EscapeAppleScriptString(string text)$ string
 - QuoteShellArgument(string text)$ string
-- RunScriptAlert(string script)$ optional~string~
-- ToPath(optional~string~ output)$ optional~path~
+- RunAppleScript(string script, string argument)$ string
+- ToPath(string output)$ optional~path~
 }
 
 class EditorWindow {
@@ -343,6 +349,7 @@ class EditorWindow {
 - NewDocument()
 - OpenDocument()
 - SaveDocument()
+- RunFileOperation(string errorMessage, function operation)
 }
 
 Frame *-- Point
@@ -364,8 +371,8 @@ DocumentSerializer ..> Ellipse: creates
 DocumentSerializer ..> Triangle: creates
 
 EditorState o-- "0..*" IEditorStateObserver
-SelectionGeometry ..> ResizeHandle
-SelectionGeometry ..> Frame
+SelectionFrame ..> ResizeHandle
+SelectionFrame ..> Frame
 
 ICommand <|.. AddShapeCommand
 ICommand <|.. DeleteShapeCommand
@@ -383,8 +390,8 @@ HitResult *-- HitArea
 DragState *-- DragMode
 EditorController ..> FrameCalculator
 EditorController ..> ShapeDefaults
-FrameCalculator ..> SelectionGeometry
-EditorController ..> SelectionGeometry
+FrameCalculator ..> SelectionFrame
+EditorController ..> SelectionFrame
 EditorController ..> AddShapeCommand: creates, Execute
 EditorController ..> DeleteShapeCommand: creates, Execute
 EditorController ..> ChangeShapeFrameCommand: creates, Execute
@@ -400,12 +407,12 @@ IEditorStateObserver <|.. CanvasView
 CanvasView --> Document
 CanvasView --> EditorState
 CanvasView ..> Canvas
-CanvasView ..> SelectionGeometry
+CanvasView ..> SelectionFrame
 CanvasView ..> IShape: Clone для превью жеста
 EditorWindow *-- CanvasView
 EditorWindow *-- Toolbar
 EditorWindow --> EditorController
 EditorWindow --> EditorState
-EditorWindow ..> SystemDialogs
+EditorWindow ..> FileWindows
 EditorWindow ..> CursorType
 ```

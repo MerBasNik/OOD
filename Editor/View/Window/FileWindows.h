@@ -2,14 +2,14 @@
 // Created by Вадим Патрушев on 15.10.2026.
 //
 
-#ifndef OOD_EDITOR_SYSTEMDIALOGS_H
-#define OOD_EDITOR_SYSTEMDIALOGS_H
+#ifndef OOD_EDITOR_FILEWINDOWS_H
+#define OOD_EDITOR_FILEWINDOWS_H
 
 #include <filesystem>
 #include <optional>
 #include <string>
 
-class SystemDialogs
+class FileWindows
 {
 public:
 	static std::optional<std::filesystem::path> ShowOpenFileDialog();
@@ -17,10 +17,9 @@ public:
 	static void ShowError(const std::string& message);
 
 private:
-	static std::string EscapeAppleScriptString(const std::string& text);
 	static std::string QuoteShellArgument(const std::string& text);
-	static std::optional<std::string> RunScriptAlert(const std::string& script);
-	static std::optional<std::filesystem::path> ToPath(const std::optional<std::string>& output);
+	static std::string RunAppleScript(const std::string& script, const std::string& argument = "");
+	static std::optional<std::filesystem::path> ToPath(const std::string& output);
 };
 
-#endif // OOD_EDITOR_SYSTEMDIALOGS_H
+#endif // OOD_EDITOR_FILEWINDOWS_H

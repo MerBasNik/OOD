@@ -6,7 +6,7 @@
 #define OOD_EDITOR_HITRESULT_H
 
 #include "Enums/HitArea.h"
-#include "Model/EditorState/SelectionGeometry.h"
+#include "Model/EditorState/Enums/ResizeHandle.h"
 #include <optional>
 
 struct HitResult

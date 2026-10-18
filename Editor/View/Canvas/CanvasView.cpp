@@ -4,7 +4,7 @@
 
 #include "CanvasView.h"
 #include "Canvas.h"
-#include "Model/EditorState/SelectionGeometry.h"
+#include "Model/EditorState/SelectionFrame.h"
 
 const sf::Color CANVAS_COLOR = sf::Color::White;
 const sf::Color CANVAS_BORDER_COLOR(180, 180, 180);
@@ -115,9 +115,9 @@ void CanvasView::DrawSelection(sf::RenderTarget& target) const
 	border.setOutlineThickness(1.f);
 	target.draw(border);
 
-	for (const auto handle : SelectionGeometry::ALL_HANDLES)
+	for (const auto handle : SelectionFrame::ALL_HANDLES)
 	{
-		const Frame handleFrame = SelectionGeometry::GetHandleFrame(frame, handle);
+		const Frame handleFrame = SelectionFrame::GetHandleFrame(frame, handle);
 		sf::RectangleShape marker(sf::Vector2f(static_cast<float>(handleFrame.m_width), static_cast<float>(handleFrame.m_height)));
 		marker.setPosition(ToTargetPoint({ handleFrame.m_left, handleFrame.m_top }));
 		marker.setFillColor(sf::Color::White);

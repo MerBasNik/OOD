@@ -3,6 +3,7 @@
 //
 
 #include "FrameCalculator.h"
+#include "Model/EditorState/SelectionFrame.h"
 #include <algorithm>
 
 double FrameCalculator::Clamp(const double value, const double lo, const double hi)
@@ -26,19 +27,19 @@ Frame FrameCalculator::CalculateResizedFrame(const Frame& startFrame, const Resi
 	double right = startFrame.GetRight();
 	double bottom = startFrame.GetBottom();
 
-	if (SelectionGeometry::IsLeftMove(handle))
+	if (SelectionFrame::IsLeftMove(handle))
 	{
 		left = Clamp(left + offset.m_x, bounds.m_left, right - minSize);
 	}
-	if (SelectionGeometry::IsRightMove(handle))
+	if (SelectionFrame::IsRightMove(handle))
 	{
 		right = Clamp(right + offset.m_x, left + minSize, bounds.GetRight());
 	}
-	if (SelectionGeometry::IsTopMove(handle))
+	if (SelectionFrame::IsTopMove(handle))
 	{
 		top = Clamp(top + offset.m_y, bounds.m_top, bottom - minSize);
 	}
-	if (SelectionGeometry::IsBottomMove(handle))
+	if (SelectionFrame::IsBottomMove(handle))
 	{
 		bottom = Clamp(bottom + offset.m_y, top + minSize, bounds.GetBottom());
 	}

@@ -6,7 +6,7 @@
 #define OOD_EDITOR_DRAGSTATE_H
 
 #include "Enums/DragMode.h"
-#include "Model/EditorState/SelectionGeometry.h"
+#include "Model/EditorState/Enums/ResizeHandle.h"
 #include "Model/Types/Frame.h"
 
 struct DragState

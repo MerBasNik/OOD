@@ -2,26 +2,15 @@
 // Created by Вадим Патрушев on 15.10.2026.
 //
 
-#ifndef OOD_EDITOR_SELECTIONGEOMETRY_H
-#define OOD_EDITOR_SELECTIONGEOMETRY_H
+#ifndef OOD_EDITOR_SELECTIONFRAME_H
+#define OOD_EDITOR_SELECTIONFRAME_H
 
+#include "Enums/ResizeHandle.h"
 #include "Model/Types/Frame.h"
 #include <array>
 #include <optional>
 
-enum class ResizeHandle
-{
-	TopLeft,
-	Top,
-	TopRight,
-	Right,
-	BottomRight,
-	Bottom,
-	BottomLeft,
-	Left,
-};
-
-class SelectionGeometry
+class SelectionFrame
 {
 public:
 	static constexpr double HANDLE_SIZE = 8;
@@ -51,4 +40,4 @@ private:
 	static Point GetHandleCenter(const Frame& selection, ResizeHandle handle);
 };
 
-#endif // OOD_EDITOR_SELECTIONGEOMETRY_H
+#endif // OOD_EDITOR_SELECTIONFRAME_H

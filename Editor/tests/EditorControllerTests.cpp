@@ -12,15 +12,13 @@
 #include <fstream>
 #include <gtest/gtest.h>
 
-using ::testing::StrictMock;
-
 class EditorControllerTest : public ::testing::Test
 {
-protected:
+public:
 	Document m_document{ 1000, 600 };
 	EditorState m_state;
 	EditorController m_controller{ m_document, m_state };
-	StrictMock<MockDocumentObserver> m_documentObserver;
+	MockDocumentObserver m_documentObserver;
 	std::filesystem::path m_path = std::filesystem::temp_directory_path() / "editor_controller_test.shapes";
 
 	void TearDown() override
@@ -451,6 +449,18 @@ TEST_F(EditorControllerTest, ClickWithoutMovingDoesNotChangeDocument)
 	EXPECT_CALL(m_documentObserver, DocumentUpdate).Times(0);
 
 	Click({ 150, 150 });
+}
+
+TEST_F(EditorControllerTest, NewGestureWithoutMouseUpDropsOldPreview)
+{
+	AddRectangle({ 100, 100, 100, 100 });
+	AddRectangle({ 500, 300, 100, 100 });
+	m_controller.OnMouseDown({ 150, 150 });
+	m_controller.OnMouseMove({ 200, 200 });
+
+	m_controller.OnMouseDown({ 550, 350 });
+
+	EXPECT_EQ(m_state.GetPreviewFrame(), std::nullopt);
 }
 
 TEST_F(EditorControllerTest, SaveRemembersFilePath)

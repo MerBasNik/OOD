@@ -85,9 +85,9 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresColor)
 	EXPECT_EQ(shapes[0]->GetColor(), 0xABCDEFu);
 }
 
-TEST_F(DocumentSerializerTest, SkipsEmptyLinesAndComments)
+TEST_F(DocumentSerializerTest, SkipsEmptyLines)
 {
-	const auto shapes = LoadFromString("\n# comment\neditor-document 1\n\n  # another\ntriangle 1 2 3 4 000000\n");
+	const auto shapes = LoadFromString("\neditor-document 1\n\n  \ntriangle 1 2 3 4 000000\n\n");
 
 	ASSERT_EQ(shapes.size(), 1u);
 	EXPECT_EQ(shapes[0]->GetType(), ShapeType::Triangle);
@@ -96,6 +96,36 @@ TEST_F(DocumentSerializerTest, SkipsEmptyLinesAndComments)
 TEST_F(DocumentSerializerTest, LoadFromMissingFileThrows)
 {
 	EXPECT_THROW(DocumentSerializer::LoadFromFile("/nonexistent/dir/file.shapes"), std::runtime_error);
+}
+
+TEST_F(DocumentSerializerTest, SaveToFileReplacesPreviousVersionWithoutTempFile)
+{
+	const auto path = std::filesystem::temp_directory_path() / "document_serializer_test.shapes";
+	DocumentSerializer::SaveToFile(document, path);
+	document.AddShape(std::make_unique<Rectangle>(Frame{ 10, 20, 30, 40 }, 0));
+
+	DocumentSerializer::SaveToFile(document, path);
+
+	EXPECT_EQ(DocumentSerializer::LoadFromFile(path).size(), 1u);
+	EXPECT_FALSE(std::filesystem::exists(path.string() + ".tmp"));
+	std::filesystem::remove(path);
+}
+
+TEST_F(DocumentSerializerTest, SaveToMissingDirectoryThrows)
+{
+	EXPECT_THROW(DocumentSerializer::SaveToFile(document, "/nonexistent/dir/file.shapes"), std::runtime_error);
+}
+
+TEST_F(DocumentSerializerTest, FailedSaveKeepsPreviousFileAndRemovesTempFile)
+{
+	const auto path = std::filesystem::temp_directory_path() / "document_serializer_dir.shapes";
+	std::filesystem::create_directory(path);
+
+	EXPECT_THROW(DocumentSerializer::SaveToFile(document, path), std::runtime_error);
+
+	EXPECT_TRUE(std::filesystem::is_directory(path));
+	EXPECT_FALSE(std::filesystem::exists(path.string() + ".tmp"));
+	std::filesystem::remove(path);
 }
 
 struct InvalidDocumentCase
@@ -137,5 +167,7 @@ INSTANTIATE_TEST_SUITE_P(DocumentSerializerTest, DocumentSerializerInvalidConten
 		InvalidDocumentCase{ "NegativeSize", "editor-document 1\nrectangle 0 0 -10 10 000000\n", "положительными" },
 		InvalidDocumentCase{ "InvalidColor", "editor-document 1\nrectangle 0 0 10 10 red\n", "цвет" },
 		InvalidDocumentCase{ "ExtraData", "editor-document 1\nrectangle 0 0 10 10 000000 extra\n", "лишние данные" },
+		InvalidDocumentCase{ "CommentBeforeHeader", "# comment\neditor-document 1\n", "не является документом" },
+		InvalidDocumentCase{ "CommentBetweenShapes", "editor-document 1\n# comment\n", "Строка 2: неподдерживаемый тип фигуры" },
 		InvalidDocumentCase{ "ErrorContainsLineNumber", "editor-document 1\nellipse 0 0 10 10 000000\nbad\n", "Строка 3" }),
 	[](const ::testing::TestParamInfo<InvalidDocumentCase>& info) { return info.param.m_name; });

@@ -3,11 +3,11 @@
 //
 
 #include "EditorWindow.h"
-#include "SystemDialogs.h"
+#include "FileWindows.h"
 
-const float CANVAS_MARGIN = 16.f;
+const float CANVAS_MARGIN = 0; // 16.f;
 const sf::Color WORKSPACE_COLOR(210, 210, 210);
-const char* DEFAULT_FILE_NAME = "drawing.shapes";
+const char* DEFAULT_FILE_NAME = "editor.draw";
 
 EditorWindow::EditorWindow(Document& document, EditorState& state, EditorController& controller)
 	: m_state(state)
@@ -199,20 +199,10 @@ void EditorWindow::NewDocument()
 
 void EditorWindow::OpenDocument()
 {
-	const auto path = SystemDialogs::ShowOpenFileDialog();
-	if (!path)
+	if (const auto path = FileWindows::ShowOpenFileDialog())
 	{
-		return;
+		RunFileOperation("Не удалось открыть документ.", [&] { m_controller.OpenDocument(*path); });
 	}
-	try
-	{
-		m_controller.OpenDocument(*path);
-	}
-	catch (const std::exception& e)
-	{
-		SystemDialogs::ShowError("Не удалось открыть документ.\n" + std::string(e.what()));
-	}
-	m_canvasView.Invalidate();
 }
 
 void EditorWindow::SaveDocument()
@@ -220,19 +210,23 @@ void EditorWindow::SaveDocument()
 	auto path = m_state.GetFilePath();
 	if (!path)
 	{
-		path = SystemDialogs::ShowSaveFileDialog(DEFAULT_FILE_NAME);
-		if (!path)
-		{
-			return;
-		}
+		path = FileWindows::ShowSaveFileDialog(DEFAULT_FILE_NAME);
 	}
+	if (path)
+	{
+		RunFileOperation("Не удалось сохранить документ.", [&] { m_controller.SaveDocument(*path); });
+	}
+}
+
+void EditorWindow::RunFileOperation(const std::string& errorMessage, const std::function<void()>& operation)
+{
 	try
 	{
-		m_controller.SaveDocument(*path);
+		operation();
 	}
 	catch (const std::exception& e)
 	{
-		SystemDialogs::ShowError("Не удалось сохранить документ.\n" + std::string(e.what()));
+		FileWindows::ShowError(errorMessage + "\n" + e.what());
 	}
 	m_canvasView.Invalidate();
 }

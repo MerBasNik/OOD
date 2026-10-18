@@ -3,7 +3,7 @@
 //
 
 #include "Controller/EditorController.h"
-#include "View/EditorWindow.h"
+#include "View/Window/EditorWindow.h"
 #include <iostream>
 
 const double CANVAS_WIDTH = 1000;

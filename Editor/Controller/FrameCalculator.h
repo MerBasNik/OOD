@@ -5,7 +5,7 @@
 #ifndef OOD_EDITOR_FRAMECALCULATOR_H
 #define OOD_EDITOR_FRAMECALCULATOR_H
 
-#include "Model/EditorState/SelectionGeometry.h"
+#include "Model/EditorState/Enums/ResizeHandle.h"
 #include "Model/Types/Frame.h"
 
 class FrameCalculator

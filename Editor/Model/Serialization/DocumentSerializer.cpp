@@ -17,7 +17,7 @@ const std::string RECTANGLE_NAME = "rectangle";
 const std::string ELLIPSE_NAME = "ellipse";
 const std::string TRIANGLE_NAME = "triangle";
 
-std::string GetTypeName(const ShapeType type)
+std::string DocumentSerializer::GetTypeName(const ShapeType type)
 {
 	switch (type)
 	{
@@ -31,17 +31,17 @@ std::string GetTypeName(const ShapeType type)
 	throw std::logic_error("Неизвестный тип фигуры");
 }
 
-bool IsSupportedTypeName(const std::string& name)
+bool DocumentSerializer::IsSupportedTypeName(const std::string& name)
 {
 	return name == RECTANGLE_NAME || name == ELLIPSE_NAME || name == TRIANGLE_NAME;
 }
 
-std::string LinePrefix(const size_t lineNumber)
+std::string DocumentSerializer::LinePrefix(const size_t lineNumber)
 {
 	return "Строка " + std::to_string(lineNumber) + ": ";
 }
 
-double ParseNumber(const std::string& token, const std::string& name, const size_t lineNumber)
+double DocumentSerializer::ParseNumber(const std::string& token, const std::string& name, const size_t lineNumber)
 {
 	size_t parsed = 0;
 	double value = 0;
@@ -61,7 +61,7 @@ double ParseNumber(const std::string& token, const std::string& name, const size
 	return value;
 }
 
-Color ParseColor(const std::string& token, const size_t lineNumber)
+Color DocumentSerializer::ParseColor(const std::string& token, const size_t lineNumber)
 {
 	const bool isHex = token.size() == 6
 		&& token.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos;
@@ -72,7 +72,7 @@ Color ParseColor(const std::string& token, const size_t lineNumber)
 	return static_cast<Color>(std::stoul(token, nullptr, 16));
 }
 
-std::unique_ptr<IShape> ParseShape(const std::string& line, const size_t lineNumber)
+std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, const size_t lineNumber)
 {
 	std::istringstream stream(line);
 	std::string typeName;
@@ -121,10 +121,9 @@ std::unique_ptr<IShape> ParseShape(const std::string& line, const size_t lineNum
 	return std::make_unique<Triangle>(frame, color);
 }
 
-bool IsSkippedLine(const std::string& line)
+bool DocumentSerializer::IsEmptyLine(const std::string& line)
 {
-	const auto first = line.find_first_not_of(" \t\r");
-	return first == std::string::npos || line[first] == '#';
+	return line.find_first_not_of(" \t\r") == std::string::npos;
 }
 
 void DocumentSerializer::Save(const Document& document, std::ostream& output)
@@ -151,7 +150,7 @@ std::vector<std::unique_ptr<IShape>> DocumentSerializer::Load(std::istream& inpu
 	while (std::getline(input, line))
 	{
 		++lineNumber;
-		if (IsSkippedLine(line))
+		if (IsEmptyLine(line))
 		{
 			continue;
 		}
@@ -179,7 +178,7 @@ std::vector<std::unique_ptr<IShape>> DocumentSerializer::Load(std::istream& inpu
 	while (std::getline(input, line))
 	{
 		++lineNumber;
-		if (!IsSkippedLine(line))
+		if (!IsEmptyLine(line))
 		{
 			shapes.push_back(ParseShape(line, lineNumber));
 		}
@@ -193,25 +192,20 @@ std::vector<std::unique_ptr<IShape>> DocumentSerializer::Load(std::istream& inpu
 
 void DocumentSerializer::SaveToFile(const Document& document, const std::filesystem::path& path)
 {
+	// Пишем во временный файл и заменяем им целевой, чтобы при сбое не испортить прежнюю версию
 	auto tempPath = path;
 	tempPath += ".tmp";
-	{
-		std::ofstream output(tempPath, std::ios::trunc);
-		if (!output)
-		{
-			throw std::runtime_error("Не удалось открыть файл для записи: " + path.string());
-		}
-		Save(document, output);
-		output.flush();
-		if (!output)
-		{
-			throw std::runtime_error("Ошибка записи в файл: " + path.string());
-		}
-	}
+	std::ofstream output(tempPath);
+	Save(document, output);
+	output.close();
 
+	// Поток в состоянии ошибки, если файл не открылся или запись не удалась
 	std::error_code error;
-	std::filesystem::rename(tempPath, path, error);
-	if (error)
+	if (output)
+	{
+		std::filesystem::rename(tempPath, path, error);
+	}
+	if (!output || error)
 	{
 		std::filesystem::remove(tempPath, error);
 		throw std::runtime_error("Не удалось сохранить файл: " + path.string());

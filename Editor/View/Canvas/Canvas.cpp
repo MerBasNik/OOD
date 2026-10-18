@@ -20,7 +20,7 @@ void Canvas::DrawRectangle(const Frame& frame, const Color color)
 {
 	sf::RectangleShape rectangle(sf::Vector2f(static_cast<float>(frame.m_width), static_cast<float>(frame.m_height)));
 	rectangle.setPosition(ToTargetPoint({ frame.m_left, frame.m_top }));
-	ApplyStyle(rectangle, color);
+	SetStyle(rectangle, color);
 	m_target.draw(rectangle);
 }
 
@@ -36,7 +36,7 @@ void Canvas::DrawEllipse(const Frame& frame, const Color color)
 		const double angle = 2 * std::numbers::pi * static_cast<double>(i) / ELLIPSE_POINT_COUNT;
 		ellipse.setPoint(i, ToTargetPoint({ center.m_x + rx * std::cos(angle), center.m_y + ry * std::sin(angle) }));
 	}
-	ApplyStyle(ellipse, color);
+	SetStyle(ellipse, color);
 	m_target.draw(ellipse);
 }
 
@@ -47,11 +47,11 @@ void Canvas::DrawPolygon(const std::vector<Point>& vertices, const Color color)
 	{
 		polygon.setPoint(i, ToTargetPoint(vertices[i]));
 	}
-	ApplyStyle(polygon, color);
+	SetStyle(polygon, color);
 	m_target.draw(polygon);
 }
 
-sf::Color Canvas::ToSfColor(const Color color)
+sf::Color Canvas::ConvertColorToSf(const Color color)
 {
 	return {
 		static_cast<std::uint8_t>((color >> 16) & 0xFF),
@@ -65,9 +65,9 @@ sf::Vector2f Canvas::ToTargetPoint(const Point point) const
 	return m_origin + sf::Vector2f(static_cast<float>(point.m_x), static_cast<float>(point.m_y));
 }
 
-void Canvas::ApplyStyle(sf::Shape& shape, const Color color)
+void Canvas::SetStyle(sf::Shape& shape, const Color color)
 {
-	shape.setFillColor(ToSfColor(color));
+	shape.setFillColor(ConvertColorToSf(color));
 	shape.setOutlineColor(OUTLINE_COLOR);
 	shape.setOutlineThickness(-OUTLINE_THICKNESS);
 }
