@@ -33,3 +33,4 @@ add_custom_target(
 
 add_subdirectory(Paint)
 add_subdirectory(SimUDuck)
+add_subdirectory(Editor)

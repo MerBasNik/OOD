@@ -4,7 +4,7 @@
 
 #ifndef OOD_IPICTUREOBSERVER_H
 #define OOD_IPICTUREOBSERVER_H
-//TODO: избавиться в интерфейсе от ResetCount and GetCount
+// TODO: избавиться в интерфейсе от ResetCount and GetCount
 class IPictureObserver
 {
 public:
