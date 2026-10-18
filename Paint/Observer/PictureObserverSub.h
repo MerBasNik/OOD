@@ -8,7 +8,9 @@
 #include "IShapeObserver.h"
 #include "Picture.h"
 #include <iostream>
-
+// TODO перенести в другое место разделить на бизнес лоику и моки
+// TODO один интерфейс для того кто уведомляет
+// TODO pull и push модели в Observere
 class PictureObserverSub : public IPictureObserver
 {
 public:
