@@ -14,9 +14,6 @@ public:
 	static Frame CalculateMovedFrame(const Frame& startFrame, Point offset, const Frame& bounds);
 	static Frame CalculateResizedFrame(const Frame& startFrame, ResizeHandle handle, Point offset,
 		const Frame& bounds, double minSize);
-
-private:
-	static double Clamp(double value, double lo, double hi);
 };
 
 #endif // OOD_EDITOR_FRAMECALCULATOR_H

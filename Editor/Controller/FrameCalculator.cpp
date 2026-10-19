@@ -6,16 +6,11 @@
 #include "Model/EditorState/SelectionFrame.h"
 #include <algorithm>
 
-double FrameCalculator::Clamp(const double value, const double lo, const double hi)
-{
-	return std::max(lo, std::min(value, hi));
-}
-
 Frame FrameCalculator::CalculateMovedFrame(const Frame& startFrame, const Point offset, const Frame& bounds)
 {
 	Frame frame = startFrame;
-	frame.m_left = Clamp(frame.m_left + offset.m_x, bounds.m_left, bounds.GetRight() - frame.m_width);
-	frame.m_top = Clamp(frame.m_top + offset.m_y, bounds.m_top, bounds.GetBottom() - frame.m_height);
+	frame.m_left = std::clamp(frame.m_left + offset.m_x, bounds.m_left, bounds.GetRight() - frame.m_width);
+	frame.m_top = std::clamp(frame.m_top + offset.m_y, bounds.m_top, bounds.GetBottom() - frame.m_height);
 	return frame;
 }
 
@@ -29,19 +24,19 @@ Frame FrameCalculator::CalculateResizedFrame(const Frame& startFrame, const Resi
 
 	if (SelectionFrame::IsLeftMove(handle))
 	{
-		left = Clamp(left + offset.m_x, bounds.m_left, right - minSize);
+		left = std::clamp(left + offset.m_x, bounds.m_left, right - minSize);
 	}
 	if (SelectionFrame::IsRightMove(handle))
 	{
-		right = Clamp(right + offset.m_x, left + minSize, bounds.GetRight());
+		right = std::clamp(right + offset.m_x, left + minSize, bounds.GetRight());
 	}
 	if (SelectionFrame::IsTopMove(handle))
 	{
-		top = Clamp(top + offset.m_y, bounds.m_top, bottom - minSize);
+		top = std::clamp(top + offset.m_y, bounds.m_top, bottom - minSize);
 	}
 	if (SelectionFrame::IsBottomMove(handle))
 	{
-		bottom = Clamp(bottom + offset.m_y, top + minSize, bounds.GetBottom());
+		bottom = std::clamp(bottom + offset.m_y, top + minSize, bounds.GetBottom());
 	}
 	return { left, top, right - left, bottom - top };
 }

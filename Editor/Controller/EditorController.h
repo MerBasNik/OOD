@@ -29,7 +29,7 @@ public:
 	CursorType GetCursorType(Point point) const;
 
 	void NewDocument();
-	void SaveDocument(const std::filesystem::path& path);
+	void SaveDocument(const std::filesystem::path& path)const;
 	void OpenDocument(const std::filesystem::path& path);
 
 private:

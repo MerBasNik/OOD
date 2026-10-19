@@ -2,6 +2,7 @@
 // Created by Вадим Патрушев on 15.10.2026.
 //
 
+#include "Mock/InvalidDocumentCase.h"
 #include "Model/Serialization/DocumentSerializer.h"
 #include "Model/Shapes/Ellipse.h"
 #include "Model/Shapes/Rectangle.h"
@@ -37,17 +38,21 @@ TEST_F(DocumentSerializerTest, SaveWritesShapesInLayerOrder)
 	DocumentSerializer::Save(document, output);
 
 	EXPECT_EQ(output.str(),
-		"editor-document 1\n"
 		"rectangle 10 20 30 40 ff0000\n"
 		"ellipse 1.5 2.25 100 50 00ff00\n");
 }
 
-TEST_F(DocumentSerializerTest, SaveEmptyDocumentWritesOnlyHeader)
+TEST_F(DocumentSerializerTest, SaveEmptyDocumentWritesNothing)
 {
 	std::ostringstream output;
 	DocumentSerializer::Save(document, output);
 
-	EXPECT_EQ(output.str(), "editor-document 1\n");
+	EXPECT_EQ(output.str(), "");
+}
+
+TEST_F(DocumentSerializerTest, LoadEmptyInputGivesNoShapes)
+{
+	EXPECT_TRUE(LoadFromString("").empty());
 }
 
 TEST_F(DocumentSerializerTest, RoundTripRestoresTypesInLayerOrder)
@@ -87,7 +92,7 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresColor)
 
 TEST_F(DocumentSerializerTest, SkipsEmptyLines)
 {
-	const auto shapes = LoadFromString("\neditor-document 1\n\n  \ntriangle 1 2 3 4 000000\n\n");
+	const auto shapes = LoadFromString("\ntriangle 1 2 3 4 000000\n\n");
 
 	ASSERT_EQ(shapes.size(), 1u);
 	EXPECT_EQ(shapes[0]->GetType(), ShapeType::Triangle);
@@ -95,12 +100,12 @@ TEST_F(DocumentSerializerTest, SkipsEmptyLines)
 
 TEST_F(DocumentSerializerTest, LoadFromMissingFileThrows)
 {
-	EXPECT_THROW(DocumentSerializer::LoadFromFile("/nonexistent/dir/file.shapes"), std::runtime_error);
+	EXPECT_THROW(DocumentSerializer::LoadFromFile("/abc/file.draw"), std::runtime_error);
 }
 
 TEST_F(DocumentSerializerTest, SaveToFileReplacesPreviousVersionWithoutTempFile)
 {
-	const auto path = std::filesystem::temp_directory_path() / "document_serializer_test.shapes";
+	const auto path = std::filesystem::temp_directory_path() / "test.draw";
 	DocumentSerializer::SaveToFile(document, path);
 	document.AddShape(std::make_unique<Rectangle>(Frame{ 10, 20, 30, 40 }, 0));
 
@@ -113,12 +118,12 @@ TEST_F(DocumentSerializerTest, SaveToFileReplacesPreviousVersionWithoutTempFile)
 
 TEST_F(DocumentSerializerTest, SaveToMissingDirectoryThrows)
 {
-	EXPECT_THROW(DocumentSerializer::SaveToFile(document, "/nonexistent/dir/file.shapes"), std::runtime_error);
+	EXPECT_THROW(DocumentSerializer::SaveToFile(document, "/abc/file.draw"), std::runtime_error);
 }
 
 TEST_F(DocumentSerializerTest, FailedSaveKeepsPreviousFileAndRemovesTempFile)
 {
-	const auto path = std::filesystem::temp_directory_path() / "document_serializer_dir.shapes";
+	const auto path = std::filesystem::temp_directory_path() / "test.draw";
 	std::filesystem::create_directory(path);
 
 	EXPECT_THROW(DocumentSerializer::SaveToFile(document, path), std::runtime_error);
@@ -127,13 +132,6 @@ TEST_F(DocumentSerializerTest, FailedSaveKeepsPreviousFileAndRemovesTempFile)
 	EXPECT_FALSE(std::filesystem::exists(path.string() + ".tmp"));
 	std::filesystem::remove(path);
 }
-
-struct InvalidDocumentCase
-{
-	std::string m_name;
-	std::string m_text;
-	std::string m_expectedMessagePart;
-};
 
 class DocumentSerializerInvalidContentTest : public ::testing::TestWithParam<InvalidDocumentCase>
 {
@@ -155,19 +153,16 @@ TEST_P(DocumentSerializerInvalidContentTest, ReportsErrorWithDescription)
 
 INSTANTIATE_TEST_SUITE_P(DocumentSerializerTest, DocumentSerializerInvalidContentTest,
 	::testing::Values(
-		InvalidDocumentCase{ "EmptyFile", "", "пуст" },
-		InvalidDocumentCase{ "WrongHeader", "hello world\n", "не является документом" },
-		InvalidDocumentCase{ "UnsupportedVersion", "editor-document 2\n", "версия" },
-		InvalidDocumentCase{ "UnknownShapeType", "editor-document 1\nhexagon 0 0 10 10 000000\n", "неподдерживаемый тип фигуры" },
-		InvalidDocumentCase{ "MissingHeight", "editor-document 1\nrectangle 0 0 10\n", "отсутствует параметр height" },
-		InvalidDocumentCase{ "MissingColor", "editor-document 1\nrectangle 0 0 10 10\n", "отсутствует параметр color" },
-		InvalidDocumentCase{ "NotANumber", "editor-document 1\nrectangle 0 abc 10 10 000000\n", "top" },
-		InvalidDocumentCase{ "NumberWithSuffix", "editor-document 1\nrectangle 0 1x 10 10 000000\n", "top" },
-		InvalidDocumentCase{ "NanNumber", "editor-document 1\nrectangle 0 nan 10 10 000000\n", "top" },
-		InvalidDocumentCase{ "NegativeSize", "editor-document 1\nrectangle 0 0 -10 10 000000\n", "положительными" },
-		InvalidDocumentCase{ "InvalidColor", "editor-document 1\nrectangle 0 0 10 10 red\n", "цвет" },
-		InvalidDocumentCase{ "ExtraData", "editor-document 1\nrectangle 0 0 10 10 000000 extra\n", "лишние данные" },
-		InvalidDocumentCase{ "CommentBeforeHeader", "# comment\neditor-document 1\n", "не является документом" },
-		InvalidDocumentCase{ "CommentBetweenShapes", "editor-document 1\n# comment\n", "Строка 2: неподдерживаемый тип фигуры" },
-		InvalidDocumentCase{ "ErrorContainsLineNumber", "editor-document 1\nellipse 0 0 10 10 000000\nbad\n", "Строка 3" }),
+		InvalidDocumentCase{ "NotAShapeLine", "hello world\n", "неизвестный тип фигуры \"hello\"" },
+		InvalidDocumentCase{ "UnknownShapeType", "abc 0 0 10 10 000000\n", "неизвестный тип фигуры \"abc\"" },
+		InvalidDocumentCase{ "MissingParameter", "rectangle 0 0 10\n", "некорректное описание фигуры" },
+		InvalidDocumentCase{ "MissingColor", "rectangle 0 0 10 10\n", "некорректное описание фигуры" },
+		InvalidDocumentCase{ "NotANumber", "rectangle 0 abc 10 10 000000\n", "некорректное описание фигуры" },
+		InvalidDocumentCase{ "NumberWithSuffix", "rectangle 0 1x 10 10 000000\n", "некорректное описание фигуры" },
+		InvalidDocumentCase{ "NanNumber", "rectangle 0 nan 10 10 000000\n", "некорректное описание фигуры" },
+		InvalidDocumentCase{ "InvalidColor", "rectangle 0 0 10 10 red\n", "некорректное описание фигуры" },
+		InvalidDocumentCase{ "TooLargeColor", "rectangle 0 0 10 10 1000000\n", "некорректное описание фигуры" },
+		InvalidDocumentCase{ "ExtraData", "rectangle 0 0 10 10 000000 extra\n", "некорректное описание фигуры" },
+		InvalidDocumentCase{ "Comment", "# comment\n", "неизвестный тип фигуры" },
+		InvalidDocumentCase{ "ErrorContainsLineNumber", "ellipse 0 0 10 10 000000\nbad\n", "Строка 2" }),
 	[](const ::testing::TestParamInfo<InvalidDocumentCase>& info) { return info.param.m_name; });

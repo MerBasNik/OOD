@@ -5,6 +5,7 @@
 #ifndef OOD_EDITOR_TOOLBAR_H
 #define OOD_EDITOR_TOOLBAR_H
 
+#include "Types/Button.h"
 #include <SFML/Graphics.hpp>
 #include <functional>
 #include <string>
@@ -23,13 +24,6 @@ public:
 	bool IsContains(sf::Vector2f point) const;
 
 private:
-	struct Button
-	{
-		sf::String m_label;
-		sf::FloatRect m_rect;
-		std::function<void()> m_onClick;
-	};
-
 	sf::Font m_font;
 	bool m_hasFont = false;
 	std::vector<Button> m_buttons;

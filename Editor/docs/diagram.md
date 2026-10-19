@@ -127,12 +127,7 @@ class DocumentSerializer {
 + SaveToFile(Document document, path path)$
 + LoadFromFile(path path)$ vector~unique_ptr~IShape~~
 - GetTypeName(ShapeType type)$ string
-- IsSupportedTypeName(string name)$ bool
-- LinePrefix(size_t lineNumber)$ string
-- ParseNumber(string token, string name, size_t lineNumber)$ double
-- ParseColor(string token, size_t lineNumber)$ Color
 - ParseShape(string line, size_t lineNumber)$ unique_ptr~IShape~
-- IsEmptyLine(string line)$ bool
 }
 
 class IEditorStateObserver {

@@ -5,7 +5,7 @@
 #include "Controller/EditorController.h"
 #include "Controller/ShapeDefaults.h"
 #include "Mock/MockDocumentObserver.h"
-#include "Model/Serialization/DocumentSerializer.h"
+#include "Mock/ResizeCase.h"
 #include "Model/Shapes/Ellipse.h"
 #include "Model/Shapes/Rectangle.h"
 #include <filesystem>
@@ -19,7 +19,7 @@ public:
 	EditorState m_state;
 	EditorController m_controller{ m_document, m_state };
 	MockDocumentObserver m_documentObserver;
-	std::filesystem::path m_path = std::filesystem::temp_directory_path() / "editor_controller_test.shapes";
+	std::filesystem::path m_path = std::filesystem::temp_directory_path() / "test.draw";
 
 	void TearDown() override
 	{
@@ -162,14 +162,6 @@ TEST_F(EditorControllerTest, DragIsLimitedByBottomRightOfCanvas)
 
 	EXPECT_EQ(GetFrame(id), (Frame{ 800, 500, 200, 100 }));
 }
-
-struct ResizeCase
-{
-	std::string m_name;
-	Point m_handle;
-	Point m_offset;
-	Frame m_expected;
-};
 
 class EditorControllerResizeTest : public EditorControllerTest
 	, public ::testing::WithParamInterface<ResizeCase>
@@ -500,7 +492,7 @@ TEST_F(EditorControllerTest, OpenRestoresSavedShapes)
 
 TEST_F(EditorControllerTest, OpenClearsSelectionAndRemembersFilePath)
 {
-	WriteFile("editor-document 1\nrectangle 10 20 100 50 ff0000\n");
+	WriteFile("rectangle 10 20 100 50 ff0000\n");
 	AddSelectedRectangle({ 0, 0, 100, 100 });
 
 	m_controller.OpenDocument(m_path);
@@ -511,7 +503,7 @@ TEST_F(EditorControllerTest, OpenClearsSelectionAndRemembersFilePath)
 
 TEST_F(EditorControllerTest, FailedOpenOfInvalidFileKeepsCurrentDocument)
 {
-	WriteFile("editor-document 1\nrectangle 0 0 50 50 ff0000\nhexagon 0 0 50 50 ff0000\n");
+	WriteFile("rectangle 0 0 50 50 ff0000\nhexagon 0 0 50 50 ff0000\n");
 	const auto id = AddSelectedRectangle({ 10, 20, 100, 50 });
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
@@ -534,7 +526,7 @@ TEST_F(EditorControllerTest, FailedOpenOfMissingFileKeepsCurrentDocument)
 
 TEST_F(EditorControllerTest, OpenRejectsShapesOutsideCanvas)
 {
-	WriteFile("editor-document 1\nrectangle 950 0 100 50 ff0000\n");
+	WriteFile("rectangle 950 0 100 50 ff0000\n");
 	AddRectangle({ 10, 20, 100, 50 });
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
@@ -543,7 +535,7 @@ TEST_F(EditorControllerTest, OpenRejectsShapesOutsideCanvas)
 
 TEST_F(EditorControllerTest, OpenRejectsShapesSmallerThanMinimumSize)
 {
-	WriteFile("editor-document 1\nrectangle 0 0 5 50 ff0000\n");
+	WriteFile("rectangle 0 0 5 50 ff0000\n");
 	AddRectangle({ 10, 20, 100, 50 });
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);

@@ -5,7 +5,6 @@
 #include "EditorWindow.h"
 #include "FileWindows.h"
 
-const float CANVAS_MARGIN = 0; // 16.f;
 const sf::Color WORKSPACE_COLOR(210, 210, 210);
 const char* DEFAULT_FILE_NAME = "editor.draw";
 
@@ -13,11 +12,11 @@ EditorWindow::EditorWindow(Document& document, EditorState& state, EditorControl
 	: m_state(state)
 	, m_controller(controller)
 	, m_window(sf::VideoMode({
-				   static_cast<unsigned>(document.GetBounds().m_width + 2 * CANVAS_MARGIN),
-				   static_cast<unsigned>(document.GetBounds().m_height + Toolbar::HEIGHT + 2 * CANVAS_MARGIN),
+				   static_cast<unsigned>(document.GetBounds().m_width),
+				   static_cast<unsigned>(document.GetBounds().m_height + Toolbar::HEIGHT),
 			   }),
 		  "Editor")
-	, m_canvasView(document, state, { CANVAS_MARGIN, Toolbar::HEIGHT + CANVAS_MARGIN })
+	, m_canvasView(document, state, { 0.f, Toolbar::HEIGHT })
 {
 	m_window.setVerticalSyncEnabled(true);
 	InitToolbar();
@@ -45,14 +44,28 @@ void EditorWindow::Run()
 
 void EditorWindow::InitToolbar()
 {
-	m_toolbar.AddButton("Прямоугольник", [this] { m_controller.AddShape(ShapeType::Rectangle); });
-	m_toolbar.AddButton("Эллипс", [this] { m_controller.AddShape(ShapeType::Ellipse); });
-	m_toolbar.AddButton("Треугольник", [this] { m_controller.AddShape(ShapeType::Triangle); });
-	m_toolbar.AddButton("Удалить", [this] { m_controller.DeleteSelectedShape(); });
+	m_toolbar.AddButton("Прямоугольник", [this] {
+		m_controller.AddShape(ShapeType::Rectangle);
+	});
+	m_toolbar.AddButton("Эллипс", [this] {
+		m_controller.AddShape(ShapeType::Ellipse);
+	});
+	m_toolbar.AddButton("Треугольник", [this] {
+		m_controller.AddShape(ShapeType::Triangle);
+	});
+	m_toolbar.AddButton("Удалить", [this] {
+		m_controller.DeleteSelectedShape();
+	});
 	m_toolbar.AddSeparator();
-	m_toolbar.AddButton("Новый", [this] { NewDocument(); });
-	m_toolbar.AddButton("Открыть", [this] { OpenDocument(); });
-	m_toolbar.AddButton("Сохранить", [this] { SaveDocument(); });
+	m_toolbar.AddButton("Новый", [this] {
+		NewDocument();
+	});
+	m_toolbar.AddButton("Открыть", [this] {
+		OpenDocument();
+	});
+	m_toolbar.AddButton("Сохранить", [this] {
+		SaveDocument();
+	});
 }
 
 void EditorWindow::InitCursors()

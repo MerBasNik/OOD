@@ -188,7 +188,7 @@ void EditorController::NewDocument()
 	m_document.Clear();
 }
 
-void EditorController::SaveDocument(const std::filesystem::path& path)
+void EditorController::SaveDocument(const std::filesystem::path& path) const
 {
 	DocumentSerializer::SaveToFile(m_document, path);
 	m_state.SetFilePath(path);
@@ -249,7 +249,6 @@ Frame EditorController::CalculateDraggedFrame(const Point point) const
 
 void EditorController::StartDrag(const DragMode mode, const int id, const Point point, const ResizeHandle handle)
 {
-	// Предыдущий жест мог не получить OnMouseUp, например если кнопку отпустили за пределами окна
 	ResetDrag();
 	const IShape* shape = m_document.FindShape(id);
 	if (!shape)
