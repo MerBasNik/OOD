@@ -243,7 +243,6 @@ class DragState {
 class FrameCalculator {
 + CalculateMovedFrame(Frame startFrame, Point offset, Frame bounds)$ Frame
 + CalculateResizedFrame(Frame startFrame, ResizeHandle handle, Point offset, Frame bounds, double minSize)$ Frame
-- Clamp(double value, double lo, double hi)$ double
 }
 
 class ShapeDefaults {
@@ -312,7 +311,6 @@ class Toolbar {
 - sf:: Font m_font
 - vector~Button~ m_buttons
 + AddButton(string label, function onClick)
-+ AddSeparator()
 + Draw(sf:: RenderTarget& target)
 + HandleClick(sf:: Vector2f point) bool
 + Contains(sf:: Vector2f point) bool

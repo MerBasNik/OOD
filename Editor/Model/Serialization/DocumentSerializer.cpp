@@ -68,10 +68,10 @@ void DocumentSerializer::Save(const Document& document, std::ostream& output)
 		const IShape& shape = document.GetShape(i);
 		const Frame frame = shape.GetFrame();
 		output << GetTypeName(shape.GetType()) << " "
-				<< std::setprecision(SET_PRECISION) << frame.m_left << " " << frame.m_top << " "
-				<< frame.m_width << " " << frame.m_height << " "
-				<< std::hex << std::setw(6) << std::setfill('0') << shape.GetColor()
-				<< std::dec << std::setfill(' ') << "\n";
+			   << std::setprecision(SET_PRECISION) << frame.m_left << " " << frame.m_top << " "
+			   << frame.m_width << " " << frame.m_height << " "
+			   << std::hex << std::setw(6) << std::setfill('0') << shape.GetColor()
+			   << std::dec << std::setfill(' ') << "\n";
 	}
 }
 

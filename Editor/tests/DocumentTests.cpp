@@ -8,8 +8,6 @@
 #include "Model/Shapes/Rectangle.h"
 #include <gtest/gtest.h>
 
-using ::testing::StrictMock;
-
 class DocumentTest : public ::testing::Test
 {
 public:
@@ -108,7 +106,7 @@ TEST_F(DocumentTest, ReplaceShapesIsAtomic)
 
 TEST_F(DocumentTest, NotifiesObserverAboutAddedShape)
 {
-	StrictMock<MockDocumentObserver> observer;
+	MockDocumentObserver observer;
 	document.AddObserver(observer);
 	EXPECT_CALL(observer, DocumentUpdate).Times(1);
 
@@ -118,7 +116,7 @@ TEST_F(DocumentTest, NotifiesObserverAboutAddedShape)
 TEST_F(DocumentTest, NotifiesObserverAboutChangedFrame)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
-	StrictMock<MockDocumentObserver> observer;
+	MockDocumentObserver observer;
 	document.AddObserver(observer);
 	EXPECT_CALL(observer, DocumentUpdate).Times(1);
 
@@ -128,7 +126,7 @@ TEST_F(DocumentTest, NotifiesObserverAboutChangedFrame)
 TEST_F(DocumentTest, DoesNotNotifyWhenFrameIsUnchanged)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
-	StrictMock<MockDocumentObserver> observer;
+	MockDocumentObserver observer;
 	document.AddObserver(observer);
 	EXPECT_CALL(observer, DocumentUpdate).Times(0);
 
@@ -138,7 +136,7 @@ TEST_F(DocumentTest, DoesNotNotifyWhenFrameIsUnchanged)
 TEST_F(DocumentTest, NotifiesObserverAboutRemovedShape)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
-	StrictMock<MockDocumentObserver> observer;
+	MockDocumentObserver observer;
 	document.AddObserver(observer);
 	EXPECT_CALL(observer, DocumentUpdate).Times(1);
 
@@ -147,7 +145,7 @@ TEST_F(DocumentTest, NotifiesObserverAboutRemovedShape)
 
 TEST_F(DocumentTest, RemovedObserverIsNotNotified)
 {
-	StrictMock<MockDocumentObserver> observer;
+	MockDocumentObserver observer;
 	document.AddObserver(observer);
 	document.RemoveObserver(observer);
 	EXPECT_CALL(observer, DocumentUpdate).Times(0);

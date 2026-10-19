@@ -35,12 +35,10 @@ private:
 	void HandleKeyPressed(const sf::Event::KeyPressed& key);
 	void UpdateCursor(sf::Vector2f point);
 	void Render();
-
 	void NewDocument();
 	void OpenDocument();
 	void SaveDocument();
 	void RunFileOperation(const std::string& errorMessage, const std::function<void()>& operation);
-
 	Point ToDocumentPoint(sf::Vector2i pixel) const;
 };
 

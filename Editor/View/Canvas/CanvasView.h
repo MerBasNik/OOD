@@ -17,14 +17,11 @@ public:
 	~CanvasView() override;
 	CanvasView(const CanvasView&) = delete;
 	CanvasView& operator=(const CanvasView&) = delete;
-
 	void Draw(sf::RenderTarget& target) const;
 	Point ToDocumentPoint(sf::Vector2f point) const;
-
-	bool IsInvalid() const;
-	void Invalidate();
-	void Validate();
-
+	bool IsChange() const;
+	void SetIsChange();
+	void SetDontChange();
 	void DocumentUpdate() override;
 	void EditorStateUpdate() override;
 
@@ -32,7 +29,7 @@ private:
 	Document& m_document;
 	EditorState& m_state;
 	sf::Vector2f m_origin;
-	bool m_isInvalid = true;
+	bool m_isChange = true;
 
 	void DrawBackground(sf::RenderTarget& target) const;
 	void DrawShapes(sf::RenderTarget& target) const;

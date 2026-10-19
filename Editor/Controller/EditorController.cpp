@@ -188,7 +188,7 @@ void EditorController::NewDocument()
 	m_document.Clear();
 }
 
-void EditorController::SaveDocument(const std::filesystem::path& path) const
+void EditorController::SaveDocument(const std::filesystem::path& path)
 {
 	DocumentSerializer::SaveToFile(m_document, path);
 	m_state.SetFilePath(path);

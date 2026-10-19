@@ -15,7 +15,6 @@ public:
 	void DrawRectangle(const Frame& frame, Color color) override;
 	void DrawEllipse(const Frame& frame, Color color) override;
 	void DrawPolygon(const std::vector<Point>& vertices, Color color) override;
-
 	static sf::Color ConvertColorToSf(Color color);
 
 private:

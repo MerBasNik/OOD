@@ -18,16 +18,13 @@ public:
 
 	Toolbar();
 	void AddButton(const std::string& label, std::function<void()> onClick);
-	void AddSeparator();
 	void Draw(sf::RenderTarget& target) const;
 	bool HandleClick(sf::Vector2f point) const;
 	bool IsContains(sf::Vector2f point) const;
 
 private:
 	sf::Font m_font;
-	bool m_hasFont = false;
 	std::vector<Button> m_buttons;
-	float m_nextLeft;
 };
 
 #endif // OOD_EDITOR_TOOLBAR_H

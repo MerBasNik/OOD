@@ -18,7 +18,6 @@ EditorWindow::EditorWindow(Document& document, EditorState& state, EditorControl
 		  "Editor")
 	, m_canvasView(document, state, { 0.f, Toolbar::HEIGHT })
 {
-	m_window.setVerticalSyncEnabled(true);
 	InitToolbar();
 	InitCursors();
 }
@@ -35,7 +34,7 @@ void EditorWindow::Run()
 		{
 			HandleEvent(*event);
 		}
-		if (m_window.isOpen() && m_canvasView.IsInvalid())
+		if (m_window.isOpen() && m_canvasView.IsChange())
 		{
 			Render();
 		}
@@ -56,7 +55,6 @@ void EditorWindow::InitToolbar()
 	m_toolbar.AddButton("Удалить", [this] {
 		m_controller.DeleteSelectedShape();
 	});
-	m_toolbar.AddSeparator();
 	m_toolbar.AddButton("Новый", [this] {
 		NewDocument();
 	});
@@ -70,7 +68,7 @@ void EditorWindow::InitToolbar()
 
 void EditorWindow::InitCursors()
 {
-	const std::pair<CursorType, sf::Cursor::Type> mapping[] = {
+	const std::pair<CursorType, sf::Cursor::Type> cursors[] = {
 		{ CursorType::Arrow, sf::Cursor::Type::Arrow },
 		{ CursorType::Move, sf::Cursor::Type::SizeAll },
 		{ CursorType::SizeHorizontal, sf::Cursor::Type::SizeHorizontal },
@@ -78,7 +76,7 @@ void EditorWindow::InitCursors()
 		{ CursorType::SizeTopLeftBottomRight, sf::Cursor::Type::SizeTopLeftBottomRight },
 		{ CursorType::SizeBottomLeftTopRight, sf::Cursor::Type::SizeBottomLeftTopRight },
 	};
-	for (const auto& [type, sfType] : mapping)
+	for (const auto& [type, sfType] : cursors)
 	{
 		if (auto cursor = sf::Cursor::createFromSystem(sfType))
 		{
@@ -96,11 +94,11 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 	else if (const auto* resized = event.getIf<sf::Event::Resized>())
 	{
 		m_window.setView(sf::View(sf::FloatRect({ 0.f, 0.f }, sf::Vector2f(resized->size))));
-		m_canvasView.Invalidate();
+		m_canvasView.SetIsChange();
 	}
 	else if (event.is<sf::Event::FocusGained>())
 	{
-		m_canvasView.Invalidate();
+		m_canvasView.SetIsChange();
 	}
 	else if (event.is<sf::Event::FocusLost>())
 	{
@@ -202,7 +200,7 @@ void EditorWindow::Render()
 	m_canvasView.Draw(m_window);
 	m_toolbar.Draw(m_window);
 	m_window.display();
-	m_canvasView.Validate();
+	m_canvasView.SetDontChange();
 }
 
 void EditorWindow::NewDocument()
@@ -212,7 +210,7 @@ void EditorWindow::NewDocument()
 
 void EditorWindow::OpenDocument()
 {
-	if (const auto path = FileWindows::ShowOpenFileDialog())
+	if (const auto path = FileWindows::ShowOpenFileWindow())
 	{
 		RunFileOperation("Не удалось открыть документ.", [&] { m_controller.OpenDocument(*path); });
 	}
@@ -223,7 +221,7 @@ void EditorWindow::SaveDocument()
 	auto path = m_state.GetFilePath();
 	if (!path)
 	{
-		path = FileWindows::ShowSaveFileDialog(DEFAULT_FILE_NAME);
+		path = FileWindows::ShowSaveFileWindow(DEFAULT_FILE_NAME);
 	}
 	if (path)
 	{
@@ -241,7 +239,7 @@ void EditorWindow::RunFileOperation(const std::string& errorMessage, const std::
 	{
 		FileWindows::ShowError(errorMessage + "\n" + e.what());
 	}
-	m_canvasView.Invalidate();
+	m_canvasView.SetIsChange();
 }
 
 Point EditorWindow::ToDocumentPoint(const sf::Vector2i pixel) const

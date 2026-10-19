@@ -12,13 +12,13 @@
 class FileWindows
 {
 public:
-	static std::optional<std::filesystem::path> ShowOpenFileDialog();
-	static std::optional<std::filesystem::path> ShowSaveFileDialog(const std::string& defaultName);
+	static std::optional<std::filesystem::path> ShowOpenFileWindow();
+	static std::optional<std::filesystem::path> ShowSaveFileWindow(const std::string& defaultName);
 	static void ShowError(const std::string& message);
 
 private:
-	static std::string QuoteShellArgument(const std::string& text);
-	static std::string RunAppleScript(const std::string& script, const std::string& argument = "");
+	static std::string GetQuoteArgument(const std::string& text);
+	static std::string RunScript(const std::string& script, const std::string& argument = "");
 	static std::optional<std::filesystem::path> ToPath(const std::string& output);
 };
 

@@ -37,29 +37,29 @@ Point CanvasView::ToDocumentPoint(const sf::Vector2f point) const
 	return { point.x - m_origin.x, point.y - m_origin.y };
 }
 
-bool CanvasView::IsInvalid() const
+bool CanvasView::IsChange() const
 {
-	return m_isInvalid;
+	return m_isChange;
 }
 
-void CanvasView::Invalidate()
+void CanvasView::SetIsChange()
 {
-	m_isInvalid = true;
+	m_isChange = true;
 }
 
-void CanvasView::Validate()
+void CanvasView::SetDontChange()
 {
-	m_isInvalid = false;
+	m_isChange = false;
 }
 
 void CanvasView::DocumentUpdate()
 {
-	Invalidate();
+	SetIsChange();
 }
 
 void CanvasView::EditorStateUpdate()
 {
-	Invalidate();
+	SetIsChange();
 }
 
 void CanvasView::DrawBackground(sf::RenderTarget& target) const
