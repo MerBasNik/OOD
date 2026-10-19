@@ -131,7 +131,7 @@ TEST_F(DocumentSerializerTest, FailedSaveKeepsPreviousFileAndRemovesTempFile)
 	EXPECT_TRUE(std::filesystem::is_directory(path));
 	EXPECT_FALSE(std::filesystem::exists(path.string() + ".tmp"));
 	std::filesystem::remove(path);
-}
+};
 
 class DocumentSerializerInvalidContentTest : public ::testing::TestWithParam<InvalidDocumentCase>
 {
@@ -143,7 +143,7 @@ TEST_P(DocumentSerializerInvalidContentTest, ReportsErrorWithDescription)
 	try
 	{
 		DocumentSerializerTest::LoadFromString(text);
-		FAIL() << "Ожидалась ошибка формата для: " << text;
+		FAIL() << "Ошибка: " << text;
 	}
 	catch (const std::runtime_error& e)
 	{
@@ -163,6 +163,5 @@ INSTANTIATE_TEST_SUITE_P(DocumentSerializerTest, DocumentSerializerInvalidConten
 		InvalidDocumentCase{ "InvalidColor", "rectangle 0 0 10 10 red\n", "некорректное описание фигуры" },
 		InvalidDocumentCase{ "TooLargeColor", "rectangle 0 0 10 10 1000000\n", "некорректное описание фигуры" },
 		InvalidDocumentCase{ "ExtraData", "rectangle 0 0 10 10 000000 extra\n", "некорректное описание фигуры" },
-		InvalidDocumentCase{ "Comment", "# comment\n", "неизвестный тип фигуры" },
-		InvalidDocumentCase{ "ErrorContainsLineNumber", "ellipse 0 0 10 10 000000\nbad\n", "Строка 2" }),
+		InvalidDocumentCase{ "Comment", "# comment\n", "неизвестный тип фигуры" }),
 	[](const ::testing::TestParamInfo<InvalidDocumentCase>& info) { return info.param.m_name; });

@@ -15,12 +15,10 @@ class IShape
 {
 public:
 	virtual ~IShape() = default;
-
 	virtual ShapeType GetType() const = 0;
 	virtual bool HitTest(Point point) const = 0;
 	virtual void Draw(ICanvas& canvas) const = 0;
 	virtual std::unique_ptr<IShape> Clone() const = 0;
-
 	virtual Frame GetFrame() const = 0;
 	virtual void SetFrame(const Frame& frame) = 0;
 	virtual Color GetColor() const = 0;

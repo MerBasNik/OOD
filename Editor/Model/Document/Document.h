@@ -14,6 +14,8 @@
 class Document
 {
 public:
+	const int START_ID = 1;
+
 	Document(double width, double height);
 	Document(const Document&) = delete;
 	Document& operator=(const Document&) = delete;
@@ -36,18 +38,18 @@ public:
 	void RemoveObserver(IDocumentObserver& observer);
 
 private:
-	struct Item
+	struct ShapeInner
 	{
 		int m_id;
 		std::unique_ptr<IShape> m_shape;
 	};
 
 	Frame m_bounds;
-	std::vector<Item> m_items;
-	int m_nextId = 1;
+	std::vector<ShapeInner> m_shapesInner;
+	int m_nextId = START_ID;
 	std::vector<IDocumentObserver*> m_observers;
 
-	std::vector<Item>::iterator FindItem(int id);
+	std::vector<ShapeInner>::iterator FindItem(int id);
 	void CheckFrame(const Frame& frame) const;
 	void NotifyObservers();
 };

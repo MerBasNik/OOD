@@ -27,7 +27,7 @@ int Document::AddShape(std::unique_ptr<IShape> shape)
 	CheckFrame(shape->GetFrame());
 
 	const int id = m_nextId++;
-	m_items.push_back({ id, std::move(shape) });
+	m_shapesInner.push_back({ id, std::move(shape) });
 	NotifyObservers();
 	return id;
 }
@@ -35,18 +35,18 @@ int Document::AddShape(std::unique_ptr<IShape> shape)
 void Document::RemoveShape(const int id)
 {
 	const auto it = FindItem(id);
-	if (it == m_items.end())
+	if (it == m_shapesInner.end())
 	{
 		return;
 	}
-	m_items.erase(it);
+	m_shapesInner.erase(it);
 	NotifyObservers();
 }
 
 void Document::SetShapeFrame(const int id, const Frame& frame)
 {
 	const auto it = FindItem(id);
-	if (it == m_items.end())
+	if (it == m_shapesInner.end())
 	{
 		throw std::invalid_argument("Фигура не найдена");
 	}
@@ -70,46 +70,46 @@ void Document::ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes)
 		CheckFrame(shape->GetFrame());
 	}
 
-	std::vector<Item> items;
+	std::vector<ShapeInner> items;
 	items.reserve(shapes.size());
 	for (auto& shape : shapes)
 	{
 		items.push_back({ m_nextId++, std::move(shape) });
 	}
-	m_items = std::move(items);
+	m_shapesInner = std::move(items);
 	NotifyObservers();
 }
 
 void Document::Clear()
 {
-	m_items.clear();
+	m_shapesInner.clear();
 	NotifyObservers();
 }
 
 size_t Document::GetShapeCount() const
 {
-	return m_items.size();
+	return m_shapesInner.size();
 }
 
 const IShape& Document::GetShape(const size_t index) const
 {
-	return *m_items.at(index).m_shape;
+	return *m_shapesInner.at(index).m_shape;
 }
 
 int Document::GetShapeId(const size_t index) const
 {
-	return m_items.at(index).m_id;
+	return m_shapesInner.at(index).m_id;
 }
 
 const IShape* Document::FindShape(const int id) const
 {
-	const auto it = std::ranges::find(m_items, id, &Item::m_id);
-	return it != m_items.end() ? it->m_shape.get() : nullptr;
+	const auto it = std::ranges::find(m_shapesInner, id, &ShapeInner::m_id);
+	return it != m_shapesInner.end() ? it->m_shape.get() : nullptr;
 }
 
 std::optional<int> Document::FindTopShape(const Point point) const
 {
-	for (auto it = m_items.rbegin(); it != m_items.rend(); ++it)
+	for (auto it = m_shapesInner.rbegin(); it != m_shapesInner.rend(); ++it)
 	{
 		if (it->m_shape->HitTest(point))
 		{
@@ -132,9 +132,9 @@ void Document::RemoveObserver(IDocumentObserver& observer)
 	std::erase(m_observers, &observer);
 }
 
-std::vector<Document::Item>::iterator Document::FindItem(const int id)
+std::vector<Document::ShapeInner>::iterator Document::FindItem(const int id)
 {
-	return std::ranges::find(m_items, id, &Item::m_id);
+	return std::ranges::find(m_shapesInner, id, &ShapeInner::m_id);
 }
 
 void Document::CheckFrame(const Frame& frame) const

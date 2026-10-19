@@ -32,13 +32,12 @@ std::string DocumentSerializer::GetTypeName(const ShapeType type)
 
 std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, const size_t lineNumber)
 {
-	const std::string prefix = "Строка " + std::to_string(lineNumber) + ": ";
 	std::istringstream stream(line);
 	std::string typeName;
 	stream >> typeName;
 	if (typeName != RECTANGLE_NAME && typeName != ELLIPSE_NAME && typeName != TRIANGLE_NAME)
 	{
-		throw std::runtime_error(prefix + "неизвестный тип фигуры \"" + typeName + "\"");
+		throw std::runtime_error("неизвестный тип фигуры \"" + typeName + "\"");
 	}
 
 	Frame frame;
@@ -47,7 +46,7 @@ std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, 
 	stream >> frame.m_left >> frame.m_top >> frame.m_width >> frame.m_height >> std::hex >> color;
 	if (!stream || color > MAX_COLOR || stream >> extra)
 	{
-		throw std::runtime_error(prefix + "некорректное описание фигуры \"" + line + "\"");
+		throw std::runtime_error("некорректное описание фигуры \"" + line + "\"");
 	}
 
 	if (typeName == RECTANGLE_NAME)
