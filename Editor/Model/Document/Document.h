@@ -7,6 +7,8 @@
 
 #include "IDocumentObserver.h"
 #include "Model/Shapes/IShape.h"
+#include "Model/Types/DocumentItem.h"
+
 #include <memory>
 #include <optional>
 #include <vector>
@@ -38,18 +40,12 @@ public:
 	void RemoveObserver(IDocumentObserver& observer);
 
 private:
-	struct ShapeInner
-	{
-		int m_id;
-		std::unique_ptr<IShape> m_shape;
-	};
-
 	Frame m_bounds;
-	std::vector<ShapeInner> m_shapesInner;
+	std::vector<DocumentItem> m_shapesInner;
 	int m_nextId = START_ID;
 	std::vector<IDocumentObserver*> m_observers;
 
-	std::vector<ShapeInner>::iterator FindItem(int id);
+	std::vector<DocumentItem>::iterator FindItem(int id);
 	void CheckFrame(const Frame& frame) const;
 	void NotifyObservers();
 };

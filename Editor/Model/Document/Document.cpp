@@ -70,7 +70,7 @@ void Document::ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes)
 		CheckFrame(shape->GetFrame());
 	}
 
-	std::vector<ShapeInner> items;
+	std::vector<DocumentItem> items;
 	items.reserve(shapes.size());
 	for (auto& shape : shapes)
 	{
@@ -103,7 +103,7 @@ int Document::GetShapeId(const size_t index) const
 
 const IShape* Document::FindShape(const int id) const
 {
-	const auto it = std::ranges::find(m_shapesInner, id, &ShapeInner::m_id);
+	const auto it = std::ranges::find(m_shapesInner, id, &DocumentItem::m_id);
 	return it != m_shapesInner.end() ? it->m_shape.get() : nullptr;
 }
 
@@ -132,9 +132,9 @@ void Document::RemoveObserver(IDocumentObserver& observer)
 	std::erase(m_observers, &observer);
 }
 
-std::vector<Document::ShapeInner>::iterator Document::FindItem(const int id)
+std::vector<DocumentItem>::iterator Document::FindItem(const int id)
 {
-	return std::ranges::find(m_shapesInner, id, &ShapeInner::m_id);
+	return std::ranges::find(m_shapesInner, id, &DocumentItem::m_id);
 }
 
 void Document::CheckFrame(const Frame& frame) const
