@@ -27,6 +27,7 @@ add_executable(Editor
 )
 
 target_include_directories(Editor PRIVATE ${SFML_INCLUDE_DIR})
+target_compile_definitions(Editor PRIVATE EDITOR_ICONS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Public/Icons")
 
 target_link_libraries(Editor PRIVATE
         Editor_lib

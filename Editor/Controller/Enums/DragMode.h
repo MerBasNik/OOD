@@ -10,6 +10,7 @@ enum class DragMode
 	None,
 	Move,
 	Resize,
+	Create,
 };
 
 #endif // OOD_EDITOR_DRAGMODE_H

@@ -13,6 +13,7 @@ enum class CursorType
 	SizeVertical,
 	SizeTopLeftBottomRight,
 	SizeBottomLeftTopRight,
+	Cross,
 };
 
 #endif // OOD_EDITOR_CURSORTYPE_H

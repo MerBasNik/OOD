@@ -40,3 +40,29 @@ Frame FrameCalculator::CalculateResizedFrame(const Frame& startFrame, const Resi
 	}
 	return { left, top, right - left, bottom - top };
 }
+
+Frame FrameCalculator::CalculateCreatedFrame(const Point startPoint, const Point currentPoint, const Frame& bounds,
+	const double minSize)
+{
+	const auto [left, right] = CalculateCreatedRange(startPoint.m_x, currentPoint.m_x,
+		bounds.m_left, bounds.GetRight(), minSize);
+	const auto [top, bottom] = CalculateCreatedRange(startPoint.m_y, currentPoint.m_y,
+		bounds.m_top, bounds.GetBottom(), minSize);
+	return { left, top, right - left, bottom - top };
+}
+
+std::pair<double, double> FrameCalculator::CalculateCreatedRange(double start, double current,
+	const double min, const double max, const double minSize)
+{
+	start = std::clamp(start, min, max);
+	current = std::clamp(current, min, max);
+	if (current >= start)
+	{
+		const double high = std::min(std::max(current, start + minSize), max);
+		const double low = std::min(start, high - minSize);
+		return { low, high };
+	}
+	const double low = std::max(std::min(current, start - minSize), min);
+	const double high = std::max(start, low + minSize);
+	return { low, high };
+}

@@ -7,6 +7,7 @@
 
 const sf::Color WORKSPACE_COLOR(210, 210, 210);
 const char* DEFAULT_FILE_NAME = "editor.draw";
+const std::filesystem::path ICONS_DIR = EDITOR_ICONS_DIR;
 
 EditorWindow::EditorWindow(Document& document, EditorState& state, EditorController& controller)
 	: m_state(state)
@@ -43,6 +44,17 @@ void EditorWindow::Run()
 
 void EditorWindow::InitToolbar()
 {
+	const std::pair<ShapeType, std::string> tools[] = {
+		{ ShapeType::Rectangle, "rectangle.png" },
+		{ ShapeType::Ellipse, "ellipse.png" },
+		{ ShapeType::Triangle, "triangle.png" },
+	};
+	for (const auto& [type, iconName] : tools)
+	{
+		m_toolbar.AddToolButton(ICONS_DIR / iconName, [this, type] {
+			m_controller.SelectShapeTool(m_state.GetShapeTool() == type ? std::nullopt : std::optional(type));
+		}, [this, type] { return m_state.GetShapeTool() == type; });
+	}
 	m_toolbar.AddButton("Прямоугольник", [this] {
 		m_controller.AddShape(ShapeType::Rectangle);
 	});
@@ -75,6 +87,7 @@ void EditorWindow::InitCursors()
 		{ CursorType::SizeVertical, sf::Cursor::Type::SizeVertical },
 		{ CursorType::SizeTopLeftBottomRight, sf::Cursor::Type::SizeTopLeftBottomRight },
 		{ CursorType::SizeBottomLeftTopRight, sf::Cursor::Type::SizeBottomLeftTopRight },
+		{ CursorType::Cross, sf::Cursor::Type::Cross },
 	};
 	for (const auto& [type, sfType] : cursors)
 	{
@@ -166,7 +179,12 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 		}
 		return;
 	}
-	if (key.code == sf::Keyboard::Key::Delete || key.code == sf::Keyboard::Key::Backspace)
+	if (key.code == sf::Keyboard::Key::Escape)
+	{
+		m_controller.Cancel();
+		UpdateCursor(m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
+	}
+	else if (key.code == sf::Keyboard::Key::Delete || key.code == sf::Keyboard::Key::Backspace)
 	{
 		m_controller.DeleteSelectedShape();
 	}

@@ -92,6 +92,11 @@ void CanvasView::DrawShapes(sf::RenderTarget& target) const
 			shape.Draw(canvas);
 		}
 	}
+	const IShape* creatingShape = m_state.GetCreatingShape();
+	if (creatingShape)
+	{
+		creatingShape->Draw(canvas);
+	}
 }
 
 void CanvasView::DrawSelection(sf::RenderTarget& target) const

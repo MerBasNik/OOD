@@ -63,3 +63,39 @@ TEST_F(FrameCalculatorTest, ResizeIsLimitedByBounds)
 {
 	EXPECT_EQ(Resize(ResizeHandle::BottomRight, { 5000, 5000 }), (Frame{ 100, 100, 900, 500 }));
 }
+
+TEST_F(FrameCalculatorTest, CreateStretchesFrameFromStartToCursor)
+{
+	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ 100, 100 }, { 300, 250 }, BOUNDS, MIN_SIZE),
+		(Frame{ 100, 100, 200, 150 }));
+}
+
+TEST_F(FrameCalculatorTest, CreateTowardsTopLeftKeepsStartAsBottomRight)
+{
+	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ 300, 250 }, { 100, 100 }, BOUNDS, MIN_SIZE),
+		(Frame{ 100, 100, 200, 150 }));
+}
+
+TEST_F(FrameCalculatorTest, CreateIsLimitedByBounds)
+{
+	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ 900, 500 }, { 5000, -5000 }, BOUNDS, MIN_SIZE),
+		(Frame{ 900, 0, 100, 500 }));
+}
+
+TEST_F(FrameCalculatorTest, CreateIsLimitedByMinimumSize)
+{
+	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ 100, 100 }, { 103, 98 }, BOUNDS, MIN_SIZE),
+		(Frame{ 100, 90, MIN_SIZE, MIN_SIZE }));
+}
+
+TEST_F(FrameCalculatorTest, CreateNearBoundsGrowsAwayFromBorder)
+{
+	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ 997, 2 }, { 999, 1 }, BOUNDS, MIN_SIZE),
+		(Frame{ 990, 0, MIN_SIZE, MIN_SIZE }));
+}
+
+TEST_F(FrameCalculatorTest, CreateFromPointOutsideBoundsStartsAtBorder)
+{
+	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ -50, 700 }, { 100, 500 }, BOUNDS, MIN_SIZE),
+		(Frame{ 0, 500, 100, 100 }));
+}

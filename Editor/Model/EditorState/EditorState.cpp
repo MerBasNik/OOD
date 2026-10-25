@@ -35,6 +35,36 @@ void EditorState::SetPreviewFrame(const std::optional<Frame> frame)
 	NotifyObservers();
 }
 
+std::optional<ShapeType> EditorState::GetShapeTool() const
+{
+	return m_shapeTool;
+}
+
+void EditorState::SetShapeTool(const std::optional<ShapeType> type)
+{
+	if (m_shapeTool == type)
+	{
+		return;
+	}
+	m_shapeTool = type;
+	NotifyObservers();
+}
+
+const IShape* EditorState::GetCreatingShape() const
+{
+	return m_creatingShape.get();
+}
+
+void EditorState::SetCreatingShape(std::unique_ptr<IShape> shape)
+{
+	if (!m_creatingShape && !shape)
+	{
+		return;
+	}
+	m_creatingShape = std::move(shape);
+	NotifyObservers();
+}
+
 std::optional<std::filesystem::path> EditorState::GetFilePath() const
 {
 	return m_filePath;

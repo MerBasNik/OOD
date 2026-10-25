@@ -20,6 +20,8 @@ public:
 
 	void AddShape(ShapeType type);
 	void DeleteSelectedShape();
+	void SelectShapeTool(std::optional<ShapeType> type);
+	void Cancel();
 
 	void OnMouseDown(Point point);
 	void OnMouseMove(Point point);
@@ -39,8 +41,13 @@ private:
 
 	std::optional<Frame> GetSelectedFrame() const;
 	void StartDrag(DragMode mode, int id, Point point, ResizeHandle handle = ResizeHandle::TopLeft);
+	void StartCreate(Point point);
+	void FinishCreate(Point point);
+	void FinishDrag(Point point);
 	void ResetDrag();
 	Frame CalculateDraggedFrame(Point point) const;
+	Frame CalculateCreatedFrame(Point point) const;
+	static std::unique_ptr<IShape> CreateShape(ShapeType type, const Frame& frame);
 	static CursorType GetResizeCursor(ResizeHandle handle);
 };
 

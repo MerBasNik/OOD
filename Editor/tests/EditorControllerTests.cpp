@@ -541,3 +541,147 @@ TEST_F(EditorControllerTest, OpenRejectsShapesSmallerThanMinimumSize)
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
 	EXPECT_EQ(m_document.GetShapeCount(), 1u);
 }
+
+TEST_F(EditorControllerTest, DragWithShapeToolCreatesShapeOfThatType)
+{
+	m_controller.SelectShapeTool(ShapeType::Ellipse);
+
+	Drag({ 100, 100 }, { 300, 250 });
+
+	ASSERT_EQ(m_document.GetShapeCount(), 1u);
+	EXPECT_EQ(m_document.GetShape(0).GetType(), ShapeType::Ellipse);
+	EXPECT_EQ(m_document.GetShape(0).GetFrame(), (Frame{ 100, 100, 200, 150 }));
+}
+
+TEST_F(EditorControllerTest, CreatedShapeIsSelectedAndToolIsReset)
+{
+	m_controller.SelectShapeTool(ShapeType::Rectangle);
+
+	Drag({ 100, 100 }, { 300, 250 });
+
+	EXPECT_EQ(m_state.GetSelectedShapeId(), m_document.GetShapeId(0));
+	EXPECT_EQ(m_state.GetShapeTool(), std::nullopt);
+}
+
+TEST_F(EditorControllerTest, CreateOverExistingShapeDoesNotMoveIt)
+{
+	const auto id = AddRectangle({ 100, 100, 200, 100 });
+	m_controller.SelectShapeTool(ShapeType::Triangle);
+
+	Drag({ 150, 150 }, { 250, 180 });
+
+	EXPECT_EQ(GetFrame(id), (Frame{ 100, 100, 200, 100 }));
+	ASSERT_EQ(m_document.GetShapeCount(), 2u);
+	EXPECT_EQ(m_document.GetShape(1).GetType(), ShapeType::Triangle);
+}
+
+TEST_F(EditorControllerTest, CreateDuringGestureChangesOnlyPreview)
+{
+	m_document.AddObserver(m_documentObserver);
+	EXPECT_CALL(m_documentObserver, DocumentUpdate).Times(0);
+	m_controller.SelectShapeTool(ShapeType::Rectangle);
+
+	m_controller.OnMouseDown({ 100, 100 });
+	m_controller.OnMouseMove({ 200, 150 });
+
+	ASSERT_NE(m_state.GetCreatingShape(), nullptr);
+	EXPECT_EQ(m_state.GetCreatingShape()->GetFrame(), (Frame{ 100, 100, 100, 50 }));
+	EXPECT_EQ(m_document.GetShapeCount(), 0u);
+}
+
+TEST_F(EditorControllerTest, CreatePreviewFollowsCursor)
+{
+	m_controller.SelectShapeTool(ShapeType::Rectangle);
+
+	m_controller.OnMouseDown({ 100, 100 });
+	m_controller.OnMouseMove({ 200, 150 });
+	m_controller.OnMouseMove({ 50, 300 });
+
+	EXPECT_EQ(m_state.GetCreatingShape()->GetFrame(), (Frame{ 50, 100, 50, 200 }));
+}
+
+TEST_F(EditorControllerTest, WholeCreateGestureChangesDocumentOnceAndClearsPreview)
+{
+	m_document.AddObserver(m_documentObserver);
+	EXPECT_CALL(m_documentObserver, DocumentUpdate).Times(1);
+	m_controller.SelectShapeTool(ShapeType::Rectangle);
+
+	Drag({ 100, 100 }, { 300, 250 });
+
+	EXPECT_EQ(m_state.GetCreatingShape(), nullptr);
+}
+
+TEST_F(EditorControllerTest, CreateIsLimitedByCanvas)
+{
+	m_controller.SelectShapeTool(ShapeType::Rectangle);
+
+	Drag({ 900, 500 }, { 5000, 5000 });
+
+	EXPECT_EQ(m_document.GetShape(0).GetFrame(), (Frame{ 900, 500, 100, 100 }));
+}
+
+TEST_F(EditorControllerTest, CreateAtCanvasCornerKeepsMinimumSizeInsideCanvas)
+{
+	m_controller.SelectShapeTool(ShapeType::Rectangle);
+
+	Drag({ 999, 599 }, { 1200, 700 });
+
+	EXPECT_EQ(m_document.GetShape(0).GetFrame(),
+		(Frame{ 1000 - ShapeDefaults::MIN_SIZE, 600 - ShapeDefaults::MIN_SIZE, ShapeDefaults::MIN_SIZE, ShapeDefaults::MIN_SIZE }));
+}
+
+TEST_F(EditorControllerTest, ClickWithShapeToolDoesNotCreateShape)
+{
+	m_controller.SelectShapeTool(ShapeType::Rectangle);
+
+	Click({ 100, 100 });
+
+	EXPECT_EQ(m_document.GetShapeCount(), 0u);
+	EXPECT_EQ(m_state.GetShapeTool(), ShapeType::Rectangle);
+}
+
+TEST_F(EditorControllerTest, CancelDuringCreateDropsPreviewAndIgnoresMouseUp)
+{
+	m_controller.SelectShapeTool(ShapeType::Rectangle);
+	m_controller.OnMouseDown({ 100, 100 });
+	m_controller.OnMouseMove({ 200, 200 });
+
+	m_controller.Cancel();
+	m_controller.OnMouseMove({ 250, 250 });
+	m_controller.OnMouseUp({ 250, 250 });
+
+	EXPECT_EQ(m_state.GetCreatingShape(), nullptr);
+	EXPECT_EQ(m_document.GetShapeCount(), 0u);
+	EXPECT_EQ(m_state.GetShapeTool(), ShapeType::Rectangle);
+}
+
+TEST_F(EditorControllerTest, CancelWithoutGestureResetsShapeTool)
+{
+	m_controller.SelectShapeTool(ShapeType::Rectangle);
+
+	m_controller.Cancel();
+
+	EXPECT_EQ(m_state.GetShapeTool(), std::nullopt);
+}
+
+TEST_F(EditorControllerTest, CancelDuringMoveRestoresShapeFrame)
+{
+	const auto id = AddRectangle({ 100, 100, 200, 100 });
+	m_controller.OnMouseDown({ 150, 150 });
+	m_controller.OnMouseMove({ 250, 250 });
+
+	m_controller.Cancel();
+	m_controller.OnMouseUp({ 250, 250 });
+
+	EXPECT_EQ(GetFrame(id), (Frame{ 100, 100, 200, 100 }));
+	EXPECT_EQ(m_state.GetPreviewFrame(), std::nullopt);
+}
+
+TEST_F(EditorControllerTest, CursorIsCrossWithShapeTool)
+{
+	AddSelectedRectangle({ 100, 100, 200, 100 });
+
+	m_controller.SelectShapeTool(ShapeType::Ellipse);
+
+	EXPECT_EQ(m_controller.GetCursorType({ 100, 100 }), CursorType::Cross);
+}

@@ -8,6 +8,9 @@
 
 const double CANVAS_WIDTH = 1000;
 const double CANVAS_HEIGHT = 650;
+// TODO разобраться MVC или MVP и даграмму
+// TODO должно ли храниться выделение в модели
+// TODO подлагивания
 
 int main()
 {
