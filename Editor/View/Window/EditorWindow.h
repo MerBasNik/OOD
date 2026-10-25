@@ -7,7 +7,9 @@
 
 #include "Controller/EditorController.h"
 #include "Toolbar.h"
+#include "Enums/MouseCapture.h"
 #include "View/Canvas/CanvasView.h"
+#include "View/ShapeList/ShapeListView.h"
 #include <SFML/Graphics.hpp>
 #include <functional>
 #include <map>
@@ -16,7 +18,8 @@
 class EditorWindow
 {
 public:
-	EditorWindow(Document& document, EditorState& state, EditorController& controller);
+	EditorWindow(Document& document, EditorState& state, EditorController& controller,
+		ShapeListController& shapeListController);
 	void Run();
 
 private:
@@ -25,13 +28,17 @@ private:
 	sf::RenderWindow m_window;
 	Toolbar m_toolbar;
 	CanvasView m_canvasView;
+	ShapeListView m_shapeListView;
 	std::map<CursorType, sf::Cursor> m_cursors;
 	CursorType m_currentCursor = CursorType::Arrow;
-	bool m_isMousePressed = false;
+	MouseCapture m_mouseCapture = MouseCapture::None;
 
 	void InitToolbar();
 	void InitCursors();
 	void HandleEvent(const sf::Event& event);
+	void HandleMousePressed(sf::Vector2f point);
+	void HandleMouseMoved(sf::Vector2f point);
+	void HandleMouseReleased(sf::Vector2f point);
 	void HandleKeyPressed(const sf::Event::KeyPressed& key);
 	void UpdateCursor(sf::Vector2f point);
 	void Render();
@@ -39,7 +46,6 @@ private:
 	void OpenDocument();
 	void SaveDocument();
 	void RunFileOperation(const std::string& errorMessage, const std::function<void()>& operation);
-	Point ToDocumentPoint(sf::Vector2i pixel) const;
 };
 
 #endif // OOD_EDITOR_EDITORWINDOW_H

@@ -153,3 +153,77 @@ TEST_F(DocumentTest, RemovedObserverIsNotNotified)
 	document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	document.Clear();
 }
+
+TEST_F(DocumentTest, SetShapeIndexMovesShapeUp)
+{
+	const auto first = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+	const auto second = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+	const auto third = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+
+	document.SetShapeIndex(first, 2);
+
+	EXPECT_EQ(document.GetShapeId(0), second);
+	EXPECT_EQ(document.GetShapeId(1), third);
+	EXPECT_EQ(document.GetShapeId(2), first);
+}
+
+TEST_F(DocumentTest, SetShapeIndexMovesShapeDown)
+{
+	const auto first = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+	const auto second = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+	const auto third = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+
+	document.SetShapeIndex(third, 0);
+
+	EXPECT_EQ(document.GetShapeId(0), third);
+	EXPECT_EQ(document.GetShapeId(1), first);
+	EXPECT_EQ(document.GetShapeId(2), second);
+}
+
+TEST_F(DocumentTest, SetShapeIndexChangesHitTestOrder)
+{
+	const auto bottom = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	document.AddShape(MakeRectangle({ 50, 50, 100, 100 }));
+
+	document.SetShapeIndex(bottom, 1);
+
+	EXPECT_EQ(document.FindTopShape({ 75, 75 }), bottom);
+}
+
+TEST_F(DocumentTest, SetShapeIndexRejectsUnknownShapeAndInvalidIndex)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+
+	EXPECT_THROW(document.SetShapeIndex(id + 1, 0), std::invalid_argument);
+	EXPECT_THROW(document.SetShapeIndex(id, 1), std::out_of_range);
+}
+
+TEST_F(DocumentTest, NotifiesObserverAboutChangedIndex)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+	document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+	MockDocumentObserver observer;
+	document.AddObserver(observer);
+	EXPECT_CALL(observer, DocumentUpdate).Times(1);
+
+	document.SetShapeIndex(id, 1);
+}
+
+TEST_F(DocumentTest, DoesNotNotifyWhenIndexIsUnchanged)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+	MockDocumentObserver observer;
+	document.AddObserver(observer);
+	EXPECT_CALL(observer, DocumentUpdate).Times(0);
+
+	document.SetShapeIndex(id, 0);
+}
+
+TEST_F(DocumentTest, FindShapeIndexReturnsPositionOfShape)
+{
+	document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+
+	EXPECT_EQ(document.FindShapeIndex(id), 1u);
+	EXPECT_EQ(document.FindShapeIndex(id + 1), std::nullopt);
+}

@@ -34,13 +34,8 @@ void Toolbar::AddButton(const std::string& label, std::function<void()> onClick)
 	AddButton({ sf::String::fromUtf8(label.begin(), label.end()), {}, std::move(onClick) }, BUTTON_WIDTH);
 }
 
-void Toolbar::AddToolButton(const std::filesystem::path& iconPath, std::function<void()> onClick, std::function<bool()> isActive)
+void Toolbar::AddIconButton(sf::Texture icon, std::function<void()> onClick, std::function<bool()> isActive)
 {
-	sf::Texture icon;
-	if (!icon.loadFromFile(iconPath))
-	{
-		std::cerr << "Ошибка при загрузке иконки " << iconPath << std::endl;
-	}
 	AddButton({ {}, {}, std::move(onClick), std::move(isActive), std::move(icon) }, TOOL_BUTTON_WIDTH);
 }
 

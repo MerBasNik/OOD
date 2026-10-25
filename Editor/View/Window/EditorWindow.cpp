@@ -4,20 +4,26 @@
 
 #include "EditorWindow.h"
 #include "FileWindows.h"
+#include "View/ShapeIcons.h"
+
+#include <list>
 
 const sf::Color WORKSPACE_COLOR(210, 210, 210);
 const char* DEFAULT_FILE_NAME = "editor.draw";
-const std::filesystem::path ICONS_DIR = EDITOR_ICONS_DIR;
 
-EditorWindow::EditorWindow(Document& document, EditorState& state, EditorController& controller)
+EditorWindow::EditorWindow(Document& document, EditorState& state, EditorController& controller,
+	ShapeListController& shapeListController)
 	: m_state(state)
 	, m_controller(controller)
 	, m_window(sf::VideoMode({
-				   static_cast<unsigned>(document.GetBounds().m_width),
+				   static_cast<unsigned>(document.GetBounds().m_width + ShapeListView::WIDTH),
 				   static_cast<unsigned>(document.GetBounds().m_height + Toolbar::HEIGHT),
 			   }),
 		  "Editor")
 	, m_canvasView(document, state, { 0.f, Toolbar::HEIGHT })
+	, m_shapeListView(document, state, shapeListController,
+		  sf::FloatRect({ static_cast<float>(document.GetBounds().m_width), Toolbar::HEIGHT },
+			  { ShapeListView::WIDTH, static_cast<float>(document.GetBounds().m_height) }))
 {
 	InitToolbar();
 	InitCursors();
@@ -35,7 +41,7 @@ void EditorWindow::Run()
 		{
 			HandleEvent(*event);
 		}
-		if (m_window.isOpen() && m_canvasView.IsChange())
+		if (m_window.isOpen() && (m_canvasView.IsChange() || m_shapeListView.IsChange()))
 		{
 			Render();
 		}
@@ -44,14 +50,10 @@ void EditorWindow::Run()
 
 void EditorWindow::InitToolbar()
 {
-	const std::pair<ShapeType, std::string> tools[] = {
-		{ ShapeType::Rectangle, "rectangle.png" },
-		{ ShapeType::Ellipse, "ellipse.png" },
-		{ ShapeType::Triangle, "triangle.png" },
-	};
-	for (const auto& [type, iconName] : tools)
+	const std::list<ShapeType> types = { ShapeType::Rectangle, ShapeType::Ellipse, ShapeType::Triangle };
+	for (const auto type : types)
 	{
-		m_toolbar.AddToolButton(ICONS_DIR / iconName, [this, type] {
+		m_toolbar.AddIconButton(ShapeIcons::Load(type), [this, type] {
 			m_controller.SelectShapeTool(m_state.GetShapeTool() == type ? std::nullopt : std::optional(type));
 		}, [this, type] { return m_state.GetShapeTool() == type; });
 	}
@@ -115,47 +117,86 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 	}
 	else if (event.is<sf::Event::FocusLost>())
 	{
-		if (m_isMousePressed)
-		{
-			m_isMousePressed = false;
-			m_controller.OnMouseUp(ToDocumentPoint(sf::Mouse::getPosition(m_window)));
-		}
+		HandleMouseReleased(m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
 	}
 	else if (const auto* pressed = event.getIf<sf::Event::MouseButtonPressed>())
 	{
-		if (pressed->button != sf::Mouse::Button::Left)
+		if (pressed->button == sf::Mouse::Button::Left)
 		{
-			return;
+			HandleMousePressed(m_window.mapPixelToCoords(pressed->position));
 		}
-		const sf::Vector2f point = m_window.mapPixelToCoords(pressed->position);
-		if (!m_toolbar.HandleClick(point))
-		{
-			m_isMousePressed = true;
-			m_controller.OnMouseDown(m_canvasView.ToDocumentPoint(point));
-		}
-		UpdateCursor(point);
 	}
 	else if (const auto* released = event.getIf<sf::Event::MouseButtonReleased>())
 	{
-		if (released->button == sf::Mouse::Button::Left && m_isMousePressed)
+		if (released->button == sf::Mouse::Button::Left)
 		{
-			m_isMousePressed = false;
-			m_controller.OnMouseUp(ToDocumentPoint(released->position));
+			HandleMouseReleased(m_window.mapPixelToCoords(released->position));
 		}
-		UpdateCursor(m_window.mapPixelToCoords(released->position));
 	}
 	else if (const auto* moved = event.getIf<sf::Event::MouseMoved>())
 	{
-		if (m_isMousePressed)
-		{
-			m_controller.OnMouseMove(ToDocumentPoint(moved->position));
-		}
-		UpdateCursor(m_window.mapPixelToCoords(moved->position));
+		HandleMouseMoved(m_window.mapPixelToCoords(moved->position));
+	}
+	else if (const auto* scrolled = event.getIf<sf::Event::MouseWheelScrolled>())
+	{
+		m_shapeListView.OnMouseWheel(m_window.mapPixelToCoords(scrolled->position), scrolled->delta);
 	}
 	else if (const auto* key = event.getIf<sf::Event::KeyPressed>())
 	{
 		HandleKeyPressed(*key);
 	}
+}
+
+void EditorWindow::HandleMousePressed(const sf::Vector2f point)
+{
+	if (m_toolbar.HandleClick(point))
+	{
+		m_mouseCapture = MouseCapture::None;
+	}
+	else if (m_shapeListView.IsContains(point))
+	{
+		m_mouseCapture = MouseCapture::ShapeList;
+		m_shapeListView.OnMouseDown(point);
+	}
+	else
+	{
+		m_mouseCapture = MouseCapture::Canvas;
+		m_controller.OnMouseDown(m_canvasView.ToDocumentPoint(point));
+	}
+	UpdateCursor(point);
+}
+
+void EditorWindow::HandleMouseMoved(const sf::Vector2f point)
+{
+	switch (m_mouseCapture)
+	{
+	case MouseCapture::Canvas:
+		m_controller.OnMouseMove(m_canvasView.ToDocumentPoint(point));
+		break;
+	case MouseCapture::ShapeList:
+		m_shapeListView.OnMouseMove(point);
+		break;
+	case MouseCapture::None:
+		break;
+	}
+	UpdateCursor(point);
+}
+
+void EditorWindow::HandleMouseReleased(const sf::Vector2f point)
+{
+	switch (m_mouseCapture)
+	{
+	case MouseCapture::Canvas:
+		m_controller.OnMouseUp(m_canvasView.ToDocumentPoint(point));
+		break;
+	case MouseCapture::ShapeList:
+		m_shapeListView.OnMouseUp(point);
+		break;
+	case MouseCapture::None:
+		break;
+	}
+	m_mouseCapture = MouseCapture::None;
+	UpdateCursor(point);
 }
 
 void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
@@ -181,6 +222,7 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 	}
 	if (key.code == sf::Keyboard::Key::Escape)
 	{
+		m_shapeListView.CancelDrag();
 		m_controller.Cancel();
 		UpdateCursor(m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
 	}
@@ -192,9 +234,11 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 
 void EditorWindow::UpdateCursor(const sf::Vector2f point)
 {
-	const CursorType type = !m_isMousePressed && m_toolbar.IsContains(point)
-		? CursorType::Arrow
-		: m_controller.GetCursorType(m_canvasView.ToDocumentPoint(point));
+	const bool isCanvasCursor = m_mouseCapture == MouseCapture::Canvas
+		|| (m_mouseCapture == MouseCapture::None && !m_toolbar.IsContains(point) && !m_shapeListView.IsContains(point));
+	const CursorType type = isCanvasCursor
+		? m_controller.GetCursorType(m_canvasView.ToDocumentPoint(point))
+		: CursorType::Arrow;
 	if (type == m_currentCursor)
 	{
 		return;
@@ -216,9 +260,11 @@ void EditorWindow::Render()
 {
 	m_window.clear(WORKSPACE_COLOR);
 	m_canvasView.Draw(m_window);
+	m_shapeListView.Draw(m_window);
 	m_toolbar.Draw(m_window);
 	m_window.display();
 	m_canvasView.SetDontChange();
+	m_shapeListView.SetDontChange();
 }
 
 void EditorWindow::NewDocument()
@@ -258,9 +304,4 @@ void EditorWindow::RunFileOperation(const std::string& errorMessage, const std::
 		FileWindows::ShowError(errorMessage + "\n" + e.what());
 	}
 	m_canvasView.SetIsChange();
-}
-
-Point EditorWindow::ToDocumentPoint(const sf::Vector2i pixel) const
-{
-	return m_canvasView.ToDocumentPoint(m_window.mapPixelToCoords(pixel));
 }

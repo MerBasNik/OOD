@@ -10,9 +10,11 @@ add_library(Editor_lib STATIC
         Command/AddShapeCommand/AddShapeCommand.cpp
         Command/DeleteShapeCommand/DeleteShapeCommand.cpp
         Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.cpp
+        Command/ChangeShapeIndexCommand/ChangeShapeIndexCommand.cpp
         Controller/FrameCalculator.cpp
         Controller/ShapeDefaults.cpp
         Controller/EditorController.cpp
+        Controller/ShapeListController.cpp
 )
 
 target_include_directories(Editor_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -21,6 +23,8 @@ add_executable(Editor
         main.cpp
         View/Canvas/Canvas.cpp
         View/Canvas/CanvasView.cpp
+        View/ShapeList/ShapeListView.cpp
+        View/ShapeIcons.cpp
         View/Window/Toolbar.cpp
         View/Window/FileWindows.cpp
         View/Window/EditorWindow.cpp
@@ -48,6 +52,7 @@ add_executable(Editor_tests
         tests/FrameCalculatorTests.cpp
         tests/EditorControllerTests.cpp
         tests/DocumentSerializerTests.cpp
+        tests/ShapeListControllerTests.cpp
 )
 
 target_link_libraries(Editor_tests PRIVATE

@@ -3,6 +3,7 @@
 //
 
 #include "Controller/EditorController.h"
+#include "Controller/ShapeListController.h"
 #include "View/Window/EditorWindow.h"
 #include <iostream>
 
@@ -19,7 +20,8 @@ int main()
 		Document document(CANVAS_WIDTH, CANVAS_HEIGHT);
 		EditorState state;
 		EditorController controller(document, state);
-		EditorWindow window(document, state, controller);
+		ShapeListController shapeListController(document, state);
+		EditorWindow window(document, state, controller, shapeListController);
 		window.Run();
 		return 0;
 	}

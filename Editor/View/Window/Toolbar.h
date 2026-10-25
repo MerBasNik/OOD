@@ -7,7 +7,6 @@
 
 #include "Types/Button.h"
 #include <SFML/Graphics.hpp>
-#include <filesystem>
 #include <functional>
 #include <string>
 #include <vector>
@@ -19,7 +18,7 @@ public:
 
 	Toolbar();
 	void AddButton(const std::string& label, std::function<void()> onClick);
-	void AddToolButton(const std::filesystem::path& iconPath, std::function<void()> onClick, std::function<bool()> isActive);
+	void AddIconButton(sf::Texture icon, std::function<void()> onClick, std::function<bool()> isActive);
 	void Draw(sf::RenderTarget& target) const;
 	bool HandleClick(sf::Vector2f point) const;
 	bool IsContains(sf::Vector2f point) const;

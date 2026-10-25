@@ -59,6 +59,33 @@ void Document::SetShapeFrame(const int id, const Frame& frame)
 	NotifyObservers();
 }
 
+void Document::SetShapeIndex(const int id, const size_t index)
+{
+	const auto shape = FindItem(id);
+	if (shape == m_shapesInner.end())
+	{
+		throw std::invalid_argument("Фигура не найдена");
+	}
+	if (index >= m_shapesInner.size())
+	{
+		throw std::out_of_range("Недопустимая позиция фигуры");
+	}
+	const auto target = m_shapesInner.begin() + static_cast<std::ptrdiff_t>(index);
+	if (shape == target)
+	{
+		return;
+	}
+	if (shape < target)
+	{
+		std::rotate(shape, shape + 1, target + 1);
+	}
+	else
+	{
+		std::rotate(target, shape, shape + 1);
+	}
+	NotifyObservers();
+}
+
 void Document::ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes)
 {
 	for (const auto& shape : shapes)
@@ -105,6 +132,16 @@ const IShape* Document::FindShape(const int id) const
 {
 	const auto it = std::ranges::find(m_shapesInner, id, &DocumentItem::m_id);
 	return it != m_shapesInner.end() ? it->m_shape.get() : nullptr;
+}
+
+std::optional<size_t> Document::FindShapeIndex(const int id) const
+{
+	const auto it = std::ranges::find(m_shapesInner, id, &DocumentItem::m_id);
+	if (it == m_shapesInner.end())
+	{
+		return std::nullopt;
+	}
+	return static_cast<size_t>(it - m_shapesInner.begin());
 }
 
 std::optional<int> Document::FindTopShape(const Point point) const

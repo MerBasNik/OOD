@@ -4,6 +4,7 @@
 
 #include "Command/AddShapeCommand/AddShapeCommand.h"
 #include "Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.h"
+#include "Command/ChangeShapeIndexCommand/ChangeShapeIndexCommand.h"
 #include "Command/DeleteShapeCommand/DeleteShapeCommand.h"
 #include "Model/Shapes/Rectangle.h"
 #include <gtest/gtest.h>
@@ -96,4 +97,15 @@ TEST_F(CommandTest, ChangeShapeFrameCommandRejectsFrameOutsideCanvas)
 
 	EXPECT_THROW(command.Execute(), std::invalid_argument);
 	EXPECT_EQ(document.FindShape(id)->GetFrame(), (Frame{ 0, 0, 100, 100 }));
+}
+
+TEST_F(CommandTest, ChangeShapeIndexCommandMovesShapeToIndex)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	ChangeShapeIndexCommand command(document, id, 1);
+
+	command.Execute();
+
+	EXPECT_EQ(document.GetShapeId(1), id);
 }

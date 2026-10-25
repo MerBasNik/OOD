@@ -27,6 +27,7 @@ public:
 	int AddShape(std::unique_ptr<IShape> shape);
 	void RemoveShape(int id);
 	void SetShapeFrame(int id, const Frame& frame);
+	void SetShapeIndex(int id, size_t index);
 	void ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes);
 	void Clear();
 
@@ -34,6 +35,7 @@ public:
 	const IShape& GetShape(size_t index) const;
 	int GetShapeId(size_t index) const;
 	const IShape* FindShape(int id) const;
+	std::optional<size_t> FindShapeIndex(int id) const;
 	std::optional<int> FindTopShape(Point point) const;
 
 	void AddObserver(IDocumentObserver& observer);
