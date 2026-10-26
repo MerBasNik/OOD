@@ -5,6 +5,7 @@
 #include "CanvasView.h"
 #include "Canvas.h"
 #include "Model/EditorState/SelectionFrame.h"
+#include "Model/Rendering/RenderShape.h"
 
 const sf::Color CANVAS_COLOR = sf::Color::White;
 const sf::Color CANVAS_BORDER_COLOR(180, 180, 180);
@@ -76,6 +77,7 @@ void CanvasView::DrawBackground(sf::RenderTarget& target) const
 void CanvasView::DrawShapes(sf::RenderTarget& target) const
 {
 	Canvas canvas(target, m_origin);
+	RenderShape renderer(canvas);
 	const auto selectedId = m_state.GetSelectedShapeId();
 	const auto previewFrame = m_state.GetPreviewFrame();
 	for (size_t i = 0; i < m_document.GetShapeCount(); ++i)
@@ -85,17 +87,17 @@ void CanvasView::DrawShapes(sf::RenderTarget& target) const
 		{
 			const auto preview = shape.Clone();
 			preview->SetFrame(*previewFrame);
-			preview->Draw(canvas);
+			preview->Accept(renderer);
 		}
 		else
 		{
-			shape.Draw(canvas);
+			shape.Accept(renderer);
 		}
 	}
 	const IShape* creatingShape = m_state.GetCreatingShape();
 	if (creatingShape)
 	{
-		creatingShape->Draw(canvas);
+		creatingShape->Accept(renderer);
 	}
 }
 

@@ -12,5 +12,19 @@ DeleteShapeCommand::DeleteShapeCommand(Document& document, const int shapeId)
 
 void DeleteShapeCommand::Execute()
 {
-	m_document.RemoveShape(m_shapeId);
+	const auto index = m_document.FindShapeIndex(m_shapeId);
+	if (!index)
+	{
+		return;
+	}
+	m_index = *index;
+	m_shape = m_document.DeleteShape(m_shapeId);
+}
+
+void DeleteShapeCommand::Unexecute()
+{
+	if (m_shape)
+	{
+		m_document.InsertShape(m_shapeId, std::move(m_shape), m_index);
+	}
 }

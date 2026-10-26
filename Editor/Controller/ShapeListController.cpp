@@ -6,9 +6,10 @@
 #include "Command/ChangeShapeIndexCommand/ChangeShapeIndexCommand.h"
 #include <algorithm>
 
-ShapeListController::ShapeListController(Document& document, EditorState& state)
+ShapeListController::ShapeListController(Document& document, EditorState& state, CommandHistory& history)
 	: m_document(document)
 	, m_state(state)
+	, m_history(history)
 {
 }
 
@@ -40,8 +41,7 @@ void ShapeListController::OnMouseUp(const size_t slot)
 	Cancel();
 	if (targetRow)
 	{
-		ChangeShapeIndexCommand command(m_document, *draggedId, RowToIndex(*targetRow));
-		command.Execute();
+		m_history.Execute(std::make_unique<ChangeShapeIndexCommand>(m_document, *draggedId, RowToIndex(*targetRow)));
 	}
 }
 

@@ -7,6 +7,7 @@
 
 #include "IEditorStateObserver.h"
 #include "Model/Shapes/IShape.h"
+#include "Model/Shapes/ShapeType.h"
 #include "Model/Types/Frame.h"
 #include <filesystem>
 #include <memory>

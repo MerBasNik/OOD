@@ -7,6 +7,7 @@
 #include "Model/Shapes/Ellipse.h"
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
+#include "Mock/ShapeTypeVisitor.h"
 #include <gtest/gtest.h>
 #include <sstream>
 
@@ -64,9 +65,9 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresTypesInLayerOrder)
 	const auto shapes = SaveAndLoad();
 
 	ASSERT_EQ(shapes.size(), 3u);
-	EXPECT_EQ(shapes[0]->GetType(), ShapeType::Triangle);
-	EXPECT_EQ(shapes[1]->GetType(), ShapeType::Rectangle);
-	EXPECT_EQ(shapes[2]->GetType(), ShapeType::Ellipse);
+	EXPECT_EQ(GetShapeType(*shapes[0]), ShapeType::Triangle);
+	EXPECT_EQ(GetShapeType(*shapes[1]), ShapeType::Rectangle);
+	EXPECT_EQ(GetShapeType(*shapes[2]), ShapeType::Ellipse);
 }
 
 TEST_F(DocumentSerializerTest, RoundTripRestoresFractionalFrameExactly)
@@ -95,7 +96,7 @@ TEST_F(DocumentSerializerTest, SkipsEmptyLines)
 	const auto shapes = LoadFromString("\ntriangle 1 2 3 4 000000\n\n");
 
 	ASSERT_EQ(shapes.size(), 1u);
-	EXPECT_EQ(shapes[0]->GetType(), ShapeType::Triangle);
+	EXPECT_EQ(GetShapeType(*shapes[0]), ShapeType::Triangle);
 }
 
 TEST_F(DocumentSerializerTest, LoadFromMissingFileThrows)

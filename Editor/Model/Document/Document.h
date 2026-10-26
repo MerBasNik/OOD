@@ -13,31 +13,29 @@
 #include <optional>
 #include <vector>
 
+constexpr int START_ID = 1;
+
 class Document
 {
 public:
-	const int START_ID = 1;
-
 	Document(double width, double height);
 	Document(const Document&) = delete;
 	Document& operator=(const Document&) = delete;
-
 	Frame GetBounds() const;
-
 	int AddShape(std::unique_ptr<IShape> shape);
 	void RemoveShape(int id);
+	std::unique_ptr<IShape> DeleteShape(int id);
+	void InsertShape(int id, std::unique_ptr<IShape> shape, size_t index);
 	void SetShapeFrame(int id, const Frame& frame);
 	void SetShapeIndex(int id, size_t index);
 	void ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes);
 	void Clear();
-
 	size_t GetShapeCount() const;
 	const IShape& GetShape(size_t index) const;
 	int GetShapeId(size_t index) const;
 	const IShape* FindShape(int id) const;
 	std::optional<size_t> FindShapeIndex(int id) const;
 	std::optional<int> FindTopShape(Point point) const;
-
 	void AddObserver(IDocumentObserver& observer);
 	void RemoveObserver(IDocumentObserver& observer);
 

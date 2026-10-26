@@ -43,6 +43,39 @@ void Document::RemoveShape(const int id)
 	NotifyObservers();
 }
 
+std::unique_ptr<IShape> Document::DeleteShape(const int id)
+{
+	const auto it = FindItem(id);
+	if (it == m_shapesInner.end())
+	{
+		throw std::invalid_argument("Фигура не найдена");
+	}
+	auto shape = std::move(it->m_shape);
+	m_shapesInner.erase(it);
+	NotifyObservers();
+	return shape;
+}
+
+void Document::InsertShape(const int id, std::unique_ptr<IShape> shape, const size_t index)
+{
+	if (!shape)
+	{
+		throw std::invalid_argument("Фигура не задана");
+	}
+	if (FindItem(id) != m_shapesInner.end())
+	{
+		throw std::invalid_argument("Фигура с таким id уже есть");
+	}
+	if (index > m_shapesInner.size())
+	{
+		throw std::out_of_range("Недопустимая позиция фигуры");
+	}
+	CheckFrame(shape->GetFrame());
+
+	m_shapesInner.insert(m_shapesInner.begin() + static_cast<std::ptrdiff_t>(index), { id, std::move(shape) });
+	NotifyObservers();
+}
+
 void Document::SetShapeFrame(const int id, const Frame& frame)
 {
 	const auto it = FindItem(id);

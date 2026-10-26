@@ -3,6 +3,7 @@
 //
 
 #include "ShapeListView.h"
+#include "ShapeListItemVisitor.h"
 #include "View/ShapeIcons.h"
 #include <algorithm>
 #include <cmath>
@@ -24,20 +25,6 @@ const sf::Color SELECTED_ROW_COLOR(205, 225, 250);
 const sf::Color DROP_INDICATOR_COLOR(30, 120, 230);
 const sf::Color SCROLLBAR_COLOR(160, 160, 160);
 const sf::Color TEXT_COLOR(30, 30, 30);
-
-static std::string GetShapeName(const ShapeType type)
-{
-	switch (type)
-	{
-	case ShapeType::Rectangle:
-		return "Прямоугольник";
-	case ShapeType::Ellipse:
-		return "Эллипс";
-	case ShapeType::Triangle:
-		return "Треугольник";
-	}
-	return {};
-}
 
 ShapeListView::ShapeListView(Document& document, EditorState& state, ShapeListController& controller,
 	const sf::FloatRect& rect)
@@ -190,14 +177,16 @@ void ShapeListView::DrawRow(sf::RenderTarget& target, const size_t row) const
 		target.draw(selection);
 	}
 
-	const sf::Texture& iconTexture = m_icons.at(shape.GetType());
-	const sf::Vector2f iconSize(iconTexture.getSize());
-	sf::Sprite icon(iconTexture);
+	ShapeListItemVisitor item(m_icons);
+	shape.Accept(item);
+
+	const sf::Vector2f iconSize(item.GetIcon().getSize());
+	sf::Sprite icon(item.GetIcon());
 	icon.setScale(sf::Vector2f(ICON_SIZE, ICON_SIZE).componentWiseDiv(iconSize));
 	icon.setPosition({ ROW_PADDING, top + (ROW_HEIGHT - ICON_SIZE) / 2 });
 	target.draw(icon);
 
-	const std::string label = GetShapeName(shape.GetType()) + " " + std::to_string(m_document.GetShapeId(index));
+	const std::string label = item.GetName() + " " + std::to_string(m_document.GetShapeId(index));
 	sf::Text text(m_font, sf::String::fromUtf8(label.begin(), label.end()), FONT_SIZE);
 	text.setFillColor(TEXT_COLOR);
 	const sf::FloatRect textBounds = text.getLocalBounds();

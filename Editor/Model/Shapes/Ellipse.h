@@ -11,10 +11,9 @@ class Ellipse : public Shape
 {
 public:
 	Ellipse(const Frame& frame, Color color);
-	ShapeType GetType() const override;
 	bool HitTest(Point point) const override;
-	void Draw(ICanvas& canvas) const override;
 	std::unique_ptr<IShape> Clone() const override;
+	void Accept(IShapeVisitor& visitor) const override;
 };
 
 #endif // OOD_EDITOR_ELLIPSE_H

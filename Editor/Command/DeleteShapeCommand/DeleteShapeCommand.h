@@ -13,10 +13,13 @@ class DeleteShapeCommand : public ICommand
 public:
 	DeleteShapeCommand(Document& document, int shapeId);
 	void Execute() override;
+	void Unexecute() override;
 
 private:
 	Document& m_document;
 	int m_shapeId;
+	std::unique_ptr<IShape> m_shape;
+	size_t m_index = 0;
 };
 
 #endif // OOD_EDITOR_DELETESHAPECOMMAND_H

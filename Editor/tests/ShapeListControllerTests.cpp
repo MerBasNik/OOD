@@ -12,7 +12,8 @@ class ShapeListControllerTest : public ::testing::Test
 public:
 	Document m_document{ 1000, 600 };
 	EditorState m_state;
-	ShapeListController m_controller{ m_document, m_state };
+	CommandHistory m_history;
+	ShapeListController m_controller{ m_document, m_state, m_history };
 	MockDocumentObserver m_documentObserver;
 	int m_bottom = AddRectangle();
 	int m_middle = AddRectangle();
@@ -145,4 +146,20 @@ TEST_F(ShapeListControllerTest, MouseUpAfterDraggedShapeWasDeletedIsIgnored)
 
 	EXPECT_NO_THROW(m_controller.OnMouseUp(2));
 	EXPECT_EQ(GetIds(), (std::vector{ m_bottom, m_middle }));
+}
+
+TEST_F(ShapeListControllerTest, UndoRestoresOrderAfterDrag)
+{
+	DragRow(0, 3);
+
+	m_history.Undo();
+
+	EXPECT_EQ(GetIds(), (std::vector{ m_bottom, m_middle, m_top }));
+}
+
+TEST_F(ShapeListControllerTest, DropNextToItselfDoesNotAddHistory)
+{
+	DragRow(1, 2);
+
+	EXPECT_FALSE(m_history.CanUndo());
 }

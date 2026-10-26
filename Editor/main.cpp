@@ -10,8 +10,9 @@
 const double CANVAS_WIDTH = 1000;
 const double CANVAS_HEIGHT = 650;
 // TODO разобраться MVC или MVP и даграмму
-// TODO должно ли храниться выделение в модели
-// TODO подлагивания
+// TODO должно ли храниться выделение в модели?
+// TODO почему происходят подергивания
+// TODO построить диаграмму классов
 
 int main()
 {
@@ -19,8 +20,9 @@ int main()
 	{
 		Document document(CANVAS_WIDTH, CANVAS_HEIGHT);
 		EditorState state;
-		EditorController controller(document, state);
-		ShapeListController shapeListController(document, state);
+		CommandHistory history;
+		EditorController controller(document, state, history);
+		ShapeListController shapeListController(document, state, history);
 		EditorWindow window(document, state, controller, shapeListController);
 		window.Run();
 		return 0;

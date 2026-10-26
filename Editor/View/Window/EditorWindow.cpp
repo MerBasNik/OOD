@@ -215,6 +215,12 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 		case sf::Keyboard::Key::N:
 			NewDocument();
 			break;
+		case sf::Keyboard::Key::Z:
+			key.shift ? Redo() : Undo();
+			break;
+		case sf::Keyboard::Key::Y:
+			Redo();
+			break;
 		default:
 			break;
 		}
@@ -270,6 +276,18 @@ void EditorWindow::Render()
 void EditorWindow::NewDocument()
 {
 	m_controller.NewDocument();
+}
+
+void EditorWindow::Undo()
+{
+	m_shapeListView.CancelDrag();
+	m_controller.Undo();
+}
+
+void EditorWindow::Redo()
+{
+	m_shapeListView.CancelDrag();
+	m_controller.Redo();
 }
 
 void EditorWindow::OpenDocument()

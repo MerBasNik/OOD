@@ -9,19 +9,14 @@ Rectangle::Rectangle(const Frame& frame, const Color color)
 {
 }
 
-ShapeType Rectangle::GetType() const
+void Rectangle::Accept(IShapeVisitor& visitor) const
 {
-	return ShapeType::Rectangle;
+	visitor.Visit(*this);
 }
 
 bool Rectangle::HitTest(const Point point) const
 {
 	return GetFrame().IsContains(point);
-}
-
-void Rectangle::Draw(ICanvas& canvas) const
-{
-	canvas.DrawRectangle(GetFrame(), GetColor());
 }
 
 std::unique_ptr<IShape> Rectangle::Clone() const

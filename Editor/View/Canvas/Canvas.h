@@ -5,7 +5,7 @@
 #ifndef OOD_EDITOR_CANVAS_H
 #define OOD_EDITOR_CANVAS_H
 
-#include "Model/Shapes/ICanvas.h"
+#include "ICanvas.h"
 #include <SFML/Graphics.hpp>
 
 class Canvas : public ICanvas

@@ -43,6 +43,8 @@ private:
 	void UpdateCursor(sf::Vector2f point);
 	void Render();
 	void NewDocument();
+	void Undo();
+	void Redo();
 	void OpenDocument();
 	void SaveDocument();
 	void RunFileOperation(const std::string& errorMessage, const std::function<void()>& operation);

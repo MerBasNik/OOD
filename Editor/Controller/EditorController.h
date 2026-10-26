@@ -5,6 +5,7 @@
 #ifndef OOD_EDITOR_EDITORCONTROLLER_H
 #define OOD_EDITOR_EDITORCONTROLLER_H
 
+#include "Command/CommandHistory/CommandHistory.h"
 #include "DragState.h"
 #include "Enums/CursorType.h"
 #include "HitResult.h"
@@ -16,12 +17,14 @@
 class EditorController
 {
 public:
-	EditorController(Document& document, EditorState& state);
+	EditorController(Document& document, EditorState& state, CommandHistory& history);
 
 	void AddShape(ShapeType type);
 	void DeleteSelectedShape();
 	void SelectShapeTool(std::optional<ShapeType> type);
 	void Cancel();
+	void Undo();
+	void Redo();
 
 	void OnMouseDown(Point point);
 	void OnMouseMove(Point point);
@@ -37,6 +40,7 @@ public:
 private:
 	Document& m_document;
 	EditorState& m_state;
+	CommandHistory& m_history;
 	DragState m_drag;
 
 	std::optional<Frame> GetSelectedFrame() const;
@@ -45,6 +49,8 @@ private:
 	void FinishCreate(Point point);
 	void FinishDrag(Point point);
 	void ResetDrag();
+	void AddSelectShape(std::unique_ptr<IShape> shape);
+	void ResetSelection();
 	Frame CalculateDraggedFrame(Point point) const;
 	Frame CalculateCreatedFrame(Point point) const;
 	static std::unique_ptr<IShape> CreateShape(ShapeType type, const Frame& frame);

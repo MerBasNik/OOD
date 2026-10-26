@@ -14,9 +14,9 @@ Triangle::Triangle(const Frame& frame, const Color color)
 {
 }
 
-ShapeType Triangle::GetType() const
+void Triangle::Accept(IShapeVisitor& visitor) const
 {
-	return ShapeType::Triangle;
+	visitor.Visit(*this);
 }
 
 std::vector<Point> Triangle::GetVertices() const
@@ -39,11 +39,6 @@ bool Triangle::HitTest(const Point point) const
 	const bool hasNegative = d1 < 0 || d2 < 0 || d3 < 0;
 	const bool hasPositive = d1 > 0 || d2 > 0 || d3 > 0;
 	return !(hasNegative && hasPositive);
-}
-
-void Triangle::Draw(ICanvas& canvas) const
-{
-	canvas.DrawPolygon(GetVertices(), GetColor());
 }
 
 std::unique_ptr<IShape> Triangle::Clone() const

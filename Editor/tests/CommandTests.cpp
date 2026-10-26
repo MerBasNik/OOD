@@ -109,3 +109,82 @@ TEST_F(CommandTest, ChangeShapeIndexCommandMovesShapeToIndex)
 
 	EXPECT_EQ(document.GetShapeId(1), id);
 }
+
+TEST_F(CommandTest, AddShapeCommandUndoRemovesShapeAndRedoRestoresSameId)
+{
+	AddShapeCommand command(document, MakeRectangle({ 10, 10, 50, 50 }));
+	command.Execute();
+	const auto id = *command.GetShapeId();
+
+	command.Unexecute();
+	EXPECT_EQ(document.GetShapeCount(), 0u);
+
+	command.Execute();
+	ASSERT_EQ(document.GetShapeCount(), 1u);
+	EXPECT_EQ(document.GetShapeId(0), id);
+	EXPECT_EQ(document.GetShape(0).GetFrame(), (Frame{ 10, 10, 50, 50 }));
+}
+
+TEST_F(CommandTest, AddShapeCommandUndoBeforeExecuteThrows)
+{
+	AddShapeCommand command(document, MakeRectangle({ 10, 10, 50, 50 }));
+
+	EXPECT_THROW(command.Unexecute(), std::logic_error);
+}
+
+TEST_F(CommandTest, DeleteShapeCommandUndoRestoresShapeAtSamePosition)
+{
+	const auto bottom = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+	const auto middle = document.AddShape(MakeRectangle({ 20, 30, 40, 50 }));
+	const auto top = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
+	DeleteShapeCommand command(document, middle);
+	command.Execute();
+
+	command.Unexecute();
+
+	ASSERT_EQ(document.GetShapeCount(), 3u);
+	EXPECT_EQ(document.GetShapeId(0), bottom);
+	EXPECT_EQ(document.GetShapeId(1), middle);
+	EXPECT_EQ(document.GetShapeId(2), top);
+	EXPECT_EQ(document.GetShape(1).GetFrame(), (Frame{ 20, 30, 40, 50 }));
+}
+
+TEST_F(CommandTest, DeleteShapeCommandUndoOfMissingShapeDoesNothing)
+{
+	DeleteShapeCommand command(document, 42);
+	command.Execute();
+
+	EXPECT_NO_THROW(command.Unexecute());
+	EXPECT_EQ(document.GetShapeCount(), 0u);
+}
+
+TEST_F(CommandTest, ChangeShapeFrameCommandUndoRestoresOldFrame)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	ChangeShapeFrameCommand command(document, id, { 20, 30, 40, 50 });
+	command.Execute();
+
+	command.Unexecute();
+
+	EXPECT_EQ(document.FindShape(id)->GetFrame(), (Frame{ 0, 0, 100, 100 }));
+}
+
+TEST_F(CommandTest, ChangeShapeFrameCommandUndoBeforeExecuteThrows)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	ChangeShapeFrameCommand command(document, id, { 20, 30, 40, 50 });
+
+	EXPECT_THROW(command.Unexecute(), std::logic_error);
+}
+
+TEST_F(CommandTest, ChangeShapeIndexCommandUndoRestoresOldIndex)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	ChangeShapeIndexCommand command(document, id, 1);
+	command.Execute();
+
+	command.Unexecute();
+
+	EXPECT_EQ(document.GetShapeId(0), id);
+}

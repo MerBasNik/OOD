@@ -7,6 +7,9 @@ add_library(Editor_lib STATIC
         Model/EditorState/EditorState.cpp
         Model/EditorState/SelectionFrame.cpp
         Model/Serialization/DocumentSerializer.cpp
+        Model/Serialization/ShapeSerializer.cpp
+        Model/Rendering/RenderShape.cpp
+        Command/CommandHistory/CommandHistory.cpp
         Command/AddShapeCommand/AddShapeCommand.cpp
         Command/DeleteShapeCommand/DeleteShapeCommand.cpp
         Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.cpp
@@ -24,6 +27,7 @@ add_executable(Editor
         View/Canvas/Canvas.cpp
         View/Canvas/CanvasView.cpp
         View/ShapeList/ShapeListView.cpp
+        View/ShapeList/ShapeListItemVisitor.cpp
         View/ShapeIcons.cpp
         View/Window/Toolbar.cpp
         View/Window/FileWindows.cpp
@@ -53,6 +57,8 @@ add_executable(Editor_tests
         tests/EditorControllerTests.cpp
         tests/DocumentSerializerTests.cpp
         tests/ShapeListControllerTests.cpp
+        tests/CommandHistoryTests.cpp
+        tests/ShapeRendererTests.cpp
 )
 
 target_link_libraries(Editor_tests PRIVATE

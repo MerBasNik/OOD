@@ -5,6 +5,7 @@
 #ifndef OOD_EDITOR_SHAPELISTCONTROLLER_H
 #define OOD_EDITOR_SHAPELISTCONTROLLER_H
 
+#include "Command/CommandHistory/CommandHistory.h"
 #include "Model/Document/Document.h"
 #include "Model/EditorState/EditorState.h"
 #include <optional>
@@ -12,7 +13,7 @@
 class ShapeListController
 {
 public:
-	ShapeListController(Document& document, EditorState& state);
+	ShapeListController(Document& document, EditorState& state, CommandHistory& history);
 	void OnMouseDown(std::optional<size_t> row);
 	void OnMouseMove(size_t slot);
 	void OnMouseUp(size_t slot);
@@ -22,6 +23,7 @@ public:
 private:
 	Document& m_document;
 	EditorState& m_state;
+	CommandHistory& m_history;
 	std::optional<int> m_draggedId;
 	std::optional<size_t> m_dropSlot;
 

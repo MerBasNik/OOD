@@ -9,9 +9,9 @@ Ellipse::Ellipse(const Frame& frame, const Color color)
 {
 }
 
-ShapeType Ellipse::GetType() const
+void Ellipse::Accept(IShapeVisitor& visitor) const
 {
-	return ShapeType::Ellipse;
+	visitor.Visit(*this);
 }
 
 bool Ellipse::HitTest(const Point point) const
@@ -27,11 +27,6 @@ bool Ellipse::HitTest(const Point point) const
 	const double dx = (point.m_x - center.m_x) / rx;
 	const double dy = (point.m_y - center.m_y) / ry;
 	return dx * dx + dy * dy <= 1.0;
-}
-
-void Ellipse::Draw(ICanvas& canvas) const
-{
-	canvas.DrawEllipse(GetFrame(), GetColor());
 }
 
 std::unique_ptr<IShape> Ellipse::Clone() const

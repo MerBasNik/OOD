@@ -5,6 +5,7 @@
 #include "Model/Shapes/Ellipse.h"
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
+#include "Mock/ShapeTypeVisitor.h"
 #include <gtest/gtest.h>
 
 class ShapeTest : public ::testing::Test
@@ -73,9 +74,9 @@ TEST_F(ShapeTest, TriangleMissesPointsOutsideFrame)
 
 TEST_F(ShapeTest, ShapesReportTheirType)
 {
-	EXPECT_EQ(Rectangle(FRAME, COLOR).GetType(), ShapeType::Rectangle);
-	EXPECT_EQ(Ellipse(FRAME, COLOR).GetType(), ShapeType::Ellipse);
-	EXPECT_EQ(Triangle(FRAME, COLOR).GetType(), ShapeType::Triangle);
+	EXPECT_EQ(GetShapeType(Rectangle(FRAME, COLOR)), ShapeType::Rectangle);
+	EXPECT_EQ(GetShapeType(Ellipse(FRAME, COLOR)), ShapeType::Ellipse);
+	EXPECT_EQ(GetShapeType(Triangle(FRAME, COLOR)), ShapeType::Triangle);
 }
 
 TEST_F(ShapeTest, ShapeKeepsFrameAndColorFromConstructor)
@@ -97,9 +98,9 @@ TEST_F(ShapeTest, SetFrameChangesFrame)
 
 TEST_F(ShapeTest, CloneKeepsConcreteType)
 {
-	EXPECT_EQ(Rectangle(FRAME, COLOR).Clone()->GetType(), ShapeType::Rectangle);
-	EXPECT_EQ(Ellipse(FRAME, COLOR).Clone()->GetType(), ShapeType::Ellipse);
-	EXPECT_EQ(Triangle(FRAME, COLOR).Clone()->GetType(), ShapeType::Triangle);
+	EXPECT_EQ(GetShapeType(*Rectangle(FRAME, COLOR).Clone()), ShapeType::Rectangle);
+	EXPECT_EQ(GetShapeType(*Ellipse(FRAME, COLOR).Clone()), ShapeType::Ellipse);
+	EXPECT_EQ(GetShapeType(*Triangle(FRAME, COLOR).Clone()), ShapeType::Triangle);
 }
 
 TEST_F(ShapeTest, CloneCopiesFrameAndColor)

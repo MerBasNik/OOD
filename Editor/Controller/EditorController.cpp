@@ -15,19 +15,17 @@
 #include "ShapeDefaults.h"
 #include <stdexcept>
 
-EditorController::EditorController(Document& document, EditorState& state)
+EditorController::EditorController(Document& document, EditorState& state, CommandHistory& history)
 	: m_document(document)
 	, m_state(state)
+	, m_history(history)
 {
 }
 
 void EditorController::AddShape(const ShapeType type)
 {
 	const Frame frame = ShapeDefaults::GetDefaultFrame(m_document.GetBounds());
-	auto shape = CreateShape(type, frame);
-	AddShapeCommand command(m_document, std::move(shape));
-	command.Execute();
-	m_state.SetSelectedShapeId(command.GetShapeId());
+	AddSelectShape(CreateShape(type, frame));
 }
 
 void EditorController::DeleteSelectedShape()
@@ -39,8 +37,7 @@ void EditorController::DeleteSelectedShape()
 	}
 	ResetDrag();
 	m_state.SetSelectedShapeId(std::nullopt);
-	DeleteShapeCommand command(m_document, *selectedId);
-	command.Execute();
+	m_history.Execute(std::make_unique<DeleteShapeCommand>(m_document, *selectedId));
 }
 
 void EditorController::SelectShapeTool(const std::optional<ShapeType> type)
@@ -57,6 +54,20 @@ void EditorController::Cancel()
 		return;
 	}
 	m_state.SetShapeTool(std::nullopt);
+}
+
+void EditorController::Undo()
+{
+	ResetDrag();
+	m_history.Undo();
+	ResetSelection();
+}
+
+void EditorController::Redo()
+{
+	ResetDrag();
+	m_history.Redo();
+	ResetSelection();
 }
 
 void EditorController::OnMouseDown(const Point point)
@@ -201,6 +212,7 @@ void EditorController::NewDocument()
 	ResetDrag();
 	m_state.SetSelectedShapeId(std::nullopt);
 	m_state.SetFilePath(std::nullopt);
+	m_history.Clear();
 	m_document.Clear();
 }
 
@@ -230,6 +242,7 @@ void EditorController::OpenDocument(const std::filesystem::path& path)
 	ResetDrag();
 	m_state.SetSelectedShapeId(std::nullopt);
 	m_document.ReplaceShapes(std::move(shapes));
+	m_history.Clear();
 	m_state.SetFilePath(path);
 }
 
@@ -312,9 +325,7 @@ void EditorController::FinishCreate(const Point point)
 		return;
 	}
 
-	AddShapeCommand command(m_document, CreateShape(type, frame));
-	command.Execute();
-	m_state.SetSelectedShapeId(command.GetShapeId());
+	AddSelectShape(CreateShape(type, frame));
 	m_state.SetShapeTool(std::nullopt);
 }
 
@@ -332,7 +343,23 @@ void EditorController::FinishDrag(const Point point)
 	ResetDrag();
 	if (frame != startFrame)
 	{
-		ChangeShapeFrameCommand command(m_document, shapeId, frame);
-		command.Execute();
+		m_history.Execute(std::make_unique<ChangeShapeFrameCommand>(m_document, shapeId, frame));
+	}
+}
+
+void EditorController::AddSelectShape(std::unique_ptr<IShape> shape)
+{
+	auto command = std::make_unique<AddShapeCommand>(m_document, std::move(shape));
+	const AddShapeCommand& addCommand = *command;
+	m_history.Execute(std::move(command));
+	m_state.SetSelectedShapeId(addCommand.GetShapeId());
+}
+
+void EditorController::ResetSelection()
+{
+	const auto selectedId = m_state.GetSelectedShapeId();
+	if (selectedId && !m_document.FindShape(*selectedId))
+	{
+		m_state.SetSelectedShapeId(std::nullopt);
 	}
 }

@@ -6,36 +6,19 @@
 #include "Model/Shapes/Ellipse.h"
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
+#include "ShapeSerializer.h"
 #include <fstream>
-#include <iomanip>
 #include <sstream>
 
-const std::string RECTANGLE_NAME = "rectangle";
-const std::string ELLIPSE_NAME = "ellipse";
-const std::string TRIANGLE_NAME = "triangle";
 const Color MAX_COLOR = 0xffffff;
-const int SET_PRECISION = 17;
-
-std::string DocumentSerializer::GetTypeName(const ShapeType type)
-{
-	switch (type)
-	{
-	case ShapeType::Rectangle:
-		return RECTANGLE_NAME;
-	case ShapeType::Ellipse:
-		return ELLIPSE_NAME;
-	case ShapeType::Triangle:
-		return TRIANGLE_NAME;
-	}
-	throw std::logic_error("Неизвестный тип фигуры");
-}
 
 std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, const size_t lineNumber)
 {
 	std::istringstream stream(line);
 	std::string typeName;
 	stream >> typeName;
-	if (typeName != RECTANGLE_NAME && typeName != ELLIPSE_NAME && typeName != TRIANGLE_NAME)
+	if (typeName != ShapeSerializer::RECTANGLE_NAME && typeName != ShapeSerializer::ELLIPSE_NAME
+		&& typeName != ShapeSerializer::TRIANGLE_NAME)
 	{
 		throw std::runtime_error("неизвестный тип фигуры \"" + typeName + "\"");
 	}
@@ -49,11 +32,11 @@ std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, 
 		throw std::runtime_error("некорректное описание фигуры \"" + line + "\"");
 	}
 
-	if (typeName == RECTANGLE_NAME)
+	if (typeName == ShapeSerializer::RECTANGLE_NAME)
 	{
 		return std::make_unique<Rectangle>(frame, color);
 	}
-	if (typeName == ELLIPSE_NAME)
+	if (typeName == ShapeSerializer::ELLIPSE_NAME)
 	{
 		return std::make_unique<Ellipse>(frame, color);
 	}
@@ -62,15 +45,10 @@ std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, 
 
 void DocumentSerializer::Save(const Document& document, std::ostream& output)
 {
+	ShapeSerializer serializer(output);
 	for (size_t i = 0; i < document.GetShapeCount(); ++i)
 	{
-		const IShape& shape = document.GetShape(i);
-		const Frame frame = shape.GetFrame();
-		output << GetTypeName(shape.GetType()) << " "
-			   << std::setprecision(SET_PRECISION) << frame.m_left << " " << frame.m_top << " "
-			   << frame.m_width << " " << frame.m_height << " "
-			   << std::hex << std::setw(6) << std::setfill('0') << shape.GetColor()
-			   << std::dec << std::setfill(' ') << "\n";
+		document.GetShape(i).Accept(serializer);
 	}
 }
 
