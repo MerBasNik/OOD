@@ -7,6 +7,7 @@
 #include "Command/ChangeShapeColorsCommand/ChangeShapeColorsCommand.h"
 #include "Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.h"
 #include "Command/DeleteShapeCommand/DeleteShapeCommand.h"
+#include "Command/MacroCommand/MacroCommand.h"
 #include "FrameCalculator.h"
 #include "Model/EditorState/SelectionFrame.h"
 #include "Model/Serialization/DocumentSerializer.h"
@@ -29,16 +30,22 @@ void EditorController::AddShape(const ShapeType type)
 	AddSelectShape(CreateShape(type, frame));
 }
 
-void EditorController::DeleteSelectedShape()
+void EditorController::DeleteSelectedShapes()
 {
-	const auto selectedId = m_state.GetSelectedShapeId();
-	if (!selectedId)
+	const auto selectedIds = m_state.GetSelectedShapeIds();
+	if (selectedIds.empty())
 	{
 		return;
 	}
 	ResetPreview();
-	m_state.SetSelectedShapeId(std::nullopt);
-	m_history.Execute(std::make_unique<DeleteShapeCommand>(m_document, *selectedId));
+	m_state.SetSelectedShapeIds({});
+	std::vector<std::unique_ptr<ICommand>> commands;
+	commands.reserve(selectedIds.size());
+	for (const int id : selectedIds)
+	{
+		commands.push_back(std::make_unique<DeleteShapeCommand>(m_document, id));
+	}
+	ExecuteCommands(std::move(commands));
 }
 
 void EditorController::SelectShapeTool(const std::optional<ShapeType> type)
@@ -47,43 +54,45 @@ void EditorController::SelectShapeTool(const std::optional<ShapeType> type)
 	m_state.SetShapeTool(type);
 }
 
-void EditorController::PreviewFillColor(const Color color)
+void EditorController::PreviewFillColor(const Color color) const
 {
-	if (GetSelectedShape())
-	{
-		m_state.SetPreviewFillColor(color);
-	}
+	m_state.SetPreviewFillColor(color);
 }
 
-void EditorController::PreviewBorderColor(const Color color)
+void EditorController::PreviewBorderColor(const Color color) const
 {
-	if (GetSelectedShape())
-	{
-		m_state.SetPreviewBorderColor(color);
-	}
+	m_state.SetPreviewBorderColor(color);
 }
 
 void EditorController::CommitColors()
 {
-	const IShape* shape = GetSelectedShape();
 	const auto fillColor = m_state.GetPreviewFillColor();
 	const auto borderColor = m_state.GetPreviewBorderColor();
 	ResetPreview();
-	if (!shape || (!fillColor && !borderColor))
+	if (!fillColor && !borderColor)
 	{
 		return;
 	}
 
-	const Color newFillColor = fillColor ? *fillColor : shape->GetFillColor();
-	const Color newBorderColor = borderColor ? *borderColor : shape->GetBorderColor();
-	if (newFillColor != shape->GetFillColor() || newBorderColor != shape->GetBorderColor())
+	std::vector<std::unique_ptr<ICommand>> commands;
+	for (const int id : m_state.GetSelectedShapeIds())
 	{
-		m_history.Execute(std::make_unique<ChangeShapeColorsCommand>(
-			m_document, *m_state.GetSelectedShapeId(), newFillColor, newBorderColor));
+		const IShape* shape = m_document.FindShape(id);
+		if (!shape)
+		{
+			continue;
+		}
+		const Color newFillColor = fillColor ? *fillColor : shape->GetFillColor();
+		const Color newBorderColor = borderColor ? *borderColor : shape->GetBorderColor();
+		if (newFillColor != shape->GetFillColor() || newBorderColor != shape->GetBorderColor())
+		{
+			commands.push_back(std::make_unique<ChangeShapeColorsCommand>(m_document, id, newFillColor, newBorderColor));
+		}
 	}
+	ExecuteCommands(std::move(commands));
 }
 
-void EditorController::CancelColors()
+void EditorController::CancelColors() const
 {
 	m_state.SetPreviewFillColor(std::nullopt);
 	m_state.SetPreviewBorderColor(std::nullopt);
@@ -113,11 +122,20 @@ void EditorController::Redo()
 	ResetSelection();
 }
 
-void EditorController::OnMouseDown(const Point point)
+void EditorController::OnMouseDown(const Point point, const bool isToggle)
 {
 	if (m_state.GetShapeTool())
 	{
 		StartCreate(point);
+		return;
+	}
+	if (isToggle)
+	{
+		ResetPreview();
+		if (const auto shapeId = m_document.FindTopShape(point))
+		{
+			m_state.ToggleShapeSelection(*shapeId);
+		}
 		return;
 	}
 
@@ -129,12 +147,15 @@ void EditorController::OnMouseDown(const Point point)
 		break;
 	case HitArea::SelectionBorder:
 	case HitArea::Shape:
-		m_state.SetSelectedShapeId(hit.m_shapeId);
+		if (!m_state.IsShapeSelected(*hit.m_shapeId))
+		{
+			m_state.SetSelectedShapeIds({ *hit.m_shapeId });
+		}
 		StartDrag(DragMode::Move, *hit.m_shapeId, point);
 		break;
 	case HitArea::Empty:
 		ResetPreview();
-		m_state.SetSelectedShapeId(std::nullopt);
+		m_state.SetSelectedShapeIds({});
 		break;
 	}
 }
@@ -150,13 +171,16 @@ void EditorController::OnMouseMove(const Point point)
 		break;
 	case DragMode::Move:
 	case DragMode::Resize:
-		if (!m_document.FindShape(m_drag.m_shapeId))
+	{
+		const auto frames = CalculateDraggedFrames(point);
+		std::map<int, Frame> previewFrames;
+		for (size_t i = 0; i < frames.size(); ++i)
 		{
-			ResetPreview();
-			return;
+			previewFrames.emplace(m_drag.m_shapeIds[i], frames[i]);
 		}
-		m_state.SetPreviewFrame(CalculateDraggedFrame(point));
+		m_state.SetPreviewFrames(std::move(previewFrames));
 		break;
+	}
 	}
 }
 
@@ -178,16 +202,22 @@ void EditorController::OnMouseUp(const Point point)
 
 HitResult EditorController::HitTest(const Point point) const
 {
-	const auto selectedId = m_state.GetSelectedShapeId();
-	if (const auto selectedFrame = GetSelectedFrame())
+	const auto& selectedIds = m_state.GetSelectedShapeIds();
+	for (const int id : selectedIds)
 	{
-		if (const auto handle = SelectionFrame::HitTestHandle(*selectedFrame, point))
+		const auto frame = GetShapeFrame(id);
+		const auto handle = frame ? SelectionFrame::HitTestHandle(*frame, point) : std::nullopt;
+		if (handle)
 		{
-			return { HitArea::ResizeHandle, selectedId, handle };
+			return { HitArea::ResizeHandle, id, handle };
 		}
-		if (SelectionFrame::HitTestBorder(*selectedFrame, point))
+	}
+	for (const int id : selectedIds)
+	{
+		const auto frame = GetShapeFrame(id);
+		if (frame && SelectionFrame::HitTestBorder(*frame, point))
 		{
-			return { HitArea::SelectionBorder, selectedId, std::nullopt };
+			return { HitArea::SelectionBorder, id, std::nullopt };
 		}
 	}
 
@@ -253,13 +283,13 @@ CursorType EditorController::GetCursorType(const Point point) const
 void EditorController::NewDocument()
 {
 	ResetPreview();
-	m_state.SetSelectedShapeId(std::nullopt);
+	m_state.SetSelectedShapeIds({});
 	m_state.SetFilePath(std::nullopt);
 	m_history.Clear();
 	m_document.Clear();
 }
 
-void EditorController::SaveDocument(const std::filesystem::path& path)
+void EditorController::SaveDocument(const std::filesystem::path& path) const
 {
 	DocumentSerializer::SaveToFile(m_document, path);
 	m_state.SetFilePath(path);
@@ -283,48 +313,50 @@ void EditorController::OpenDocument(const std::filesystem::path& path)
 	}
 
 	ResetPreview();
-	m_state.SetSelectedShapeId(std::nullopt);
+	m_state.SetSelectedShapeIds({});
 	m_document.ReplaceShapes(std::move(shapes));
 	m_history.Clear();
 	m_state.SetFilePath(path);
 }
 
-const IShape* EditorController::GetSelectedShape() const
+std::optional<Frame> EditorController::GetShapeFrame(const int id) const
 {
-	const auto selectedId = m_state.GetSelectedShapeId();
-	if (!selectedId)
-	{
-		return nullptr;
-	}
-	return m_document.FindShape(*selectedId);
-}
-
-std::optional<Frame> EditorController::GetSelectedFrame() const
-{
-	const IShape* shape = GetSelectedShape();
+	const IShape* shape = m_document.FindShape(id);
 	if (!shape)
 	{
 		return std::nullopt;
 	}
-	const auto previewFrame = m_state.GetPreviewFrame();
+	const auto previewFrame = m_state.GetPreviewFrame(id);
 	return previewFrame ? *previewFrame : shape->GetFrame();
 }
 
 void EditorController::ResetPreview()
 {
 	m_drag = {};
-	m_state.SetPreviewFrame(std::nullopt);
+	m_state.SetPreviewFrames({});
 	m_state.SetCreatingShape(nullptr);
 	CancelColors();
 }
 
-Frame EditorController::CalculateDraggedFrame(const Point point) const
+std::vector<Frame> EditorController::CalculateDraggedFrames(const Point point) const
 {
 	const Point offset{ point.m_x - m_drag.m_startPoint.m_x, point.m_y - m_drag.m_startPoint.m_y };
 	const Frame bounds = m_document.GetBounds();
-	return m_drag.m_mode == DragMode::Move
-		? FrameCalculator::CalculateMovedFrame(m_drag.m_startFrame, offset, bounds)
-		: FrameCalculator::CalculateResizedFrame(m_drag.m_startFrame, m_drag.m_handle, offset, bounds, ShapeDefaults::MIN_SIZE);
+	if (m_drag.m_mode == DragMode::Move)
+	{
+		return FrameCalculator::CalculateGroupMovedFrames(m_drag.m_startFrames, offset, bounds);
+	}
+	return FrameCalculator::CalculateGroupResizedFrames(m_drag.m_startFrames, m_drag.m_shapeIndex, m_drag.m_handle,
+		offset, bounds, ShapeDefaults::MIN_SIZE);
+}
+
+void EditorController::ExecuteCommands(std::vector<std::unique_ptr<ICommand>> commands) const
+{
+	if (commands.empty())
+	{
+		return;
+	}
+	m_history.Execute(std::make_unique<MacroCommand>(std::move(commands)));
 }
 
 Frame EditorController::CalculateCreatedFrame(const Point point) const
@@ -349,12 +381,17 @@ std::unique_ptr<IShape> EditorController::CreateShape(const ShapeType type, cons
 void EditorController::StartDrag(const DragMode mode, const int id, const Point point, const ResizeHandle handle)
 {
 	ResetPreview();
-	const IShape* shape = m_document.FindShape(id);
-	if (!shape)
+	DragState drag{ mode, handle, point };
+	for (const int selectedId : m_state.GetSelectedShapeIds())
 	{
-		return;
+		if (selectedId == id)
+		{
+			drag.m_shapeIndex = drag.m_shapeIds.size();
+		}
+		drag.m_shapeIds.push_back(selectedId);
+		drag.m_startFrames.push_back(m_document.FindShape(selectedId)->GetFrame());
 	}
-	m_drag = { mode, id, handle, point, shape->GetFrame() };
+	m_drag = std::move(drag);
 }
 
 void EditorController::StartCreate(const Point point)
@@ -381,35 +418,43 @@ void EditorController::FinishCreate(const Point point)
 
 void EditorController::FinishDrag(const Point point)
 {
-	if (!m_document.FindShape(m_drag.m_shapeId))
+	const auto frames = CalculateDraggedFrames(point);
+	const DragState drag = std::move(m_drag);
+	ResetPreview();
+	if (drag.m_mode == DragMode::Move && point == drag.m_startPoint)
 	{
-		ResetPreview();
+		m_state.SetSelectedShapeIds({ drag.m_shapeIds[drag.m_shapeIndex] });
 		return;
 	}
 
-	const int shapeId = m_drag.m_shapeId;
-	const Frame startFrame = m_drag.m_startFrame;
-	const Frame frame = CalculateDraggedFrame(point);
-	ResetPreview();
-	if (frame != startFrame)
+	std::vector<std::unique_ptr<ICommand>> commands;
+	for (size_t i = 0; i < frames.size(); ++i)
 	{
-		m_history.Execute(std::make_unique<ChangeShapeFrameCommand>(m_document, shapeId, frame));
+		if (frames[i] != drag.m_startFrames[i])
+		{
+			commands.push_back(std::make_unique<ChangeShapeFrameCommand>(m_document, drag.m_shapeIds[i], frames[i]));
+		}
 	}
+	ExecuteCommands(std::move(commands));
 }
 
-void EditorController::AddSelectShape(std::unique_ptr<IShape> shape)
+void EditorController::AddSelectShape(std::unique_ptr<IShape> shape) const
 {
 	auto command = std::make_unique<AddShapeCommand>(m_document, std::move(shape));
 	const AddShapeCommand& addCommand = *command;
 	m_history.Execute(std::move(command));
-	m_state.SetSelectedShapeId(addCommand.GetShapeId());
+	m_state.SetSelectedShapeIds({ *addCommand.GetShapeId() });
 }
 
-void EditorController::ResetSelection()
+void EditorController::ResetSelection() const
 {
-	const auto selectedId = m_state.GetSelectedShapeId();
-	if (selectedId && !m_document.FindShape(*selectedId))
+	std::vector<int> selectedIds;
+	for (const int id : m_state.GetSelectedShapeIds())
 	{
-		m_state.SetSelectedShapeId(std::nullopt);
+		if (m_document.FindShape(id))
+		{
+			selectedIds.push_back(id);
+		}
 	}
+	m_state.SetSelectedShapeIds(std::move(selectedIds));
 }

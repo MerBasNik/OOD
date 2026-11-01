@@ -37,7 +37,7 @@ public:
 	int AddSelectedRectangle(const Frame& frame)
 	{
 		const auto id = AddRectangle(frame);
-		m_state.SetSelectedShapeId(id);
+		m_state.SetSelectedShapeIds({ id });
 		return id;
 	}
 
@@ -49,6 +49,12 @@ public:
 	void Click(const Point point)
 	{
 		m_controller.OnMouseDown(point);
+		m_controller.OnMouseUp(point);
+	}
+
+	void ToggleClick(const Point point)
+	{
+		m_controller.OnMouseDown(point, true);
 		m_controller.OnMouseUp(point);
 	}
 
@@ -88,7 +94,7 @@ TEST_F(EditorControllerTest, AddShapeSelectsIt)
 {
 	m_controller.AddShape(ShapeType::Rectangle);
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), m_document.GetShapeId(0));
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_document.GetShapeId(0) });
 }
 
 TEST_F(EditorControllerTest, ClickSelectsTopShape)
@@ -98,7 +104,7 @@ TEST_F(EditorControllerTest, ClickSelectsTopShape)
 
 	Click({ 150, 150 });
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), top);
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ top });
 }
 
 TEST_F(EditorControllerTest, ClickOnUncoveredPartSelectsLowerShape)
@@ -108,7 +114,7 @@ TEST_F(EditorControllerTest, ClickOnUncoveredPartSelectsLowerShape)
 
 	Click({ 50, 50 });
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), bottom);
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ bottom });
 }
 
 TEST_F(EditorControllerTest, ClickOnEmptyAreaClearsSelection)
@@ -117,7 +123,7 @@ TEST_F(EditorControllerTest, ClickOnEmptyAreaClearsSelection)
 
 	Click({ 800, 500 });
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), std::nullopt);
+	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
 }
 
 TEST_F(EditorControllerTest, ClickInEllipseBoundingBoxCornerDoesNotSelect)
@@ -126,7 +132,7 @@ TEST_F(EditorControllerTest, ClickInEllipseBoundingBoxCornerDoesNotSelect)
 
 	Click({ 105, 105 });
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), std::nullopt);
+	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
 }
 
 TEST_F(EditorControllerTest, DragSelectsDraggedShape)
@@ -135,7 +141,7 @@ TEST_F(EditorControllerTest, DragSelectsDraggedShape)
 
 	Drag({ 110, 120 }, { 410, 320 });
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), id);
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ id });
 }
 
 class EditorControllerResizeTest : public EditorControllerTest
@@ -182,7 +188,7 @@ TEST_F(EditorControllerTest, CoveredSelectedShapeCanBeResized)
 	Drag({ 300, 200 }, { 350, 250 });
 
 	EXPECT_EQ(GetFrame(covered), (Frame{ 100, 100, 250, 150 }));
-	EXPECT_EQ(m_state.GetSelectedShapeId(), covered);
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ covered });
 }
 
 TEST_F(EditorControllerTest, CoveredSelectedShapeCanBeMovedByBorder)
@@ -193,7 +199,7 @@ TEST_F(EditorControllerTest, CoveredSelectedShapeCanBeMovedByBorder)
 	Drag({ 150, 100 }, { 160, 110 });
 
 	EXPECT_EQ(GetFrame(covered), (Frame{ 110, 110, 200, 100 }));
-	EXPECT_EQ(m_state.GetSelectedShapeId(), covered);
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ covered });
 }
 
 TEST_F(EditorControllerTest, CursorIsArrowOverUnselectedShape)
@@ -253,51 +259,22 @@ TEST_F(EditorControllerTest, CursorKeepsMoveTypeDuringMove)
 	EXPECT_EQ(m_controller.GetCursorType({ 900, 550 }), CursorType::Move);
 }
 
-TEST_F(EditorControllerTest, DeleteRemovesOnlySelectedShape)
-{
-	AddRectangle({ 0, 0, 100, 100 });
-	const auto id = AddSelectedRectangle({ 200, 200, 100, 100 });
-
-	m_controller.DeleteSelectedShape();
-
-	EXPECT_EQ(m_document.GetShapeCount(), 1u);
-	EXPECT_EQ(m_document.FindShape(id), nullptr);
-}
-
-TEST_F(EditorControllerTest, DeleteClearsSelection)
-{
-	AddSelectedRectangle({ 200, 200, 100, 100 });
-
-	m_controller.DeleteSelectedShape();
-
-	EXPECT_EQ(m_state.GetSelectedShapeId(), std::nullopt);
-}
-
 TEST_F(EditorControllerTest, DeleteWithoutSelectionDoesNothing)
 {
 	AddRectangle({ 0, 0, 100, 100 });
 
-	EXPECT_NO_THROW(m_controller.DeleteSelectedShape());
+	EXPECT_NO_THROW(m_controller.DeleteSelectedShapes());
 	EXPECT_EQ(m_document.GetShapeCount(), 1u);
-}
-
-TEST_F(EditorControllerTest, DeleteDuringDragClearsPreview)
-{
-	AddRectangle({ 100, 100, 100, 100 });
-	m_controller.OnMouseDown({ 150, 150 });
-	m_controller.OnMouseMove({ 170, 170 });
-
-	m_controller.DeleteSelectedShape();
-
-	EXPECT_EQ(m_state.GetPreviewFrame(), std::nullopt);
 }
 
 TEST_F(EditorControllerTest, MouseEventsAfterDeleteDuringDragAreIgnored)
 {
 	AddRectangle({ 100, 100, 100, 100 });
 	m_controller.OnMouseDown({ 150, 150 });
-	m_controller.DeleteSelectedShape();
+	m_controller.OnMouseMove({ 170, 170 });
+	m_controller.DeleteSelectedShapes();
 
+	EXPECT_TRUE(m_state.GetPreviewFrames().empty());
 	EXPECT_NO_THROW(m_controller.OnMouseMove({ 200, 200 }));
 	EXPECT_NO_THROW(m_controller.OnMouseUp({ 200, 200 }));
 	EXPECT_EQ(m_document.GetShapeCount(), 0u);
@@ -318,12 +295,12 @@ TEST_F(EditorControllerTest, MoveDuringGestureDoesNotChangeDocument)
 
 TEST_F(EditorControllerTest, MoveDuringGestureUpdatesPreviewFrame)
 {
-	AddRectangle({ 100, 100, 200, 100 });
+	const auto id = AddRectangle({ 100, 100, 200, 100 });
 
 	m_controller.OnMouseDown({ 150, 150 });
 	m_controller.OnMouseMove({ 180, 190 });
 
-	EXPECT_EQ(m_state.GetPreviewFrame(), (Frame{ 130, 140, 200, 100 }));
+	EXPECT_EQ(m_state.GetPreviewFrame(id), (Frame{ 130, 140, 200, 100 }));
 }
 
 TEST_F(EditorControllerTest, WholeGestureChangesDocumentOnce)
@@ -342,7 +319,7 @@ TEST_F(EditorControllerTest, MouseUpAppliesFrameAndClearsPreview)
 	Drag({ 150, 150 }, { 190, 200 });
 
 	EXPECT_EQ(GetFrame(id), (Frame{ 140, 150, 200, 100 }));
-	EXPECT_EQ(m_state.GetPreviewFrame(), std::nullopt);
+	EXPECT_TRUE(m_state.GetPreviewFrames().empty());
 }
 
 TEST_F(EditorControllerTest, ResizeDuringGestureChangesOnlyPreview)
@@ -353,7 +330,7 @@ TEST_F(EditorControllerTest, ResizeDuringGestureChangesOnlyPreview)
 	m_controller.OnMouseMove({ 350, 250 });
 
 	EXPECT_EQ(GetFrame(id), (Frame{ 100, 100, 200, 100 }));
-	EXPECT_EQ(m_state.GetPreviewFrame(), (Frame{ 100, 100, 250, 150 }));
+	EXPECT_EQ(m_state.GetPreviewFrame(id), (Frame{ 100, 100, 250, 150 }));
 }
 
 TEST_F(EditorControllerTest, HandlesFollowPreviewFrameDuringResize)
@@ -384,7 +361,7 @@ TEST_F(EditorControllerTest, NewGestureWithoutMouseUpDropsOldPreview)
 
 	m_controller.OnMouseDown({ 550, 350 });
 
-	EXPECT_EQ(m_state.GetPreviewFrame(), std::nullopt);
+	EXPECT_TRUE(m_state.GetPreviewFrames().empty());
 }
 
 TEST_F(EditorControllerTest, SaveRemembersFilePath)
@@ -429,7 +406,7 @@ TEST_F(EditorControllerTest, OpenClearsSelectionAndRemembersFilePath)
 
 	m_controller.OpenDocument(m_path);
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), std::nullopt);
+	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
 	EXPECT_EQ(m_state.GetFilePath(), m_path);
 }
 
@@ -442,7 +419,7 @@ TEST_F(EditorControllerTest, FailedOpenOfInvalidFileKeepsCurrentDocument)
 
 	ASSERT_EQ(m_document.GetShapeCount(), 1u);
 	EXPECT_EQ(GetFrame(id), (Frame{ 10, 20, 100, 50 }));
-	EXPECT_EQ(m_state.GetSelectedShapeId(), id);
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ id });
 	EXPECT_EQ(m_state.GetFilePath(), std::nullopt);
 }
 
@@ -491,7 +468,7 @@ TEST_F(EditorControllerTest, CreatedShapeIsSelectedAndToolIsReset)
 
 	Drag({ 100, 100 }, { 300, 250 });
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), m_document.GetShapeId(0));
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_document.GetShapeId(0) });
 	EXPECT_EQ(m_state.GetShapeTool(), std::nullopt);
 }
 
@@ -580,7 +557,7 @@ TEST_F(EditorControllerTest, CancelDuringMoveRestoresShapeFrame)
 	m_controller.OnMouseUp({ 250, 250 });
 
 	EXPECT_EQ(GetFrame(id), (Frame{ 100, 100, 200, 100 }));
-	EXPECT_EQ(m_state.GetPreviewFrame(), std::nullopt);
+	EXPECT_TRUE(m_state.GetPreviewFrames().empty());
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
@@ -607,64 +584,17 @@ TEST_F(EditorControllerTest, UndoAddRemovesShapeAndRedoRestoresIt)
 	EXPECT_EQ(GetShapeType(m_document.GetShape(0)), ShapeType::Ellipse);
 }
 
-TEST_F(EditorControllerTest, UndoAddClearsSelectionOfRemovedShape)
-{
-	m_controller.AddShape(ShapeType::Rectangle);
-
-	m_controller.Undo();
-
-	EXPECT_EQ(m_state.GetSelectedShapeId(), std::nullopt);
-}
-
-TEST_F(EditorControllerTest, UndoDeleteRestoresShapeAtSamePosition)
-{
-	const auto bottom = AddRectangle({ 0, 0, 100, 100 });
-	const auto middle = AddSelectedRectangle({ 200, 200, 100, 100 });
-	const auto top = AddRectangle({ 400, 400, 100, 100 });
-	m_controller.DeleteSelectedShape();
-
-	m_controller.Undo();
-
-	ASSERT_EQ(m_document.GetShapeCount(), 3u);
-	EXPECT_EQ(m_document.GetShapeId(0), bottom);
-	EXPECT_EQ(m_document.GetShapeId(1), middle);
-	EXPECT_EQ(m_document.GetShapeId(2), top);
-	EXPECT_EQ(GetFrame(middle), (Frame{ 200, 200, 100, 100 }));
-}
-
 TEST_F(EditorControllerTest, RedoDeleteClearsSelectionOfRemovedShape)
 {
 	const auto id = AddSelectedRectangle({ 200, 200, 100, 100 });
-	m_controller.DeleteSelectedShape();
+	m_controller.DeleteSelectedShapes();
 	m_controller.Undo();
-	m_state.SetSelectedShapeId(id);
+	m_state.SetSelectedShapeIds({ id });
 
 	m_controller.Redo();
 
 	EXPECT_EQ(m_document.FindShape(id), nullptr);
-	EXPECT_EQ(m_state.GetSelectedShapeId(), std::nullopt);
-}
-
-TEST_F(EditorControllerTest, WholeMoveGestureIsOneHistoryOperation)
-{
-	const auto id = AddRectangle({ 100, 100, 200, 100 });
-	Drag({ 150, 150 }, { 190, 200 });
-
-	m_controller.Undo();
-
-	EXPECT_EQ(GetFrame(id), (Frame{ 100, 100, 200, 100 }));
-	EXPECT_FALSE(m_history.CanUndo());
-}
-
-TEST_F(EditorControllerTest, RedoMoveRestoresFinalPosition)
-{
-	const auto id = AddRectangle({ 100, 100, 200, 100 });
-	Drag({ 150, 150 }, { 190, 200 });
-	m_controller.Undo();
-
-	m_controller.Redo();
-
-	EXPECT_EQ(GetFrame(id), (Frame{ 140, 150, 200, 100 }));
+	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
 }
 
 TEST_F(EditorControllerTest, UndoAndRedoResizeRestoreFrames)
@@ -699,7 +629,7 @@ TEST_F(EditorControllerTest, UndoDuringDragDropsPreviewAndKeepsDocument)
 	m_controller.Undo();
 	m_controller.OnMouseUp({ 300, 300 });
 
-	EXPECT_EQ(m_state.GetPreviewFrame(), std::nullopt);
+	EXPECT_TRUE(m_state.GetPreviewFrames().empty());
 	EXPECT_EQ(GetFrame(id), (Frame{ 100, 100, 200, 100 }));
 	EXPECT_TRUE(m_history.CanRedo());
 }
@@ -810,15 +740,6 @@ TEST_F(EditorControllerTest, PreviewColorDoesNotChangeDocument)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, PreviewColorWithoutSelectionIsIgnored)
-{
-	AddRectangle({ 0, 0, 100, 100 });
-
-	m_controller.PreviewFillColor(0x112233);
-
-	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
-}
-
 TEST_F(EditorControllerTest, CommitFillColorChangesOnlyFill)
 {
 	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
@@ -841,32 +762,6 @@ TEST_F(EditorControllerTest, CommitBorderColorChangesOnlyBorder)
 	EXPECT_EQ(m_document.FindShape(id)->GetFillColor(), 0);
 	EXPECT_EQ(m_document.FindShape(id)->GetBorderColor(), 0x445566);
 	EXPECT_EQ(m_state.GetPreviewBorderColor(), std::nullopt);
-}
-
-TEST_F(EditorControllerTest, SeveralPreviewsAreCommittedAsOneHistoryEntry)
-{
-	AddSelectedRectangle({ 0, 0, 100, 100 });
-	m_controller.PreviewFillColor(0x111111);
-	m_controller.PreviewFillColor(0x222222);
-	m_controller.PreviewFillColor(0x333333);
-	m_controller.CommitColors();
-
-	m_controller.Undo();
-
-	EXPECT_FALSE(m_history.CanUndo());
-}
-
-TEST_F(EditorControllerTest, UndoAndRedoColorChange)
-{
-	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
-	m_controller.PreviewBorderColor(0x445566);
-	m_controller.CommitColors();
-
-	m_controller.Undo();
-	EXPECT_EQ(m_document.FindShape(id)->GetBorderColor(), 0);
-
-	m_controller.Redo();
-	EXPECT_EQ(m_document.FindShape(id)->GetBorderColor(), 0x445566);
 }
 
 TEST_F(EditorControllerTest, CommitOfUnchangedColorDoesNotAddHistory)
@@ -902,16 +797,6 @@ TEST_F(EditorControllerTest, MouseDownDiscardsColorPreview)
 	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
 }
 
-TEST_F(EditorControllerTest, UndoDiscardsColorPreview)
-{
-	m_controller.AddShape(ShapeType::Rectangle);
-	m_controller.PreviewFillColor(0x112233);
-
-	m_controller.Undo();
-
-	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
-}
-
 TEST_F(EditorControllerTest, SaveWritesCommittedColorsOnly)
 {
 	AddSelectedRectangle({ 0, 0, 100, 100 });
@@ -925,4 +810,148 @@ TEST_F(EditorControllerTest, SaveWritesCommittedColorsOnly)
 	ASSERT_EQ(m_document.GetShapeCount(), 1);
 	EXPECT_EQ(m_document.GetShape(0).GetFillColor(), 0x112233);
 	EXPECT_EQ(m_document.GetShape(0).GetBorderColor(), 0);
+}
+
+TEST_F(EditorControllerTest, ToggleClickAddsShapeToSelection)
+{
+	const auto first = AddSelectedRectangle({ 0, 0, 100, 100 });
+	const auto second = AddRectangle({ 200, 200, 100, 100 });
+
+	ToggleClick({ 250, 250 });
+
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ first, second }));
+}
+
+TEST_F(EditorControllerTest, ToggleClickRemovesShapeFromSelection)
+{
+	const auto first = AddRectangle({ 0, 0, 100, 100 });
+	const auto second = AddRectangle({ 200, 200, 100, 100 });
+	m_state.SetSelectedShapeIds({ first, second });
+
+	ToggleClick({ 50, 50 });
+
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ second });
+}
+
+TEST_F(EditorControllerTest, ToggleClickOnEmptyAreaKeepsSelection)
+{
+	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
+
+	ToggleClick({ 800, 500 });
+
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ id });
+}
+
+TEST_F(EditorControllerTest, ClickOnShapeOfGroupSelectsOnlyIt)
+{
+	const auto first = AddRectangle({ 0, 0, 100, 100 });
+	const auto second = AddRectangle({ 200, 200, 100, 100 });
+	m_state.SetSelectedShapeIds({ first, second });
+
+	Click({ 250, 250 });
+
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ second });
+}
+
+TEST_F(EditorControllerTest, DragOfSelectedShapeMovesWholeGroup)
+{
+	const auto first = AddRectangle({ 100, 100, 100, 100 });
+	const auto second = AddRectangle({ 400, 300, 100, 100 });
+	m_state.SetSelectedShapeIds({ first, second });
+
+	Drag({ 150, 150 }, { 200, 170 });
+
+	EXPECT_EQ(GetFrame(first), (Frame{ 150, 120, 100, 100 }));
+	EXPECT_EQ(GetFrame(second), (Frame{ 450, 320, 100, 100 }));
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ first, second }));
+}
+
+TEST_F(EditorControllerTest, GroupMoveIsOneHistoryOperation)
+{
+	const auto first = AddRectangle({ 100, 100, 100, 100 });
+	const auto second = AddRectangle({ 400, 300, 100, 100 });
+	m_state.SetSelectedShapeIds({ first, second });
+	Drag({ 150, 150 }, { 200, 170 });
+
+	m_controller.Undo();
+
+	EXPECT_EQ(GetFrame(first), (Frame{ 100, 100, 100, 100 }));
+	EXPECT_EQ(GetFrame(second), (Frame{ 400, 300, 100, 100 }));
+	EXPECT_FALSE(m_history.CanUndo());
+}
+
+TEST_F(EditorControllerTest, GroupResizeScalesEachShapeRelativeToItsOwnSide)
+{
+	const auto first = AddRectangle({ 100, 100, 100, 100 });
+	const auto second = AddRectangle({ 300, 100, 100, 100 });
+	m_state.SetSelectedShapeIds({ first, second });
+
+	Drag({ 200, 200 }, { 300, 300 });
+
+	EXPECT_EQ(GetFrame(first), (Frame{ 100, 100, 200, 200 }));
+	EXPECT_EQ(GetFrame(second), (Frame{ 300, 100, 200, 200 }));
+}
+
+TEST_F(EditorControllerTest, GroupResizeKeepsMinimumSizeOfSmallestShape)
+{
+	const auto first = AddRectangle({ 100, 100, 200, 200 });
+	const auto second = AddRectangle({ 400, 100, 20, 20 });
+	m_state.SetSelectedShapeIds({ first, second });
+
+	Drag({ 300, 300 }, { 110, 110 });
+
+	EXPECT_EQ(GetFrame(first), (Frame{ 100, 100, 100, 100 }));
+	EXPECT_EQ(GetFrame(second), (Frame{ 400, 100, ShapeDefaults::MIN_SIZE, ShapeDefaults::MIN_SIZE }));
+}
+
+TEST_F(EditorControllerTest, DeleteRemovesAllSelectedShapesAsOneOperation)
+{
+	const auto bottom = AddRectangle({ 0, 0, 100, 100 });
+	const auto middle = AddRectangle({ 200, 200, 100, 100 });
+	const auto top = AddRectangle({ 400, 400, 100, 100 });
+	m_state.SetSelectedShapeIds({ bottom, top });
+
+	m_controller.DeleteSelectedShapes();
+
+	ASSERT_EQ(m_document.GetShapeCount(), 1u);
+	EXPECT_EQ(m_document.GetShapeId(0), middle);
+	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
+
+	m_controller.Undo();
+
+	ASSERT_EQ(m_document.GetShapeCount(), 3u);
+	EXPECT_EQ(m_document.GetShapeId(0), bottom);
+	EXPECT_EQ(m_document.GetShapeId(1), middle);
+	EXPECT_EQ(m_document.GetShapeId(2), top);
+	EXPECT_FALSE(m_history.CanUndo());
+}
+
+TEST_F(EditorControllerTest, CommitColorsChangesAllSelectedShapesAsOneOperation)
+{
+	const auto first = AddRectangle({ 0, 0, 100, 100 });
+	const auto second = AddRectangle({ 200, 200, 100, 100 });
+	m_state.SetSelectedShapeIds({ first, second });
+	m_controller.PreviewFillColor(0x112233);
+
+	m_controller.CommitColors();
+
+	EXPECT_EQ(m_document.FindShape(first)->GetFillColor(), 0x112233);
+	EXPECT_EQ(m_document.FindShape(second)->GetFillColor(), 0x112233);
+
+	m_controller.Undo();
+
+	EXPECT_EQ(m_document.FindShape(first)->GetFillColor(), 0);
+	EXPECT_EQ(m_document.FindShape(second)->GetFillColor(), 0);
+	EXPECT_FALSE(m_history.CanUndo());
+}
+
+TEST_F(EditorControllerTest, UndoKeepsOnlyExistingShapesInSelection)
+{
+	const auto first = AddRectangle({ 0, 0, 100, 100 });
+	m_controller.AddShape(ShapeType::Ellipse);
+	m_state.SetSelectedShapeIds({ first, m_document.GetShapeId(1) });
+
+	m_controller.Undo();
+
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ first });
 }

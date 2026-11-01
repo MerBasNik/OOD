@@ -15,6 +15,7 @@ add_library(Editor_lib STATIC
         Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.cpp
         Command/ChangeShapeIndexCommand/ChangeShapeIndexCommand.cpp
         Command/ChangeShapeColorsCommand/ChangeShapeColorsCommand.cpp
+        Command/MacroCommand/MacroCommand.cpp
         Controller/FrameCalculator.cpp
         Controller/ShapeDefaults.cpp
         Controller/EditorController.cpp
@@ -61,6 +62,7 @@ add_executable(Editor_tests
         tests/ShapeListControllerTests.cpp
         tests/CommandHistoryTests.cpp
         tests/ShapeRendererTests.cpp
+        tests/MacroCommandTests.cpp
 )
 
 target_link_libraries(Editor_tests PRIVATE

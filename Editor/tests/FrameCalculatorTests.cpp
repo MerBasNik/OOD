@@ -99,3 +99,41 @@ TEST_F(FrameCalculatorTest, CreateFromPointOutsideBoundsStartsAtBorder)
 	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ -50, 700 }, { 100, 500 }, BOUNDS, MIN_SIZE),
 		(Frame{ 0, 500, 100, 100 }));
 }
+
+TEST_F(FrameCalculatorTest, GroupMoveKeepsRelativePositions)
+{
+	const auto frames = FrameCalculator::CalculateGroupMovedFrames({ START, { 400, 300, 50, 50 } }, { 30, -20 }, BOUNDS);
+
+	EXPECT_EQ(frames, (std::vector<Frame>{ { 130, 80, 200, 100 }, { 430, 280, 50, 50 } }));
+}
+
+TEST_F(FrameCalculatorTest, GroupMoveIsLimitedByBoundsOfWholeGroup)
+{
+	const auto frames = FrameCalculator::CalculateGroupMovedFrames({ START, { 400, 300, 50, 50 } }, { 5000, 5000 }, BOUNDS);
+
+	EXPECT_EQ(frames, (std::vector<Frame>{ { 650, 350, 200, 100 }, { 950, 550, 50, 50 } }));
+}
+
+TEST_F(FrameCalculatorTest, GroupResizeOfSingleFrameMatchesResize)
+{
+	const auto frames = FrameCalculator::CalculateGroupResizedFrames({ START }, 0, ResizeHandle::TopLeft, { -10, -20 },
+		BOUNDS, MIN_SIZE);
+
+	EXPECT_EQ(frames, std::vector{ Resize(ResizeHandle::TopLeft, { -10, -20 }) });
+}
+
+TEST_F(FrameCalculatorTest, GroupResizeScalesEachFrameRelativeToItsOppositeSide)
+{
+	const auto frames = FrameCalculator::CalculateGroupResizedFrames({ START, { 150, 300, 50, 50 } }, 0,
+		ResizeHandle::Left, { -100, 0 }, BOUNDS, MIN_SIZE);
+
+	EXPECT_EQ(frames, (std::vector<Frame>{ { 0, 100, 300, 100 }, { 125, 300, 75, 50 } }));
+}
+
+TEST_F(FrameCalculatorTest, GroupResizeIsLimitedByBoundsOfEachFrame)
+{
+	const auto frames = FrameCalculator::CalculateGroupResizedFrames({ START, { 0, 300, 50, 50 } }, 0,
+		ResizeHandle::Left, { -100, 0 }, BOUNDS, MIN_SIZE);
+
+	EXPECT_EQ(frames, (std::vector<Frame>{ START, { 0, 300, 50, 50 } }));
+}

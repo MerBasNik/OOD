@@ -13,16 +13,25 @@ ShapeListController::ShapeListController(Document& document, EditorState& state,
 {
 }
 
-void ShapeListController::OnMouseDown(const std::optional<size_t> row)
+void ShapeListController::OnMouseDown(const std::optional<size_t> row, const bool isToggle)
 {
 	Cancel();
-	if (!row || *row >= m_document.GetShapeCount())
+	const bool isShapeRow = row && *row < m_document.GetShapeCount();
+	if (isToggle)
 	{
-		m_state.SetSelectedShapeId(std::nullopt);
+		if (isShapeRow)
+		{
+			m_state.ToggleShapeSelection(m_document.GetShapeId(RowToIndex(*row)));
+		}
+		return;
+	}
+	if (!isShapeRow)
+	{
+		m_state.SetSelectedShapeIds({});
 		return;
 	}
 	const int id = m_document.GetShapeId(RowToIndex(*row));
-	m_state.SetSelectedShapeId(id);
+	m_state.SetSelectedShapeIds({ id });
 	m_draggedId = id;
 }
 

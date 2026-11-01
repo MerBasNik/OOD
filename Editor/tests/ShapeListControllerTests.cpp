@@ -51,23 +51,23 @@ TEST_F(ShapeListControllerTest, ClickOnFirstRowSelectsTopShape)
 {
 	m_controller.OnMouseDown(0);
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), m_top);
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_top });
 }
 
 TEST_F(ShapeListControllerTest, ClickOnLastRowSelectsBottomShape)
 {
 	m_controller.OnMouseDown(2);
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), m_bottom);
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_bottom });
 }
 
 TEST_F(ShapeListControllerTest, ClickBelowRowsClearsSelection)
 {
-	m_state.SetSelectedShapeId(m_top);
+	m_state.SetSelectedShapeIds({ m_top });
 
 	m_controller.OnMouseDown(std::nullopt);
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), std::nullopt);
+	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
 }
 
 TEST_F(ShapeListControllerTest, ClickWithoutDragDoesNotChangeDocument)
@@ -113,7 +113,7 @@ TEST_F(ShapeListControllerTest, DragKeepsDraggedShapeSelected)
 {
 	DragRow(2, 0);
 
-	EXPECT_EQ(m_state.GetSelectedShapeId(), m_bottom);
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_bottom });
 }
 
 TEST_F(ShapeListControllerTest, DropSlotIsShownOnlyWhenOrderWouldChange)
@@ -162,4 +162,26 @@ TEST_F(ShapeListControllerTest, DropNextToItselfDoesNotAddHistory)
 	DragRow(1, 2);
 
 	EXPECT_FALSE(m_history.CanUndo());
+}
+
+TEST_F(ShapeListControllerTest, ToggleClickAddsAndRemovesShape)
+{
+	m_controller.OnMouseDown(0);
+
+	m_controller.OnMouseDown(2, true);
+
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ m_top, m_bottom }));
+
+	m_controller.OnMouseDown(0, true);
+
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_bottom });
+}
+
+TEST_F(ShapeListControllerTest, ToggleClickBelowRowsKeepsSelection)
+{
+	m_state.SetSelectedShapeIds({ m_top });
+
+	m_controller.OnMouseDown(std::nullopt, true);
+
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_top });
 }

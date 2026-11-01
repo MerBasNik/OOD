@@ -66,7 +66,7 @@ void EditorWindow::InitToolbar()
 	});
 	m_toolbar.AddButton("Удалить", [this] {
 		CancelColorPicker();
-		m_controller.DeleteSelectedShape();
+		m_controller.DeleteSelectedShapes();
 	});
 	m_toolbar.AddButton("Новый", [this] {
 		NewDocument();
@@ -81,8 +81,8 @@ void EditorWindow::InitToolbar()
 
 void EditorWindow::OpenColorPicker(const std::string& title, const sf::FloatRect buttonRect, const bool isFill)
 {
-	const auto selectedId = m_state.GetSelectedShapeId();
-	const IShape* shape = selectedId ? m_document.FindShape(*selectedId) : nullptr;
+	const auto& selectedIds = m_state.GetSelectedShapeIds();
+	const IShape* shape = selectedIds.empty() ? nullptr : m_document.FindShape(selectedIds.front());
 	if (!shape)
 	{
 		return;
@@ -149,6 +149,7 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 	}
 	else if (event.is<sf::Event::FocusLost>())
 	{
+		m_isTogglePressed = false;
 		HandleMouseReleased(m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
 	}
 	else if (const auto* pressed = event.getIf<sf::Event::MouseButtonPressed>())
@@ -175,8 +176,24 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 	}
 	else if (const auto* key = event.getIf<sf::Event::KeyPressed>())
 	{
+		m_isTogglePressed = key->shift || key->control || key->system || IsToggleModifierKey(key->code);
 		HandleKeyPressed(*key);
 	}
+	else if (const auto* released = event.getIf<sf::Event::KeyReleased>())
+	{
+		using Key = sf::Keyboard::Key;
+		const bool isShift = released->shift && released->code != Key::LShift && released->code != Key::RShift;
+		const bool isControl = released->control && released->code != Key::LControl && released->code != Key::RControl;
+		const bool isSystem = released->system && released->code != Key::LSystem && released->code != Key::RSystem;
+		m_isTogglePressed = isShift || isControl || isSystem;
+	}
+}
+
+bool EditorWindow::IsToggleModifierKey(const sf::Keyboard::Key code)
+{
+	using Key = sf::Keyboard::Key;
+	return code == Key::LShift || code == Key::RShift || code == Key::LControl || code == Key::RControl
+		|| code == Key::LSystem || code == Key::RSystem;
 }
 
 void EditorWindow::HandleMousePressed(const sf::Vector2f point)
@@ -197,12 +214,12 @@ void EditorWindow::HandleMousePressed(const sf::Vector2f point)
 	else if (m_shapeListView.IsContains(point))
 	{
 		m_mouseCapture = MouseCapture::ShapeList;
-		m_shapeListView.OnMouseDown(point);
+		m_shapeListView.OnMouseDown(point, m_isTogglePressed);
 	}
 	else
 	{
 		m_mouseCapture = MouseCapture::Canvas;
-		m_controller.OnMouseDown(m_canvasView.ToDocumentPoint(point));
+		m_controller.OnMouseDown(m_canvasView.ToDocumentPoint(point), m_isTogglePressed);
 	}
 	UpdateCursor(point);
 }
@@ -281,7 +298,7 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 	else if (key.code == sf::Keyboard::Key::Delete || key.code == sf::Keyboard::Key::Backspace)
 	{
 		CancelColorPicker();
-		m_controller.DeleteSelectedShape();
+		m_controller.DeleteSelectedShapes();
 	}
 }
 

@@ -19,22 +19,22 @@ class EditorController
 public:
 	EditorController(Document& document, EditorState& state, CommandHistory& history);
 	void AddShape(ShapeType type);
-	void DeleteSelectedShape();
+	void DeleteSelectedShapes();
 	void SelectShapeTool(std::optional<ShapeType> type);
-	void PreviewFillColor(Color color);
-	void PreviewBorderColor(Color color);
+	void PreviewFillColor(Color color) const;
+	void PreviewBorderColor(Color color) const;
 	void CommitColors();
-	void CancelColors();
+	void CancelColors()const;
 	void Cancel();
 	void Undo();
 	void Redo();
-	void OnMouseDown(Point point);
+	void OnMouseDown(Point point, bool isToggle = false);
 	void OnMouseMove(Point point);
 	void OnMouseUp(Point point);
 	HitResult HitTest(Point point) const;
 	CursorType GetCursorType(Point point) const;
 	void NewDocument();
-	void SaveDocument(const std::filesystem::path& path);
+	void SaveDocument(const std::filesystem::path& path) const;
 	void OpenDocument(const std::filesystem::path& path);
 
 private:
@@ -43,16 +43,16 @@ private:
 	CommandHistory& m_history;
 	DragState m_drag;
 
-	const IShape* GetSelectedShape() const;
-	std::optional<Frame> GetSelectedFrame() const;
+	std::optional<Frame> GetShapeFrame(int id) const;
 	void StartDrag(DragMode mode, int id, Point point, ResizeHandle handle = ResizeHandle::TopLeft);
 	void StartCreate(Point point);
 	void FinishCreate(Point point);
 	void FinishDrag(Point point);
 	void ResetPreview();
-	void AddSelectShape(std::unique_ptr<IShape> shape);
-	void ResetSelection();
-	Frame CalculateDraggedFrame(Point point) const;
+	void AddSelectShape(std::unique_ptr<IShape> shape) const;
+	void ResetSelection() const;
+	std::vector<Frame> CalculateDraggedFrames(Point point) const;
+	void ExecuteCommands(std::vector<std::unique_ptr<ICommand>> commands) const;
 	Frame CalculateCreatedFrame(Point point) const;
 	static std::unique_ptr<IShape> CreateShape(ShapeType type, const Frame& frame);
 	static CursorType GetResizeCursor(ResizeHandle handle);

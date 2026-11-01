@@ -11,6 +11,7 @@
 #include <SFML/Graphics.hpp>
 #include <map>
 #include <optional>
+#include <vector>
 
 class ShapeListView : public IDocumentObserver
 	, public IEditorStateObserver
@@ -24,7 +25,7 @@ public:
 	ShapeListView& operator=(const ShapeListView&) = delete;
 	void Draw(sf::RenderTarget& target) const;
 	bool IsContains(sf::Vector2f point) const;
-	void OnMouseDown(sf::Vector2f point);
+	void OnMouseDown(sf::Vector2f point, bool isToggle);
 	void OnMouseMove(sf::Vector2f point);
 	void OnMouseUp(sf::Vector2f point);
 	void OnMouseWheel(sf::Vector2f point, float delta);
@@ -43,7 +44,7 @@ private:
 	sf::Font m_font;
 	std::map<ShapeType, sf::Texture> m_icons;
 	float m_scroll = 0;
-	std::optional<int> m_shownSelectedId;
+	std::vector<int> m_shownSelectedIds;
 	bool m_isChange = true;
 
 	std::optional<size_t> GetRowAt(sf::Vector2f point) const;

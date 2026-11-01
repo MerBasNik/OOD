@@ -80,9 +80,9 @@ bool ShapeListView::IsContains(const sf::Vector2f point) const
 	return m_rect.contains(point);
 }
 
-void ShapeListView::OnMouseDown(const sf::Vector2f point)
+void ShapeListView::OnMouseDown(const sf::Vector2f point, const bool isToggle)
 {
-	m_controller.OnMouseDown(GetRowAt(point));
+	m_controller.OnMouseDown(GetRowAt(point), isToggle);
 	SetIsChange();
 }
 
@@ -155,9 +155,9 @@ void ShapeListView::DocumentUpdate()
 
 void ShapeListView::EditorStateUpdate()
 {
-	if (m_state.GetSelectedShapeId() != m_shownSelectedId)
+	if (m_state.GetSelectedShapeIds() != m_shownSelectedIds)
 	{
-		m_shownSelectedId = m_state.GetSelectedShapeId();
+		m_shownSelectedIds = m_state.GetSelectedShapeIds();
 		ScrollToSelectedShape();
 	}
 	SetIsChange();
@@ -169,7 +169,7 @@ void ShapeListView::DrawRow(sf::RenderTarget& target, const size_t row) const
 	const IShape& shape = m_document.GetShape(index);
 	const float top = static_cast<float>(row) * ROW_HEIGHT;
 
-	if (m_document.GetShapeId(index) == m_state.GetSelectedShapeId())
+	if (m_state.IsShapeSelected(m_document.GetShapeId(index)))
 	{
 		sf::RectangleShape selection({ m_rect.size.x, ROW_HEIGHT });
 		selection.setPosition({ 0.f, top });
@@ -256,8 +256,8 @@ void ShapeListView::SetScroll(const float scroll)
 
 void ShapeListView::ScrollToSelectedShape()
 {
-	const auto selectedId = m_state.GetSelectedShapeId();
-	const auto index = selectedId ? m_document.FindShapeIndex(*selectedId) : std::nullopt;
+	const auto& selectedIds = m_state.GetSelectedShapeIds();
+	const auto index = selectedIds.empty() ? std::nullopt : m_document.FindShapeIndex(selectedIds.back());
 	if (!index)
 	{
 		return;

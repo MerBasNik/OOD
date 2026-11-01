@@ -14,7 +14,7 @@ class ShapeListController
 {
 public:
 	ShapeListController(Document& document, EditorState& state, CommandHistory& history);
-	void OnMouseDown(std::optional<size_t> row);
+	void OnMouseDown(std::optional<size_t> row, bool isToggle = false);
 	void OnMouseMove(size_t slot);
 	void OnMouseUp(size_t slot);
 	void Cancel();

@@ -78,20 +78,24 @@ void CanvasView::DrawShapes(sf::RenderTarget& target) const
 {
 	Canvas canvas(target, m_origin);
 	RenderShape renderer(canvas);
-	const auto selectedId = m_state.GetSelectedShapeId();
-	const auto previewFrame = m_state.GetPreviewFrame();
 	const auto previewFillColor = m_state.GetPreviewFillColor();
 	const auto previewBorderColor = m_state.GetPreviewBorderColor();
-	const bool hasPreview = previewFrame || previewFillColor || previewBorderColor;
+	const bool hasColorPreview = previewFillColor || previewBorderColor;
 	for (size_t i = 0; i < m_document.GetShapeCount(); ++i)
 	{
 		const IShape& shape = m_document.GetShape(i);
-		if (hasPreview && m_document.GetShapeId(i) == selectedId)
+		const int id = m_document.GetShapeId(i);
+		const auto previewFrame = m_state.GetPreviewFrame(id);
+		const bool hasShapeColorPreview = hasColorPreview && m_state.IsShapeSelected(id);
+		if (previewFrame || hasShapeColorPreview)
 		{
 			const auto preview = shape.Clone();
 			preview->SetFrame(previewFrame ? *previewFrame : shape.GetFrame());
-			preview->SetFillColor(previewFillColor ? *previewFillColor : shape.GetFillColor());
-			preview->SetBorderColor(previewBorderColor ? *previewBorderColor : shape.GetBorderColor());
+			if (hasShapeColorPreview)
+			{
+				preview->SetFillColor(previewFillColor ? *previewFillColor : shape.GetFillColor());
+				preview->SetBorderColor(previewBorderColor ? *previewBorderColor : shape.GetBorderColor());
+			}
 			preview->Accept(renderer);
 		}
 		else
@@ -108,19 +112,20 @@ void CanvasView::DrawShapes(sf::RenderTarget& target) const
 
 void CanvasView::DrawSelection(sf::RenderTarget& target) const
 {
-	const auto selectedId = m_state.GetSelectedShapeId();
-	if (!selectedId)
+	for (const int id : m_state.GetSelectedShapeIds())
 	{
-		return;
+		const IShape* shape = m_document.FindShape(id);
+		if (!shape)
+		{
+			continue;
+		}
+		const auto previewFrame = m_state.GetPreviewFrame(id);
+		DrawSelectionFrame(target, previewFrame ? *previewFrame : shape->GetFrame());
 	}
-	const IShape* shape = m_document.FindShape(*selectedId);
-	if (!shape)
-	{
-		return;
-	}
+}
 
-	const auto previewFrame = m_state.GetPreviewFrame();
-	const Frame frame = previewFrame ? *previewFrame : shape->GetFrame();
+void CanvasView::DrawSelectionFrame(sf::RenderTarget& target, const Frame& frame) const
+{
 	sf::RectangleShape border(sf::Vector2f(static_cast<float>(frame.m_width), static_cast<float>(frame.m_height)));
 	border.setPosition(ToTargetPoint({ frame.m_left, frame.m_top }));
 	border.setFillColor(sf::Color::Transparent);

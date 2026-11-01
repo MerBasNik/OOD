@@ -11,6 +11,7 @@
 #include "Model/Types/Color.h"
 #include "Model/Types/Frame.h"
 #include <filesystem>
+#include <map>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -18,10 +19,13 @@
 class EditorState
 {
 public:
-	std::optional<int> GetSelectedShapeId() const;
-	void SetSelectedShapeId(std::optional<int> id);
-	std::optional<Frame> GetPreviewFrame() const;
-	void SetPreviewFrame(std::optional<Frame> frame);
+	const std::vector<int>& GetSelectedShapeIds() const;
+	void SetSelectedShapeIds(std::vector<int> ids);
+	bool IsShapeSelected(int id) const;
+	void ToggleShapeSelection(int id);
+	const std::map<int, Frame>& GetPreviewFrames() const;
+	std::optional<Frame> GetPreviewFrame(int id) const;
+	void SetPreviewFrames(std::map<int, Frame> frames);
 	std::optional<Color> GetPreviewFillColor() const;
 	void SetPreviewFillColor(std::optional<Color> color);
 	std::optional<Color> GetPreviewBorderColor() const;
@@ -36,8 +40,8 @@ public:
 	void RemoveObserver(IEditorStateObserver& observer);
 
 private:
-	std::optional<int> m_selectedShapeId;
-	std::optional<Frame> m_previewFrame;
+	std::vector<int> m_selectedShapeIds;
+	std::map<int, Frame> m_previewFrames;
 	std::optional<Color> m_previewFillColor;
 	std::optional<Color> m_previewBorderColor;
 	std::optional<ShapeType> m_shapeTool;

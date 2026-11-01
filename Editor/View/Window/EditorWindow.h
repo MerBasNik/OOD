@@ -37,6 +37,7 @@ private:
 	std::map<CursorType, sf::Cursor> m_cursors;
 	CursorType m_currentCursor = CursorType::Arrow;
 	MouseCapture m_mouseCapture = MouseCapture::None;
+	bool m_isTogglePressed = false;
 
 	void InitToolbar();
 	void OpenColorPicker(const std::string& title, sf::FloatRect buttonRect, bool isFill);
@@ -55,6 +56,7 @@ private:
 	void OpenDocument();
 	void SaveDocument();
 	void RunFileOperation(const std::string& errorMessage, const std::function<void()>& operation);
+	static bool IsToggleModifierKey(sf::Keyboard::Key code);
 };
 
 #endif // OOD_EDITOR_EDITORWINDOW_H

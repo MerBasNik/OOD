@@ -5,33 +5,61 @@
 #include "EditorState.h"
 #include <algorithm>
 
-std::optional<int> EditorState::GetSelectedShapeId() const
+const std::vector<int>& EditorState::GetSelectedShapeIds() const
 {
-	return m_selectedShapeId;
+	return m_selectedShapeIds;
 }
 
-void EditorState::SetSelectedShapeId(const std::optional<int> id)
+void EditorState::SetSelectedShapeIds(std::vector<int> ids)
 {
-	if (m_selectedShapeId == id)
+	if (m_selectedShapeIds == ids)
 	{
 		return;
 	}
-	m_selectedShapeId = id;
+	m_selectedShapeIds = std::move(ids);
 	NotifyObservers();
 }
 
-std::optional<Frame> EditorState::GetPreviewFrame() const
+bool EditorState::IsShapeSelected(const int id) const
 {
-	return m_previewFrame;
+	return std::ranges::find(m_selectedShapeIds, id) != m_selectedShapeIds.end();
 }
 
-void EditorState::SetPreviewFrame(const std::optional<Frame> frame)
+void EditorState::ToggleShapeSelection(const int id)
 {
-	if (m_previewFrame == frame)
+	if (IsShapeSelected(id))
+	{
+		std::erase(m_selectedShapeIds, id);
+	}
+	else
+	{
+		m_selectedShapeIds.push_back(id);
+	}
+	NotifyObservers();
+}
+
+const std::map<int, Frame>& EditorState::GetPreviewFrames() const
+{
+	return m_previewFrames;
+}
+
+std::optional<Frame> EditorState::GetPreviewFrame(const int id) const
+{
+	const auto it = m_previewFrames.find(id);
+	if (it == m_previewFrames.end())
+	{
+		return std::nullopt;
+	}
+	return it->second;
+}
+
+void EditorState::SetPreviewFrames(std::map<int, Frame> frames)
+{
+	if (m_previewFrames == frames)
 	{
 		return;
 	}
-	m_previewFrame = frame;
+	m_previewFrames = std::move(frames);
 	NotifyObservers();
 }
 
