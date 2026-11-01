@@ -11,9 +11,9 @@
 class MockCanvas : public ICanvas
 {
 public:
-	MOCK_METHOD(void, DrawRectangle, (const Frame& frame, Color color), (override));
-	MOCK_METHOD(void, DrawEllipse, (const Frame& frame, Color color), (override));
-	MOCK_METHOD(void, DrawPolygon, (const std::vector<Point>& vertices, Color color), (override));
+	MOCK_METHOD(void, DrawRectangle, (const Frame& frame, Color fillColor, Color borderColor), (override));
+	MOCK_METHOD(void, DrawEllipse, (const Frame& frame, Color fillColor, Color borderColor), (override));
+	MOCK_METHOD(void, DrawPolygon, (const std::vector<Point>& vertices, Color fillColor, Color borderColor), (override));
 };
 
 #endif // OOD_EDITOR_MOCKCANVAS_H

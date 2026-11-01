@@ -12,9 +12,9 @@ class Canvas : public ICanvas
 {
 public:
 	Canvas(sf::RenderTarget& target, sf::Vector2f origin);
-	void DrawRectangle(const Frame& frame, Color color) override;
-	void DrawEllipse(const Frame& frame, Color color) override;
-	void DrawPolygon(const std::vector<Point>& vertices, Color color) override;
+	void DrawRectangle(const Frame& frame, Color fillColor, Color borderColor) override;
+	void DrawEllipse(const Frame& frame, Color fillColor, Color borderColor) override;
+	void DrawPolygon(const std::vector<Point>& vertices, Color fillColor, Color borderColor) override;
 	static sf::Color ConvertColorToSf(Color color);
 
 private:
@@ -22,7 +22,7 @@ private:
 	sf::Vector2f m_origin;
 
 	sf::Vector2f ToTargetPoint(Point point) const;
-	static void SetStyle(sf::Shape& shape, Color color);
+	static void SetStyle(sf::Shape& shape, Color fillColor, Color borderColor);
 };
 
 #endif // OOD_EDITOR_CANVAS_H

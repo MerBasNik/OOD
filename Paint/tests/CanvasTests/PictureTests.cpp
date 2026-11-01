@@ -104,8 +104,8 @@ TEST_F(PictureTest, ChangeColorShape)
 
 	picture.ChangeColor("sh1", 0xffffff);
 
-	EXPECT_EQ(picture.GetShape("sh1")->GetColor(), 0xffffff);
-	EXPECT_EQ(picture.GetShape("sh2")->GetColor(), 0x000000);
+	EXPECT_EQ(picture.GetShape("sh1")->GetFillColor(), 0xffffff);
+	EXPECT_EQ(picture.GetShape("sh2")->GetFillColor(), 0x000000);
 }
 
 TEST_F(PictureTest, ChangeShapeBehavior)

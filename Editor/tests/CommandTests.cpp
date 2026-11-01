@@ -3,6 +3,7 @@
 //
 
 #include "Command/AddShapeCommand/AddShapeCommand.h"
+#include "Command/ChangeShapeColorsCommand/ChangeShapeColorsCommand.h"
 #include "Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.h"
 #include "Command/ChangeShapeIndexCommand/ChangeShapeIndexCommand.h"
 #include "Command/DeleteShapeCommand/DeleteShapeCommand.h"
@@ -15,7 +16,7 @@ public:
 	Document document{ 500, 500 };
 	static std::unique_ptr<IShape> MakeRectangle(const Frame& frame)
 	{
-		return std::make_unique<Rectangle>(frame, 0);
+		return std::make_unique<Rectangle>(frame, 0, 0);
 	}
 };
 
@@ -187,4 +188,42 @@ TEST_F(CommandTest, ChangeShapeIndexCommandUndoRestoresOldIndex)
 	command.Unexecute();
 
 	EXPECT_EQ(document.GetShapeId(0), id);
+}
+
+TEST_F(CommandTest, ChangeShapeColorsCommandSetsColors)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	ChangeShapeColorsCommand command(document, id, 0x112233, 0x445566);
+
+	command.Execute();
+
+	EXPECT_EQ(document.FindShape(id)->GetFillColor(), 0x112233);
+	EXPECT_EQ(document.FindShape(id)->GetBorderColor(), 0x445566);
+}
+
+TEST_F(CommandTest, ChangeShapeColorsCommandUndoRestoresOldColors)
+{
+	const auto id = document.AddShape(std::make_unique<Rectangle>(Frame{ 0, 0, 100, 100 }, 0xAAAAAA, 0xBBBBBB));
+	ChangeShapeColorsCommand command(document, id, 0x112233, 0x445566);
+	command.Execute();
+
+	command.Unexecute();
+
+	EXPECT_EQ(document.FindShape(id)->GetFillColor(), 0xAAAAAA);
+	EXPECT_EQ(document.FindShape(id)->GetBorderColor(), 0xBBBBBB);
+}
+
+TEST_F(CommandTest, ChangeShapeColorsCommandForMissingShapeThrows)
+{
+	ChangeShapeColorsCommand command(document, 42, 0, 0);
+
+	EXPECT_THROW(command.Execute(), std::invalid_argument);
+}
+
+TEST_F(CommandTest, ChangeShapeColorsCommandUndoBeforeExecuteThrows)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	ChangeShapeColorsCommand command(document, id, 0x112233, 0x445566);
+
+	EXPECT_THROW(command.Unexecute(), std::logic_error);
 }

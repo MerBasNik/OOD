@@ -19,6 +19,8 @@ public:
 	static constexpr Color ELLIPSE_COLOR = 0x11ee11;
 	static constexpr Color TRIANGLE_COLOR = 0xee1111;
 
+	static constexpr Color BORDER_COLOR = 0x222222;
+
 	static Frame GetDefaultFrame(const Frame& bounds);
 };
 

@@ -5,6 +5,7 @@
 #ifndef OOD_EDITOR_EDITORWINDOW_H
 #define OOD_EDITOR_EDITORWINDOW_H
 
+#include "ColorPicker.h"
 #include "Controller/EditorController.h"
 #include "Toolbar.h"
 #include "Enums/MouseCapture.h"
@@ -23,10 +24,14 @@ public:
 	void Run();
 
 private:
+	Document& m_document;
 	EditorState& m_state;
 	EditorController& m_controller;
 	sf::RenderWindow m_window;
 	Toolbar m_toolbar;
+	ColorPicker m_colorPicker;
+	sf::FloatRect m_fillButtonRect;
+	sf::FloatRect m_borderButtonRect;
 	CanvasView m_canvasView;
 	ShapeListView m_shapeListView;
 	std::map<CursorType, sf::Cursor> m_cursors;
@@ -34,6 +39,8 @@ private:
 	MouseCapture m_mouseCapture = MouseCapture::None;
 
 	void InitToolbar();
+	void OpenColorPicker(const std::string& title, sf::FloatRect buttonRect, bool isFill);
+	void CancelColorPicker();
 	void InitCursors();
 	void HandleEvent(const sf::Event& event);
 	void HandleMousePressed(sf::Vector2f point);

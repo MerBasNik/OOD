@@ -13,9 +13,9 @@ class ICanvas
 {
 public:
 	virtual ~ICanvas() = default;
-	virtual void DrawRectangle(const Frame& frame, Color color) = 0;
-	virtual void DrawEllipse(const Frame& frame, Color color) = 0;
-	virtual void DrawPolygon(const std::vector<Point>& vertices, Color color) = 0;
+	virtual void DrawRectangle(const Frame& frame, Color fillColor, Color borderColor) = 0;
+	virtual void DrawEllipse(const Frame& frame, Color fillColor, Color borderColor) = 0;
+	virtual void DrawPolygon(const std::vector<Point>& vertices, Color fillColor, Color borderColor) = 0;
 };
 
 #endif // OOD_EDITOR_ICANVAS_H

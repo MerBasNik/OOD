@@ -14,7 +14,7 @@ public:
 	virtual ~IShape() = default;
 	virtual std::string GetId() const = 0;
 	virtual void SetId(const std::string& newId) = 0;
-	virtual Color GetColor() const = 0;
+	virtual Color GetFillColor() const = 0;
 	virtual std::string GetName() const = 0;
 	virtual std::string GetInfo() const = 0;
 	virtual void ChangeColor(Color color) = 0;

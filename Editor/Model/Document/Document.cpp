@@ -92,6 +92,22 @@ void Document::SetShapeFrame(const int id, const Frame& frame)
 	NotifyObservers();
 }
 
+void Document::SetShapeColors(const int id, const Color fillColor, const Color borderColor)
+{
+	const auto it = FindItem(id);
+	if (it == m_shapesInner.end())
+	{
+		throw std::invalid_argument("Фигура не найдена");
+	}
+	if (it->m_shape->GetFillColor() == fillColor && it->m_shape->GetBorderColor() == borderColor)
+	{
+		return;
+	}
+	it->m_shape->SetFillColor(fillColor);
+	it->m_shape->SetBorderColor(borderColor);
+	NotifyObservers();
+}
+
 void Document::SetShapeIndex(const int id, const size_t index)
 {
 	const auto shape = FindItem(id);

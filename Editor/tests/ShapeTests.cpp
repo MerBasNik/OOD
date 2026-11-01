@@ -13,11 +13,12 @@ class ShapeTest : public ::testing::Test
 public:
 	const Frame FRAME{ 100, 100, 200, 100 };
 	const Color COLOR = 0x123456;
+	const Color BORDER_COLOR = 0x654321;
 };
 
 TEST_F(ShapeTest, RectangleHitsPointsInsideFrame)
 {
-	const Rectangle shape(FRAME, COLOR);
+	const Rectangle shape(FRAME, COLOR, BORDER_COLOR);
 
 	EXPECT_TRUE(shape.HitTest({ 100, 100 }));
 	EXPECT_TRUE(shape.HitTest({ 299, 199 }));
@@ -25,7 +26,7 @@ TEST_F(ShapeTest, RectangleHitsPointsInsideFrame)
 
 TEST_F(ShapeTest, RectangleMissesPointsOutsideFrame)
 {
-	const Rectangle shape(FRAME, COLOR);
+	const Rectangle shape(FRAME, COLOR, BORDER_COLOR);
 
 	EXPECT_FALSE(shape.HitTest({ 99, 150 }));
 	EXPECT_FALSE(shape.HitTest({ 200, 201 }));
@@ -33,7 +34,7 @@ TEST_F(ShapeTest, RectangleMissesPointsOutsideFrame)
 
 TEST_F(ShapeTest, EllipseHitsPointsInsideEllipse)
 {
-	const Ellipse shape(FRAME, COLOR);
+	const Ellipse shape(FRAME, COLOR, BORDER_COLOR);
 
 	EXPECT_TRUE(shape.HitTest({ 200, 150 }));
 	EXPECT_TRUE(shape.HitTest({ 101, 150 }));
@@ -42,7 +43,7 @@ TEST_F(ShapeTest, EllipseHitsPointsInsideEllipse)
 
 TEST_F(ShapeTest, EllipseMissesBoundingBoxCorners)
 {
-	const Ellipse shape(FRAME, COLOR);
+	const Ellipse shape(FRAME, COLOR, BORDER_COLOR);
 
 	EXPECT_FALSE(shape.HitTest({ 105, 105 }));
 	EXPECT_FALSE(shape.HitTest({ 295, 195 }));
@@ -50,7 +51,7 @@ TEST_F(ShapeTest, EllipseMissesBoundingBoxCorners)
 
 TEST_F(ShapeTest, TriangleHitsPointsInsideTriangle)
 {
-	const Triangle shape(FRAME, COLOR);
+	const Triangle shape(FRAME, COLOR, BORDER_COLOR);
 
 	EXPECT_TRUE(shape.HitTest({ 200, 101 }));
 	EXPECT_TRUE(shape.HitTest({ 200, 150 }));
@@ -59,7 +60,7 @@ TEST_F(ShapeTest, TriangleHitsPointsInsideTriangle)
 
 TEST_F(ShapeTest, TriangleMissesBoundingBoxCorners)
 {
-	const Triangle shape(FRAME, COLOR);
+	const Triangle shape(FRAME, COLOR, BORDER_COLOR);
 
 	EXPECT_FALSE(shape.HitTest({ 105, 105 }));
 	EXPECT_FALSE(shape.HitTest({ 295, 105 }));
@@ -67,29 +68,45 @@ TEST_F(ShapeTest, TriangleMissesBoundingBoxCorners)
 
 TEST_F(ShapeTest, TriangleMissesPointsOutsideFrame)
 {
-	const Triangle shape(FRAME, COLOR);
+	const Triangle shape(FRAME, COLOR, BORDER_COLOR);
 
 	EXPECT_FALSE(shape.HitTest({ 200, 201 }));
 }
 
 TEST_F(ShapeTest, ShapesReportTheirType)
 {
-	EXPECT_EQ(GetShapeType(Rectangle(FRAME, COLOR)), ShapeType::Rectangle);
-	EXPECT_EQ(GetShapeType(Ellipse(FRAME, COLOR)), ShapeType::Ellipse);
-	EXPECT_EQ(GetShapeType(Triangle(FRAME, COLOR)), ShapeType::Triangle);
+	EXPECT_EQ(GetShapeType(Rectangle(FRAME, COLOR, BORDER_COLOR)), ShapeType::Rectangle);
+	EXPECT_EQ(GetShapeType(Ellipse(FRAME, COLOR, BORDER_COLOR)), ShapeType::Ellipse);
+	EXPECT_EQ(GetShapeType(Triangle(FRAME, COLOR, BORDER_COLOR)), ShapeType::Triangle);
 }
 
 TEST_F(ShapeTest, ShapeKeepsFrameAndColorFromConstructor)
 {
-	const Ellipse shape(FRAME, COLOR);
+	const Ellipse shape(FRAME, COLOR, BORDER_COLOR);
 
 	EXPECT_EQ(shape.GetFrame(), FRAME);
-	EXPECT_EQ(shape.GetColor(), COLOR);
+	EXPECT_EQ(shape.GetFillColor(), COLOR);
+	EXPECT_EQ(shape.GetBorderColor(), BORDER_COLOR);
+}
+
+TEST_F(ShapeTest, SetColorsChangeFillAndBorderIndependently)
+{
+	Rectangle shape(FRAME, COLOR, BORDER_COLOR);
+
+	shape.SetFillColor(0xFF0000);
+
+	EXPECT_EQ(shape.GetFillColor(), 0xFF0000);
+	EXPECT_EQ(shape.GetBorderColor(), BORDER_COLOR);
+
+	shape.SetBorderColor(0x00FF00);
+
+	EXPECT_EQ(shape.GetFillColor(), 0xFF0000);
+	EXPECT_EQ(shape.GetBorderColor(), 0x00FF00);
 }
 
 TEST_F(ShapeTest, SetFrameChangesFrame)
 {
-	Rectangle shape(FRAME, COLOR);
+	Rectangle shape(FRAME, COLOR, BORDER_COLOR);
 
 	shape.SetFrame({ 10, 20, 30, 40 });
 
@@ -98,22 +115,23 @@ TEST_F(ShapeTest, SetFrameChangesFrame)
 
 TEST_F(ShapeTest, CloneKeepsConcreteType)
 {
-	EXPECT_EQ(GetShapeType(*Rectangle(FRAME, COLOR).Clone()), ShapeType::Rectangle);
-	EXPECT_EQ(GetShapeType(*Ellipse(FRAME, COLOR).Clone()), ShapeType::Ellipse);
-	EXPECT_EQ(GetShapeType(*Triangle(FRAME, COLOR).Clone()), ShapeType::Triangle);
+	EXPECT_EQ(GetShapeType(*Rectangle(FRAME, COLOR, BORDER_COLOR).Clone()), ShapeType::Rectangle);
+	EXPECT_EQ(GetShapeType(*Ellipse(FRAME, COLOR, BORDER_COLOR).Clone()), ShapeType::Ellipse);
+	EXPECT_EQ(GetShapeType(*Triangle(FRAME, COLOR, BORDER_COLOR).Clone()), ShapeType::Triangle);
 }
 
 TEST_F(ShapeTest, CloneCopiesFrameAndColor)
 {
-	const auto clone = Triangle(FRAME, COLOR).Clone();
+	const auto clone = Triangle(FRAME, COLOR, BORDER_COLOR).Clone();
 
 	EXPECT_EQ(clone->GetFrame(), FRAME);
-	EXPECT_EQ(clone->GetColor(), COLOR);
+	EXPECT_EQ(clone->GetFillColor(), COLOR);
+	EXPECT_EQ(clone->GetBorderColor(), BORDER_COLOR);
 }
 
 TEST_F(ShapeTest, CloneIsIndependentFromOriginal)
 {
-	const Triangle original(FRAME, COLOR);
+	const Triangle original(FRAME, COLOR, BORDER_COLOR);
 	const auto clone = original.Clone();
 
 	clone->SetFrame({ 10, 20, 30, 40 });

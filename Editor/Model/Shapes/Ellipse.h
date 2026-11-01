@@ -10,7 +10,7 @@
 class Ellipse : public Shape
 {
 public:
-	Ellipse(const Frame& frame, Color color);
+	Ellipse(const Frame& frame, Color fillColor, Color borderColor);
 	bool HitTest(Point point) const override;
 	std::unique_ptr<IShape> Clone() const override;
 	void Accept(IShapeVisitor& visitor) const override;

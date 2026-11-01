@@ -5,7 +5,6 @@
 #include "EditorWindow.h"
 #include "FileWindows.h"
 #include "View/ShapeIcons.h"
-
 #include <list>
 
 const sf::Color WORKSPACE_COLOR(210, 210, 210);
@@ -13,17 +12,19 @@ const char* DEFAULT_FILE_NAME = "editor.draw";
 
 EditorWindow::EditorWindow(Document& document, EditorState& state, EditorController& controller,
 	ShapeListController& shapeListController)
-	: m_state(state)
+	: m_document(document)
+	, m_state(state)
 	, m_controller(controller)
 	, m_window(sf::VideoMode({
-				   static_cast<unsigned>(document.GetBounds().m_width + ShapeListView::WIDTH),
-				   static_cast<unsigned>(document.GetBounds().m_height + Toolbar::HEIGHT),
-			   }),
-		  "Editor")
+					static_cast<unsigned>(document.GetBounds().m_width + ShapeListView::WIDTH),
+					static_cast<unsigned>(document.GetBounds().m_height + Toolbar::HEIGHT),
+				}),
+				"Editor")
+	, m_colorPicker(m_toolbar.GetFont(), [this] { m_controller.CommitColors(); }, [this] { m_controller.CancelColors(); })
 	, m_canvasView(document, state, { 0.f, Toolbar::HEIGHT })
 	, m_shapeListView(document, state, shapeListController,
-		  sf::FloatRect({ static_cast<float>(document.GetBounds().m_width), Toolbar::HEIGHT },
-			  { ShapeListView::WIDTH, static_cast<float>(document.GetBounds().m_height) }))
+		sf::FloatRect({ static_cast<float>(document.GetBounds().m_width), Toolbar::HEIGHT },
+	{ ShapeListView::WIDTH, static_cast<float>(document.GetBounds().m_height) }))
 {
 	InitToolbar();
 	InitCursors();
@@ -57,16 +58,14 @@ void EditorWindow::InitToolbar()
 			m_controller.SelectShapeTool(m_state.GetShapeTool() == type ? std::nullopt : std::optional(type));
 		}, [this, type] { return m_state.GetShapeTool() == type; });
 	}
-	m_toolbar.AddButton("Прямоугольник", [this] {
-		m_controller.AddShape(ShapeType::Rectangle);
+	m_fillButtonRect = m_toolbar.AddButton("Заливка", [this] {
+		OpenColorPicker("Цвет заливки", m_fillButtonRect, true);
 	});
-	m_toolbar.AddButton("Эллипс", [this] {
-		m_controller.AddShape(ShapeType::Ellipse);
-	});
-	m_toolbar.AddButton("Треугольник", [this] {
-		m_controller.AddShape(ShapeType::Triangle);
+	m_borderButtonRect = m_toolbar.AddButton("Контур", [this] {
+		OpenColorPicker("Цвет контура", m_borderButtonRect, false);
 	});
 	m_toolbar.AddButton("Удалить", [this] {
+		CancelColorPicker();
 		m_controller.DeleteSelectedShape();
 	});
 	m_toolbar.AddButton("Новый", [this] {
@@ -78,6 +77,39 @@ void EditorWindow::InitToolbar()
 	m_toolbar.AddButton("Сохранить", [this] {
 		SaveDocument();
 	});
+}
+
+void EditorWindow::OpenColorPicker(const std::string& title, const sf::FloatRect buttonRect, const bool isFill)
+{
+	const auto selectedId = m_state.GetSelectedShapeId();
+	const IShape* shape = selectedId ? m_document.FindShape(*selectedId) : nullptr;
+	if (!shape)
+	{
+		return;
+	}
+	const sf::Vector2f position(buttonRect.position.x, Toolbar::HEIGHT);
+	if (isFill)
+	{
+		m_colorPicker.Open(title, position, shape->GetFillColor(), [this](const Color color) {
+			m_controller.PreviewFillColor(color);
+		});
+	}
+	else
+	{
+		m_colorPicker.Open(title, position, shape->GetBorderColor(), [this](const Color color) {
+			m_controller.PreviewBorderColor(color);
+		});
+	}
+	m_canvasView.SetIsChange();
+}
+
+void EditorWindow::CancelColorPicker()
+{
+	if (m_colorPicker.IsOpen())
+	{
+		m_colorPicker.Cancel();
+		m_canvasView.SetIsChange();
+	}
 }
 
 void EditorWindow::InitCursors()
@@ -149,6 +181,15 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 
 void EditorWindow::HandleMousePressed(const sf::Vector2f point)
 {
+	if (m_colorPicker.HandleClick(point))
+	{
+		m_mouseCapture = MouseCapture::None;
+		m_canvasView.SetIsChange();
+		UpdateCursor(point);
+		return;
+	}
+	CancelColorPicker();
+
 	if (m_toolbar.HandleClick(point))
 	{
 		m_mouseCapture = MouseCapture::None;
@@ -228,12 +269,18 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 	}
 	if (key.code == sf::Keyboard::Key::Escape)
 	{
+		if (m_colorPicker.IsOpen())
+		{
+			CancelColorPicker();
+			return;
+		}
 		m_shapeListView.CancelDrag();
 		m_controller.Cancel();
 		UpdateCursor(m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
 	}
 	else if (key.code == sf::Keyboard::Key::Delete || key.code == sf::Keyboard::Key::Backspace)
 	{
+		CancelColorPicker();
 		m_controller.DeleteSelectedShape();
 	}
 }
@@ -241,7 +288,8 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 void EditorWindow::UpdateCursor(const sf::Vector2f point)
 {
 	const bool isCanvasCursor = m_mouseCapture == MouseCapture::Canvas
-		|| (m_mouseCapture == MouseCapture::None && !m_toolbar.IsContains(point) && !m_shapeListView.IsContains(point));
+		|| (m_mouseCapture == MouseCapture::None && !m_toolbar.IsContains(point) && !m_shapeListView.IsContains(point)
+			&& !m_colorPicker.IsContains(point));
 	const CursorType type = isCanvasCursor
 		? m_controller.GetCursorType(m_canvasView.ToDocumentPoint(point))
 		: CursorType::Arrow;
@@ -268,6 +316,7 @@ void EditorWindow::Render()
 	m_canvasView.Draw(m_window);
 	m_shapeListView.Draw(m_window);
 	m_toolbar.Draw(m_window);
+	m_colorPicker.Draw(m_window);
 	m_window.display();
 	m_canvasView.SetDontChange();
 	m_shapeListView.SetDontChange();
@@ -275,23 +324,27 @@ void EditorWindow::Render()
 
 void EditorWindow::NewDocument()
 {
+	CancelColorPicker();
 	m_controller.NewDocument();
 }
 
 void EditorWindow::Undo()
 {
+	CancelColorPicker();
 	m_shapeListView.CancelDrag();
 	m_controller.Undo();
 }
 
 void EditorWindow::Redo()
 {
+	CancelColorPicker();
 	m_shapeListView.CancelDrag();
 	m_controller.Redo();
 }
 
 void EditorWindow::OpenDocument()
 {
+	CancelColorPicker();
 	if (const auto path = FileWindows::ShowOpenFileWindow())
 	{
 		RunFileOperation("Не удалось открыть документ.", [&] { m_controller.OpenDocument(*path); });

@@ -18,21 +18,21 @@ class EditorController
 {
 public:
 	EditorController(Document& document, EditorState& state, CommandHistory& history);
-
 	void AddShape(ShapeType type);
 	void DeleteSelectedShape();
 	void SelectShapeTool(std::optional<ShapeType> type);
+	void PreviewFillColor(Color color);
+	void PreviewBorderColor(Color color);
+	void CommitColors();
+	void CancelColors();
 	void Cancel();
 	void Undo();
 	void Redo();
-
 	void OnMouseDown(Point point);
 	void OnMouseMove(Point point);
 	void OnMouseUp(Point point);
-
 	HitResult HitTest(Point point) const;
 	CursorType GetCursorType(Point point) const;
-
 	void NewDocument();
 	void SaveDocument(const std::filesystem::path& path);
 	void OpenDocument(const std::filesystem::path& path);
@@ -43,12 +43,13 @@ private:
 	CommandHistory& m_history;
 	DragState m_drag;
 
+	const IShape* GetSelectedShape() const;
 	std::optional<Frame> GetSelectedFrame() const;
 	void StartDrag(DragMode mode, int id, Point point, ResizeHandle handle = ResizeHandle::TopLeft);
 	void StartCreate(Point point);
 	void FinishCreate(Point point);
 	void FinishDrag(Point point);
-	void ResetDrag();
+	void ResetPreview();
 	void AddSelectShape(std::unique_ptr<IShape> shape);
 	void ResetSelection();
 	Frame CalculateDraggedFrame(Point point) const;

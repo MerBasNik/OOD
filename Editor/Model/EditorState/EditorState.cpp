@@ -35,6 +35,36 @@ void EditorState::SetPreviewFrame(const std::optional<Frame> frame)
 	NotifyObservers();
 }
 
+std::optional<Color> EditorState::GetPreviewFillColor() const
+{
+	return m_previewFillColor;
+}
+
+void EditorState::SetPreviewFillColor(const std::optional<Color> color)
+{
+	if (m_previewFillColor == color)
+	{
+		return;
+	}
+	m_previewFillColor = color;
+	NotifyObservers();
+}
+
+std::optional<Color> EditorState::GetPreviewBorderColor() const
+{
+	return m_previewBorderColor;
+}
+
+void EditorState::SetPreviewBorderColor(const std::optional<Color> color)
+{
+	if (m_previewBorderColor == color)
+	{
+		return;
+	}
+	m_previewBorderColor = color;
+	NotifyObservers();
+}
+
 std::optional<ShapeType> EditorState::GetShapeTool() const
 {
 	return m_shapeTool;

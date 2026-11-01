@@ -17,11 +17,12 @@ public:
 	static constexpr float HEIGHT = 44.f;
 
 	Toolbar();
-	void AddButton(const std::string& label, std::function<void()> onClick);
+	sf::FloatRect AddButton(const std::string& label, std::function<void()> onClick);
 	void AddIconButton(sf::Texture icon, std::function<void()> onClick, std::function<bool()> isActive);
 	void Draw(sf::RenderTarget& target) const;
 	bool HandleClick(sf::Vector2f point) const;
 	bool IsContains(sf::Vector2f point) const;
+	const sf::Font& GetFont() const;
 
 private:
 	sf::Font m_font;

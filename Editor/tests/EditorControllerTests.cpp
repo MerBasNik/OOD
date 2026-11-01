@@ -31,7 +31,7 @@ public:
 
 	int AddRectangle(const Frame& frame)
 	{
-		return m_document.AddShape(std::make_unique<Rectangle>(frame, 0));
+		return m_document.AddShape(std::make_unique<Rectangle>(frame, 0, 0));
 	}
 
 	int AddSelectedRectangle(const Frame& frame)
@@ -122,7 +122,7 @@ TEST_F(EditorControllerTest, ClickOnEmptyAreaClearsSelection)
 
 TEST_F(EditorControllerTest, ClickInEllipseBoundingBoxCornerDoesNotSelect)
 {
-	m_document.AddShape(std::make_unique<Ellipse>(Frame{ 100, 100, 200, 100 }, 0));
+	m_document.AddShape(std::make_unique<Ellipse>(Frame{ 100, 100, 200, 100 }, 0, 0));
 
 	Click({ 105, 105 });
 
@@ -494,7 +494,7 @@ TEST_F(EditorControllerTest, OpenRestoresSavedShapes)
 
 TEST_F(EditorControllerTest, OpenClearsSelectionAndRemembersFilePath)
 {
-	WriteFile("rectangle 10 20 100 50 ff0000\n");
+	WriteFile("rectangle 10 20 100 50 ff0000 000000\n");
 	AddSelectedRectangle({ 0, 0, 100, 100 });
 
 	m_controller.OpenDocument(m_path);
@@ -505,7 +505,7 @@ TEST_F(EditorControllerTest, OpenClearsSelectionAndRemembersFilePath)
 
 TEST_F(EditorControllerTest, FailedOpenOfInvalidFileKeepsCurrentDocument)
 {
-	WriteFile("rectangle 0 0 50 50 ff0000\nhexagon 0 0 50 50 ff0000\n");
+	WriteFile("rectangle 0 0 50 50 ff0000 000000\nhexagon 0 0 50 50 ff0000 000000\n");
 	const auto id = AddSelectedRectangle({ 10, 20, 100, 50 });
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
@@ -528,7 +528,7 @@ TEST_F(EditorControllerTest, FailedOpenOfMissingFileKeepsCurrentDocument)
 
 TEST_F(EditorControllerTest, OpenRejectsShapesOutsideCanvas)
 {
-	WriteFile("rectangle 950 0 100 50 ff0000\n");
+	WriteFile("rectangle 950 0 100 50 ff0000 000000\n");
 	AddRectangle({ 10, 20, 100, 50 });
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
@@ -537,7 +537,7 @@ TEST_F(EditorControllerTest, OpenRejectsShapesOutsideCanvas)
 
 TEST_F(EditorControllerTest, OpenRejectsShapesSmallerThanMinimumSize)
 {
-	WriteFile("rectangle 0 0 5 50 ff0000\n");
+	WriteFile("rectangle 0 0 5 50 ff0000 000000\n");
 	AddRectangle({ 10, 20, 100, 50 });
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
@@ -888,7 +888,7 @@ TEST_F(EditorControllerTest, OpenClearsHistory)
 
 TEST_F(EditorControllerTest, FailedOpenKeepsHistory)
 {
-	WriteFile("hexagon 0 0 50 50 ff0000\n");
+	WriteFile("hexagon 0 0 50 50 ff0000 000000\n");
 	m_controller.AddShape(ShapeType::Rectangle);
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
@@ -903,4 +903,145 @@ TEST_F(EditorControllerTest, NewDocumentClearsHistory)
 	m_controller.NewDocument();
 
 	EXPECT_FALSE(m_history.CanUndo());
+}
+
+TEST_F(EditorControllerTest, CreatedShapeHasDefaultBorderColor)
+{
+	m_controller.AddShape(ShapeType::Rectangle);
+
+	EXPECT_EQ(m_document.GetShape(0).GetBorderColor(), ShapeDefaults::BORDER_COLOR);
+}
+
+TEST_F(EditorControllerTest, PreviewColorDoesNotChangeDocument)
+{
+	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
+	m_document.AddObserver(m_documentObserver);
+	EXPECT_CALL(m_documentObserver, DocumentUpdate).Times(0);
+
+	m_controller.PreviewFillColor(0x112233);
+	m_controller.PreviewBorderColor(0x445566);
+
+	EXPECT_EQ(m_state.GetPreviewFillColor(), 0x112233);
+	EXPECT_EQ(m_state.GetPreviewBorderColor(), 0x445566);
+	EXPECT_EQ(m_document.FindShape(id)->GetFillColor(), 0);
+	EXPECT_EQ(m_document.FindShape(id)->GetBorderColor(), 0);
+	EXPECT_FALSE(m_history.CanUndo());
+}
+
+TEST_F(EditorControllerTest, PreviewColorWithoutSelectionIsIgnored)
+{
+	AddRectangle({ 0, 0, 100, 100 });
+
+	m_controller.PreviewFillColor(0x112233);
+
+	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
+}
+
+TEST_F(EditorControllerTest, CommitFillColorChangesOnlyFill)
+{
+	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
+	m_controller.PreviewFillColor(0x112233);
+
+	m_controller.CommitColors();
+
+	EXPECT_EQ(m_document.FindShape(id)->GetFillColor(), 0x112233);
+	EXPECT_EQ(m_document.FindShape(id)->GetBorderColor(), 0);
+	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
+}
+
+TEST_F(EditorControllerTest, CommitBorderColorChangesOnlyBorder)
+{
+	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
+	m_controller.PreviewBorderColor(0x445566);
+
+	m_controller.CommitColors();
+
+	EXPECT_EQ(m_document.FindShape(id)->GetFillColor(), 0);
+	EXPECT_EQ(m_document.FindShape(id)->GetBorderColor(), 0x445566);
+	EXPECT_EQ(m_state.GetPreviewBorderColor(), std::nullopt);
+}
+
+TEST_F(EditorControllerTest, SeveralPreviewsAreCommittedAsOneHistoryEntry)
+{
+	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
+	m_controller.PreviewFillColor(0x111111);
+	m_controller.PreviewFillColor(0x222222);
+	m_controller.PreviewFillColor(0x333333);
+	m_controller.CommitColors();
+
+	m_controller.Undo();
+
+	EXPECT_EQ(m_document.FindShape(id)->GetFillColor(), 0);
+	EXPECT_FALSE(m_history.CanUndo());
+}
+
+TEST_F(EditorControllerTest, UndoAndRedoColorChange)
+{
+	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
+	m_controller.PreviewBorderColor(0x445566);
+	m_controller.CommitColors();
+
+	m_controller.Undo();
+	EXPECT_EQ(m_document.FindShape(id)->GetBorderColor(), 0);
+
+	m_controller.Redo();
+	EXPECT_EQ(m_document.FindShape(id)->GetBorderColor(), 0x445566);
+}
+
+TEST_F(EditorControllerTest, CommitOfUnchangedColorDoesNotAddHistory)
+{
+	AddSelectedRectangle({ 0, 0, 100, 100 });
+	m_controller.PreviewFillColor(0);
+
+	m_controller.CommitColors();
+
+	EXPECT_FALSE(m_history.CanUndo());
+}
+
+TEST_F(EditorControllerTest, CancelColorsDiscardsPreview)
+{
+	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
+	m_controller.PreviewFillColor(0x112233);
+
+	m_controller.CancelColors();
+	m_controller.CommitColors();
+
+	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
+	EXPECT_EQ(m_document.FindShape(id)->GetFillColor(), 0);
+	EXPECT_FALSE(m_history.CanUndo());
+}
+
+TEST_F(EditorControllerTest, MouseDownDiscardsColorPreview)
+{
+	AddSelectedRectangle({ 0, 0, 100, 100 });
+	m_controller.PreviewFillColor(0x112233);
+
+	Click({ 500, 500 });
+
+	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
+}
+
+TEST_F(EditorControllerTest, UndoDiscardsColorPreview)
+{
+	m_controller.AddShape(ShapeType::Rectangle);
+	m_controller.PreviewFillColor(0x112233);
+
+	m_controller.Undo();
+
+	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
+}
+
+TEST_F(EditorControllerTest, SaveWritesCommittedColorsOnly)
+{
+	AddSelectedRectangle({ 0, 0, 100, 100 });
+	m_controller.PreviewFillColor(0x112233);
+	m_controller.CommitColors();
+	m_controller.PreviewBorderColor(0x445566);
+
+	m_controller.SaveDocument(m_path);
+	m_controller.OpenDocument(m_path);
+
+	ASSERT_EQ(m_document.GetShapeCount(), 1);
+	EXPECT_EQ(m_document.GetShape(0).GetFillColor(), 0x112233);
+	EXPECT_EQ(m_document.GetShape(0).GetBorderColor(), 0);
 }

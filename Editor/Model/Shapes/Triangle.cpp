@@ -9,8 +9,8 @@ double Triangle::Cross(const Point a, const Point b, const Point c)
 	return (b.m_x - a.m_x) * (c.m_y - a.m_y) - (b.m_y - a.m_y) * (c.m_x - a.m_x);
 }
 
-Triangle::Triangle(const Frame& frame, const Color color)
-	: Shape(frame, color)
+Triangle::Triangle(const Frame& frame, const Color fillColor, const Color borderColor)
+	: Shape(frame, fillColor, borderColor)
 {
 }
 

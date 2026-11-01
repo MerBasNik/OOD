@@ -9,7 +9,7 @@ Shape::Shape(
 	const Color color,
 	std::unique_ptr<IShapeBehavior> behavior)
 	: m_id(id)
-	, m_color(color)
+	, m_borderColor(color)
 	, m_behavior(std::move(behavior))
 {
 }
@@ -25,9 +25,9 @@ void Shape::SetId(const std::string& newId)
 	NotifyObservers();
 }
 
-Color Shape::GetColor() const
+Color Shape::GetFillColor() const
 {
-	return m_color;
+	return m_borderColor;
 }
 
 std::string Shape::GetName() const
@@ -42,7 +42,7 @@ std::string Shape::GetInfo() const
 
 void Shape::ChangeColor(const Color color)
 {
-	m_color = color;
+	m_borderColor = color;
 	NotifyObservers();
 }
 
@@ -54,7 +54,7 @@ void Shape::Move(const Point position)
 
 void Shape::Draw(ICanvas& canvas) const
 {
-	m_behavior->Draw(canvas, m_color);
+	m_behavior->Draw(canvas, m_borderColor);
 	canvas.Display();
 }
 
@@ -67,7 +67,7 @@ void Shape::ChangeBehavior(std::unique_ptr<IShapeBehavior> newBehavior)
 std::unique_ptr<IShape> Shape::Clone() const
 {
 	auto clonedBehavior = m_behavior ? m_behavior->Clone() : nullptr;
-	return std::make_unique<Shape>(m_id, m_color, std::move(clonedBehavior));
+	return std::make_unique<Shape>(m_id, m_borderColor, std::move(clonedBehavior));
 }
 
 void Shape::AddObserver(IShapeObserver& observer)

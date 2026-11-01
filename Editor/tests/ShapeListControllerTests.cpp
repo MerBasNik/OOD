@@ -26,7 +26,7 @@ public:
 
 	int AddRectangle()
 	{
-		return m_document.AddShape(std::make_unique<Rectangle>(Frame{ 0, 0, 100, 100 }, 0));
+		return m_document.AddShape(std::make_unique<Rectangle>(Frame{ 0, 0, 100, 100 }, 0, 0));
 	}
 
 	void DragRow(const size_t row, const size_t slot)

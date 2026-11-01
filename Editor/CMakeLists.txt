@@ -14,6 +14,7 @@ add_library(Editor_lib STATIC
         Command/DeleteShapeCommand/DeleteShapeCommand.cpp
         Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.cpp
         Command/ChangeShapeIndexCommand/ChangeShapeIndexCommand.cpp
+        Command/ChangeShapeColorsCommand/ChangeShapeColorsCommand.cpp
         Controller/FrameCalculator.cpp
         Controller/ShapeDefaults.cpp
         Controller/EditorController.cpp
@@ -30,6 +31,7 @@ add_executable(Editor
         View/ShapeList/ShapeListItemVisitor.cpp
         View/ShapeIcons.cpp
         View/Window/Toolbar.cpp
+        View/Window/ColorPicker.cpp
         View/Window/FileWindows.cpp
         View/Window/EditorWindow.cpp
 )

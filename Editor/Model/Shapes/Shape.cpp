@@ -4,9 +4,10 @@
 
 #include "Shape.h"
 
-Shape::Shape(const Frame& frame, const Color color)
+Shape::Shape(const Frame& frame, const Color fillColor, const Color borderColor)
 	: m_frame(frame)
-	, m_color(color)
+	, m_fillColor(fillColor)
+	, m_borderColor(borderColor)
 {
 }
 
@@ -20,7 +21,22 @@ void Shape::SetFrame(const Frame& frame)
 	m_frame = frame;
 }
 
-Color Shape::GetColor() const
+Color Shape::GetFillColor() const
 {
-	return m_color;
+	return m_fillColor;
+}
+
+Color Shape::GetBorderColor() const
+{
+	return m_borderColor;
+}
+
+void Shape::SetFillColor(const Color color)
+{
+	m_fillColor = color;
+}
+
+void Shape::SetBorderColor(const Color color)
+{
+	m_borderColor = color;
 }

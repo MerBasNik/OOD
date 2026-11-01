@@ -36,6 +36,7 @@ void ShapeSerializer::Write(const std::string& typeName, const IShape& shape)
 	m_output << typeName << " "
 			 << std::setprecision(SET_PRECISION) << frame.m_left << " " << frame.m_top << " "
 			 << frame.m_width << " " << frame.m_height << " "
-			 << std::hex << std::setw(6) << std::setfill('0') << shape.GetColor()
+			 << std::hex << std::setfill('0') << std::setw(6) << shape.GetFillColor() << " "
+			 << std::setw(6) << shape.GetBorderColor()
 			 << std::dec << std::setfill(' ') << "\n";
 }

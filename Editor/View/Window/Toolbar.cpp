@@ -29,9 +29,10 @@ Toolbar::Toolbar()
 	}
 }
 
-void Toolbar::AddButton(const std::string& label, std::function<void()> onClick)
+sf::FloatRect Toolbar::AddButton(const std::string& label, std::function<void()> onClick)
 {
 	AddButton({ sf::String::fromUtf8(label.begin(), label.end()), {}, std::move(onClick) }, BUTTON_WIDTH);
+	return m_buttons.back().m_rect;
 }
 
 void Toolbar::AddIconButton(sf::Texture icon, std::function<void()> onClick, std::function<bool()> isActive)
@@ -103,4 +104,9 @@ bool Toolbar::HandleClick(const sf::Vector2f point) const
 bool Toolbar::IsContains(const sf::Vector2f point) const
 {
 	return point.y >= 0 && point.y < HEIGHT;
+}
+
+const sf::Font& Toolbar::GetFont() const
+{
+	return m_font;
 }

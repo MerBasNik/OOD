@@ -53,7 +53,7 @@ TEST_F(ShapeTest, TestCreateCircle)
 	EXPECT_EQ(shape->GetInfo(), expected);
 	EXPECT_EQ(shape->GetName(), "circle");
 	EXPECT_EQ(shape->GetId(), "sh1");
-	EXPECT_EQ(shape->GetColor(), 0x000000);
+	EXPECT_EQ(shape->GetFillColor(), 0x000000);
 }
 
 TEST_F(ShapeTest, TestCreateRectangle)
@@ -65,7 +65,7 @@ TEST_F(ShapeTest, TestCreateRectangle)
 	EXPECT_EQ(shape->GetInfo(), expected);
 	EXPECT_EQ(shape->GetName(), "rectangle");
 	EXPECT_EQ(shape->GetId(), "sh1");
-	EXPECT_EQ(shape->GetColor(), 0x000000);
+	EXPECT_EQ(shape->GetFillColor(), 0x000000);
 }
 
 TEST_F(ShapeTest, TestCreateTriangle)
@@ -77,7 +77,7 @@ TEST_F(ShapeTest, TestCreateTriangle)
 	EXPECT_EQ(shape->GetInfo(), expected);
 	EXPECT_EQ(shape->GetName(), "triangle");
 	EXPECT_EQ(shape->GetId(), "sh1");
-	EXPECT_EQ(shape->GetColor(), 0x000000);
+	EXPECT_EQ(shape->GetFillColor(), 0x000000);
 }
 
 TEST_F(ShapeTest, TestCreateLine)
@@ -89,7 +89,7 @@ TEST_F(ShapeTest, TestCreateLine)
 	EXPECT_EQ(shape->GetInfo(), expected);
 	EXPECT_EQ(shape->GetName(), "line");
 	EXPECT_EQ(shape->GetId(), "sh1");
-	EXPECT_EQ(shape->GetColor(), 0x000000);
+	EXPECT_EQ(shape->GetFillColor(), 0x000000);
 }
 
 TEST_F(ShapeTest, TestCreateText)
@@ -101,7 +101,7 @@ TEST_F(ShapeTest, TestCreateText)
 	EXPECT_EQ(shape->GetInfo(), expected);
 	EXPECT_EQ(shape->GetName(), "text");
 	EXPECT_EQ(shape->GetId(), "sh1");
-	EXPECT_EQ(shape->GetColor(), 0x000000);
+	EXPECT_EQ(shape->GetFillColor(), 0x000000);
 }
 
 TEST_F(ShapeTest, ChangeColor)
@@ -110,7 +110,7 @@ TEST_F(ShapeTest, ChangeColor)
 
 	shape->ChangeColor(0xffffff);
 
-	EXPECT_EQ(shape->GetColor(), 0xffffff);
+	EXPECT_EQ(shape->GetFillColor(), 0xffffff);
 }
 
 TEST_F(ShapeTest, SetNewId)

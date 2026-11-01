@@ -11,7 +11,7 @@
 class Triangle : public Shape
 {
 public:
-	Triangle(const Frame& frame, Color color);
+	Triangle(const Frame& frame, Color fillColor, Color borderColor);
 	bool HitTest(Point point) const override;
 	std::unique_ptr<IShape> Clone() const override;
 	std::vector<Point> GetVertices() const;

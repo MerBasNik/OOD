@@ -4,8 +4,8 @@
 
 #include "Rectangle.h"
 
-Rectangle::Rectangle(const Frame& frame, const Color color)
-	: Shape(frame, color)
+Rectangle::Rectangle(const Frame& frame, const Color fillColor, const Color borderColor)
+	: Shape(frame, fillColor, borderColor)
 {
 }
 

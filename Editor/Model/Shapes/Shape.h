@@ -10,14 +10,18 @@
 class Shape : public IShape
 {
 public:
-	Shape(const Frame& frame, Color color);
+	Shape(const Frame& frame, Color fillColor, Color borderColor);
 	Frame GetFrame() const override;
 	void SetFrame(const Frame& frame) override;
-	Color GetColor() const override;
+	Color GetFillColor() const override;
+	Color GetBorderColor() const override;
+	void SetFillColor(Color color) override;
+	void SetBorderColor(Color color) override;
 
 private:
 	Frame m_frame;
-	Color m_color;
+	Color m_fillColor;
+	Color m_borderColor;
 };
 
 #endif // OOD_EDITOR_SHAPE_H

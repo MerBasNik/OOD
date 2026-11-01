@@ -87,7 +87,7 @@ TEST_F(ObserverShapeTest, GetColor)
 	const auto shape = CreateCircle("sh1", { 0, 0 }, 10, 0x000000);
 
 	shape->AddObserver(observer);
-	const auto _ = shape->GetColor();
+	const auto _ = shape->GetFillColor();
 
 	EXPECT_EQ(observer.GetCountCalls(), 0);
 }
@@ -140,7 +140,7 @@ TEST_F(ObserverShapeTest, GetColorManyObservers)
 
 	shape->AddObserver(observer);
 	shape->AddObserver(observer2);
-	const auto _ = shape->GetColor();
+	const auto _ = shape->GetFillColor();
 
 	EXPECT_EQ(observer.GetCountCalls(), 0);
 	EXPECT_EQ(observer2.GetCountCalls(), 0);

@@ -14,15 +14,15 @@ RenderShape::RenderShape(ICanvas& canvas)
 
 void RenderShape::Visit(const Rectangle& rectangle)
 {
-	m_canvas.DrawRectangle(rectangle.GetFrame(), rectangle.GetColor());
+	m_canvas.DrawRectangle(rectangle.GetFrame(), rectangle.GetFillColor(), rectangle.GetBorderColor());
 }
 
 void RenderShape::Visit(const Ellipse& ellipse)
 {
-	m_canvas.DrawEllipse(ellipse.GetFrame(), ellipse.GetColor());
+	m_canvas.DrawEllipse(ellipse.GetFrame(), ellipse.GetFillColor(), ellipse.GetBorderColor());
 }
 
 void RenderShape::Visit(const Triangle& triangle)
 {
-	m_canvas.DrawPolygon(triangle.GetVertices(), triangle.GetColor());
+	m_canvas.DrawPolygon(triangle.GetVertices(), triangle.GetFillColor(), triangle.GetBorderColor());
 }

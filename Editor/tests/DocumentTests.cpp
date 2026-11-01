@@ -15,7 +15,7 @@ public:
 
 	std::unique_ptr<IShape> MakeRectangle(const Frame& frame)
 	{
-		return std::make_unique<Rectangle>(frame, 0);
+		return std::make_unique<Rectangle>(frame, 0, 0);
 	}
 };
 
@@ -55,7 +55,7 @@ TEST_F(DocumentTest, FindTopShapeReturnsNothingOnEmptyArea)
 TEST_F(DocumentTest, FindTopShapeUsesRealShapeGeometry)
 {
 	const auto rectangle = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
-	document.AddShape(std::make_unique<Ellipse>(Frame{ 0, 0, 100, 100 }, 0));
+	document.AddShape(std::make_unique<Ellipse>(Frame{ 0, 0, 100, 100 }, 0, 0));
 
 	EXPECT_EQ(document.FindTopShape({ 3, 3 }), rectangle);
 }
@@ -121,6 +121,41 @@ TEST_F(DocumentTest, NotifiesObserverAboutChangedFrame)
 	EXPECT_CALL(observer, DocumentUpdate).Times(1);
 
 	document.SetShapeFrame(id, { 10, 0, 100, 100 });
+}
+
+TEST_F(DocumentTest, SetShapeColorsChangesColors)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+
+	document.SetShapeColors(id, 0x112233, 0x445566);
+
+	EXPECT_EQ(document.FindShape(id)->GetFillColor(), 0x112233);
+	EXPECT_EQ(document.FindShape(id)->GetBorderColor(), 0x445566);
+}
+
+TEST_F(DocumentTest, SetShapeColorsOfMissingShapeThrows)
+{
+	EXPECT_THROW(document.SetShapeColors(42, 0, 0), std::invalid_argument);
+}
+
+TEST_F(DocumentTest, NotifiesObserverAboutChangedColors)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	MockDocumentObserver observer;
+	document.AddObserver(observer);
+	EXPECT_CALL(observer, DocumentUpdate).Times(1);
+
+	document.SetShapeColors(id, 0x112233, 0);
+}
+
+TEST_F(DocumentTest, DoesNotNotifyWhenColorsAreUnchanged)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	MockDocumentObserver observer;
+	document.AddObserver(observer);
+	EXPECT_CALL(observer, DocumentUpdate).Times(0);
+
+	document.SetShapeColors(id, 0, 0);
 }
 
 TEST_F(DocumentTest, DoesNotNotifyWhenFrameIsUnchanged)

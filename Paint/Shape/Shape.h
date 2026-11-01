@@ -17,7 +17,7 @@ public:
 	Shape& operator=(const Shape& shape) = delete;
 	std::string GetId() const override;
 	void SetId(const std::string& newId) override;
-	Color GetColor() const override;
+	Color GetFillColor() const override;
 	std::string GetName() const override;
 	std::string GetInfo() const override;
 	void ChangeColor(Color color) override;
@@ -30,7 +30,7 @@ public:
 
 private:
 	std::string m_id;
-	Color m_color;
+	Color m_borderColor;
 	std::unique_ptr<IShapeBehavior> m_behavior;
 	std::vector<IShapeObserver*> m_observers;
 	std::vector<IShapeObserver*> m_unsubscribers;

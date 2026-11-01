@@ -18,7 +18,10 @@ public:
 	virtual std::unique_ptr<IShape> Clone() const = 0;
 	virtual Frame GetFrame() const = 0;
 	virtual void SetFrame(const Frame& frame) = 0;
-	virtual Color GetColor() const = 0;
+	virtual Color GetFillColor() const = 0;
+	virtual Color GetBorderColor() const = 0;
+	virtual void SetFillColor(Color color) = 0;
+	virtual void SetBorderColor(Color color) = 0;
 	virtual void Accept(IShapeVisitor& visitor) const = 0;
 };
 

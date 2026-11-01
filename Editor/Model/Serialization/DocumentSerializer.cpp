@@ -24,23 +24,24 @@ std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, 
 	}
 
 	Frame frame;
-	Color color = 0;
+	Color fillColor = 0;
+	Color borderColor = 0;
 	std::string extra;
-	stream >> frame.m_left >> frame.m_top >> frame.m_width >> frame.m_height >> std::hex >> color;
-	if (!stream || color > MAX_COLOR || stream >> extra)
+	stream >> frame.m_left >> frame.m_top >> frame.m_width >> frame.m_height >> std::hex >> fillColor >> borderColor;
+	if (!stream || fillColor > MAX_COLOR || borderColor > MAX_COLOR || stream >> extra)
 	{
 		throw std::runtime_error("некорректное описание фигуры \"" + line + "\"");
 	}
 
 	if (typeName == ShapeSerializer::RECTANGLE_NAME)
 	{
-		return std::make_unique<Rectangle>(frame, color);
+		return std::make_unique<Rectangle>(frame, fillColor, borderColor);
 	}
 	if (typeName == ShapeSerializer::ELLIPSE_NAME)
 	{
-		return std::make_unique<Ellipse>(frame, color);
+		return std::make_unique<Ellipse>(frame, fillColor, borderColor);
 	}
-	return std::make_unique<Triangle>(frame, color);
+	return std::make_unique<Triangle>(frame, fillColor, borderColor);
 }
 
 void DocumentSerializer::Save(const Document& document, std::ostream& output)

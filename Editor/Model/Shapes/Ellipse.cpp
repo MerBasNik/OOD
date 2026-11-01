@@ -4,8 +4,8 @@
 
 #include "Ellipse.h"
 
-Ellipse::Ellipse(const Frame& frame, const Color color)
-	: Shape(frame, color)
+Ellipse::Ellipse(const Frame& frame, const Color fillColor, const Color borderColor)
+	: Shape(frame, fillColor, borderColor)
 {
 }
 
@@ -19,7 +19,7 @@ bool Ellipse::HitTest(const Point point) const
 	const Frame frame = GetFrame();
 	const double rx = frame.m_width / 2;
 	const double ry = frame.m_height / 2;
-	if (rx <= 0 || ry <= 0)
+	if (rx <= 0)
 	{
 		return false;
 	}

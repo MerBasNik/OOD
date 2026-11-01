@@ -27,6 +27,7 @@ public:
 	std::unique_ptr<IShape> DeleteShape(int id);
 	void InsertShape(int id, std::unique_ptr<IShape> shape, size_t index);
 	void SetShapeFrame(int id, const Frame& frame);
+	void SetShapeColors(int id, Color fillColor, Color borderColor);
 	void SetShapeIndex(int id, size_t index);
 	void ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes);
 	void Clear();
