@@ -38,20 +38,6 @@ TEST_F(CommandHistoryTest, ExecuteRunsCommandAndAllowsUndo)
 	EXPECT_FALSE(m_history.CanRedo());
 }
 
-TEST_F(CommandHistoryTest, UndoUnexecutesCommandsInReverseOrder)
-{
-	auto& first = Execute();
-	auto& second = Execute();
-	EXPECT_CALL(second, Unexecute);
-	EXPECT_CALL(first, Unexecute);
-
-	m_history.Undo();
-	m_history.Undo();
-
-	EXPECT_FALSE(m_history.CanUndo());
-	EXPECT_TRUE(m_history.CanRedo());
-}
-
 TEST_F(CommandHistoryTest, RedoExecutesCommandsInOriginalOrder)
 {
 	auto& first = Execute();

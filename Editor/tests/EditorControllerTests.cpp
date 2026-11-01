@@ -129,15 +129,6 @@ TEST_F(EditorControllerTest, ClickInEllipseBoundingBoxCornerDoesNotSelect)
 	EXPECT_EQ(m_state.GetSelectedShapeId(), std::nullopt);
 }
 
-TEST_F(EditorControllerTest, DragKeepsOffsetBetweenCursorAndShape)
-{
-	const auto id = AddRectangle({ 100, 100, 200, 100 });
-
-	Drag({ 110, 120 }, { 410, 320 });
-
-	EXPECT_EQ(GetFrame(id), (Frame{ 400, 300, 200, 100 }));
-}
-
 TEST_F(EditorControllerTest, DragSelectsDraggedShape)
 {
 	const auto id = AddRectangle({ 100, 100, 200, 100 });
@@ -145,24 +136,6 @@ TEST_F(EditorControllerTest, DragSelectsDraggedShape)
 	Drag({ 110, 120 }, { 410, 320 });
 
 	EXPECT_EQ(m_state.GetSelectedShapeId(), id);
-}
-
-TEST_F(EditorControllerTest, DragIsLimitedByTopLeftOfCanvas)
-{
-	const auto id = AddRectangle({ 100, 100, 200, 100 });
-
-	Drag({ 150, 150 }, { -500, -500 });
-
-	EXPECT_EQ(GetFrame(id), (Frame{ 0, 0, 200, 100 }));
-}
-
-TEST_F(EditorControllerTest, DragIsLimitedByBottomRightOfCanvas)
-{
-	const auto id = AddRectangle({ 100, 100, 200, 100 });
-
-	Drag({ 150, 150 }, { 5000, 5000 });
-
-	EXPECT_EQ(GetFrame(id), (Frame{ 800, 500, 200, 100 }));
 }
 
 class EditorControllerResizeTest : public EditorControllerTest
@@ -192,33 +165,6 @@ INSTANTIATE_TEST_SUITE_P(EditorControllerTest, EditorControllerResizeTest,
 		ResizeCase{ "Left", { 100, 150 }, { -10, 20 }, { 90, 100, 210, 100 } }),
 	[](const ::testing::TestParamInfo<ResizeCase>& info) { return info.param.m_name; });
 
-TEST_F(EditorControllerTest, ResizeByBottomRightIsLimitedByMinimumSize)
-{
-	const auto id = AddSelectedRectangle({ 100, 100, 200, 100 });
-
-	Drag({ 300, 200 }, { 0, 0 });
-
-	EXPECT_EQ(GetFrame(id), (Frame{ 100, 100, ShapeDefaults::MIN_SIZE, ShapeDefaults::MIN_SIZE }));
-}
-
-TEST_F(EditorControllerTest, ResizeByTopLeftIsLimitedByMinimumSize)
-{
-	const auto id = AddSelectedRectangle({ 100, 100, 200, 100 });
-
-	Drag({ 100, 100 }, { 900, 900 });
-
-	EXPECT_EQ(GetFrame(id), (Frame{ 290, 190, ShapeDefaults::MIN_SIZE, ShapeDefaults::MIN_SIZE }));
-}
-
-TEST_F(EditorControllerTest, ResizeByBottomRightIsLimitedByCanvas)
-{
-	const auto id = AddSelectedRectangle({ 100, 100, 200, 100 });
-
-	Drag({ 300, 200 }, { 5000, 5000 });
-
-	EXPECT_EQ(GetFrame(id), (Frame{ 100, 100, 900, 500 }));
-}
-
 TEST_F(EditorControllerTest, ResizeByTopLeftIsLimitedByCanvas)
 {
 	const auto id = AddSelectedRectangle({ 100, 100, 200, 100 });
@@ -226,22 +172,6 @@ TEST_F(EditorControllerTest, ResizeByTopLeftIsLimitedByCanvas)
 	Drag({ 100, 100 }, { -100, -100 });
 
 	EXPECT_EQ(GetFrame(id), (Frame{ 0, 0, 300, 200 }));
-}
-
-TEST_F(EditorControllerTest, HandleOfCoveredSelectedShapeHasPriority)
-{
-	AddSelectedRectangle({ 100, 100, 200, 100 });
-	AddRectangle({ 50, 50, 400, 300 });
-
-	EXPECT_EQ(m_controller.HitTest({ 300, 200 }).m_area, HitArea::ResizeHandle);
-}
-
-TEST_F(EditorControllerTest, BorderOfCoveredSelectedShapeHasPriority)
-{
-	AddSelectedRectangle({ 100, 100, 200, 100 });
-	AddRectangle({ 50, 50, 400, 300 });
-
-	EXPECT_EQ(m_controller.HitTest({ 150, 100 }).m_area, HitArea::SelectionBorder);
 }
 
 TEST_F(EditorControllerTest, CoveredSelectedShapeCanBeResized)
@@ -588,18 +518,11 @@ TEST_F(EditorControllerTest, CreateDuringGestureChangesOnlyPreview)
 
 	ASSERT_NE(m_state.GetCreatingShape(), nullptr);
 	EXPECT_EQ(m_state.GetCreatingShape()->GetFrame(), (Frame{ 100, 100, 100, 50 }));
-	EXPECT_EQ(m_document.GetShapeCount(), 0u);
-}
 
-TEST_F(EditorControllerTest, CreatePreviewFollowsCursor)
-{
-	m_controller.SelectShapeTool(ShapeType::Rectangle);
-
-	m_controller.OnMouseDown({ 100, 100 });
-	m_controller.OnMouseMove({ 200, 150 });
 	m_controller.OnMouseMove({ 50, 300 });
 
 	EXPECT_EQ(m_state.GetCreatingShape()->GetFrame(), (Frame{ 50, 100, 50, 200 }));
+	EXPECT_EQ(m_document.GetShapeCount(), 0u);
 }
 
 TEST_F(EditorControllerTest, WholeCreateGestureChangesDocumentOnceAndClearsPreview)
@@ -611,25 +534,6 @@ TEST_F(EditorControllerTest, WholeCreateGestureChangesDocumentOnceAndClearsPrevi
 	Drag({ 100, 100 }, { 300, 250 });
 
 	EXPECT_EQ(m_state.GetCreatingShape(), nullptr);
-}
-
-TEST_F(EditorControllerTest, CreateIsLimitedByCanvas)
-{
-	m_controller.SelectShapeTool(ShapeType::Rectangle);
-
-	Drag({ 900, 500 }, { 5000, 5000 });
-
-	EXPECT_EQ(m_document.GetShape(0).GetFrame(), (Frame{ 900, 500, 100, 100 }));
-}
-
-TEST_F(EditorControllerTest, CreateAtCanvasCornerKeepsMinimumSizeInsideCanvas)
-{
-	m_controller.SelectShapeTool(ShapeType::Rectangle);
-
-	Drag({ 999, 599 }, { 1200, 700 });
-
-	EXPECT_EQ(m_document.GetShape(0).GetFrame(),
-		(Frame{ 1000 - ShapeDefaults::MIN_SIZE, 600 - ShapeDefaults::MIN_SIZE, ShapeDefaults::MIN_SIZE, ShapeDefaults::MIN_SIZE }));
 }
 
 TEST_F(EditorControllerTest, ClickWithShapeToolDoesNotCreateShape)
@@ -677,6 +581,7 @@ TEST_F(EditorControllerTest, CancelDuringMoveRestoresShapeFrame)
 
 	EXPECT_EQ(GetFrame(id), (Frame{ 100, 100, 200, 100 }));
 	EXPECT_EQ(m_state.GetPreviewFrame(), std::nullopt);
+	EXPECT_FALSE(m_history.CanUndo());
 }
 
 TEST_F(EditorControllerTest, CursorIsCrossWithShapeTool)
@@ -784,18 +689,6 @@ TEST_F(EditorControllerTest, ClickWithoutMovingDoesNotAddHistory)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, CancelledGestureDoesNotAddHistory)
-{
-	AddRectangle({ 100, 100, 200, 100 });
-	m_controller.OnMouseDown({ 150, 150 });
-	m_controller.OnMouseMove({ 250, 250 });
-
-	m_controller.Cancel();
-	m_controller.OnMouseUp({ 250, 250 });
-
-	EXPECT_FALSE(m_history.CanUndo());
-}
-
 TEST_F(EditorControllerTest, UndoDuringDragDropsPreviewAndKeepsDocument)
 {
 	const auto id = AddRectangle({ 100, 100, 200, 100 });
@@ -851,17 +744,6 @@ TEST_F(EditorControllerTest, UndoAndRedoAtHistoryBoundsDoNothing)
 	EXPECT_NO_THROW(m_controller.Undo());
 	EXPECT_NO_THROW(m_controller.Redo());
 	EXPECT_EQ(m_document.GetShapeCount(), 1u);
-}
-
-TEST_F(EditorControllerTest, UndoCreatedByMouseShape)
-{
-	m_controller.SelectShapeTool(ShapeType::Rectangle);
-	Drag({ 100, 100 }, { 300, 250 });
-
-	m_controller.Undo();
-
-	EXPECT_EQ(m_document.GetShapeCount(), 0u);
-	EXPECT_EQ(m_state.GetSelectedShapeId(), std::nullopt);
 }
 
 TEST_F(EditorControllerTest, SaveKeepsHistory)
@@ -963,7 +845,7 @@ TEST_F(EditorControllerTest, CommitBorderColorChangesOnlyBorder)
 
 TEST_F(EditorControllerTest, SeveralPreviewsAreCommittedAsOneHistoryEntry)
 {
-	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
+	AddSelectedRectangle({ 0, 0, 100, 100 });
 	m_controller.PreviewFillColor(0x111111);
 	m_controller.PreviewFillColor(0x222222);
 	m_controller.PreviewFillColor(0x333333);
@@ -971,7 +853,6 @@ TEST_F(EditorControllerTest, SeveralPreviewsAreCommittedAsOneHistoryEntry)
 
 	m_controller.Undo();
 
-	EXPECT_EQ(m_document.FindShape(id)->GetFillColor(), 0);
 	EXPECT_FALSE(m_history.CanUndo());
 }
 

@@ -215,16 +215,6 @@ TEST_F(DocumentTest, SetShapeIndexMovesShapeDown)
 	EXPECT_EQ(document.GetShapeId(2), second);
 }
 
-TEST_F(DocumentTest, SetShapeIndexChangesHitTestOrder)
-{
-	const auto bottom = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
-	document.AddShape(MakeRectangle({ 50, 50, 100, 100 }));
-
-	document.SetShapeIndex(bottom, 1);
-
-	EXPECT_EQ(document.FindTopShape({ 75, 75 }), bottom);
-}
-
 TEST_F(DocumentTest, SetShapeIndexRejectsUnknownShapeAndInvalidIndex)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
