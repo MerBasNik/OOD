@@ -79,7 +79,7 @@ TEST_F(EditorControllerTest, AddShapePlacesItOnTopWithRequestedType)
 
 	m_controller.AddShape(ShapeType::Ellipse);
 
-	ASSERT_EQ(m_document.GetShapeCount(), 2u);
+	ASSERT_EQ(m_document.GetShapeCount(), 2);
 	EXPECT_EQ(GetShapeType(m_document.GetShape(1)), ShapeType::Ellipse);
 }
 
@@ -264,7 +264,7 @@ TEST_F(EditorControllerTest, DeleteWithoutSelectionDoesNothing)
 	AddRectangle({ 0, 0, 100, 100 });
 
 	EXPECT_NO_THROW(m_controller.DeleteSelectedShapes());
-	EXPECT_EQ(m_document.GetShapeCount(), 1u);
+	EXPECT_EQ(m_document.GetShapeCount(), 1);
 }
 
 TEST_F(EditorControllerTest, MouseEventsAfterDeleteDuringDragAreIgnored)
@@ -277,7 +277,7 @@ TEST_F(EditorControllerTest, MouseEventsAfterDeleteDuringDragAreIgnored)
 	EXPECT_TRUE(m_state.GetPreviewFrames().empty());
 	EXPECT_NO_THROW(m_controller.OnMouseMove({ 200, 200 }));
 	EXPECT_NO_THROW(m_controller.OnMouseUp({ 200, 200 }));
-	EXPECT_EQ(m_document.GetShapeCount(), 0u);
+	EXPECT_EQ(m_document.GetShapeCount(), 0);
 }
 
 TEST_F(EditorControllerTest, MoveDuringGestureDoesNotChangeDocument)
@@ -380,7 +380,7 @@ TEST_F(EditorControllerTest, NewDocumentClearsShapesAndFilePath)
 
 	m_controller.NewDocument();
 
-	EXPECT_EQ(m_document.GetShapeCount(), 0u);
+	EXPECT_EQ(m_document.GetShapeCount(), 0);
 	EXPECT_EQ(m_state.GetFilePath(), std::nullopt);
 }
 
@@ -393,7 +393,7 @@ TEST_F(EditorControllerTest, OpenRestoresSavedShapes)
 
 	m_controller.OpenDocument(m_path);
 
-	ASSERT_EQ(m_document.GetShapeCount(), 2u);
+	ASSERT_EQ(m_document.GetShapeCount(), 2);
 	EXPECT_EQ(GetShapeType(m_document.GetShape(0)), ShapeType::Rectangle);
 	EXPECT_EQ(m_document.GetShape(0).GetFrame(), (Frame{ 10, 20, 100, 50 }));
 	EXPECT_EQ(GetShapeType(m_document.GetShape(1)), ShapeType::Triangle);
@@ -417,7 +417,7 @@ TEST_F(EditorControllerTest, FailedOpenOfInvalidFileKeepsCurrentDocument)
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
 
-	ASSERT_EQ(m_document.GetShapeCount(), 1u);
+	ASSERT_EQ(m_document.GetShapeCount(), 1);
 	EXPECT_EQ(GetFrame(id), (Frame{ 10, 20, 100, 50 }));
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ id });
 	EXPECT_EQ(m_state.GetFilePath(), std::nullopt);
@@ -429,7 +429,7 @@ TEST_F(EditorControllerTest, FailedOpenOfMissingFileKeepsCurrentDocument)
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path.string() + ".missing"), std::runtime_error);
 
-	EXPECT_EQ(m_document.GetShapeCount(), 1u);
+	EXPECT_EQ(m_document.GetShapeCount(), 1);
 	EXPECT_EQ(m_state.GetFilePath(), std::nullopt);
 }
 
@@ -439,7 +439,7 @@ TEST_F(EditorControllerTest, OpenRejectsShapesOutsideCanvas)
 	AddRectangle({ 10, 20, 100, 50 });
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
-	EXPECT_EQ(m_document.GetShapeCount(), 1u);
+	EXPECT_EQ(m_document.GetShapeCount(), 1);
 }
 
 TEST_F(EditorControllerTest, OpenRejectsShapesSmallerThanMinimumSize)
@@ -448,7 +448,7 @@ TEST_F(EditorControllerTest, OpenRejectsShapesSmallerThanMinimumSize)
 	AddRectangle({ 10, 20, 100, 50 });
 
 	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
-	EXPECT_EQ(m_document.GetShapeCount(), 1u);
+	EXPECT_EQ(m_document.GetShapeCount(), 1);
 }
 
 TEST_F(EditorControllerTest, DragWithShapeToolCreatesShapeOfThatType)
@@ -457,7 +457,7 @@ TEST_F(EditorControllerTest, DragWithShapeToolCreatesShapeOfThatType)
 
 	Drag({ 100, 100 }, { 300, 250 });
 
-	ASSERT_EQ(m_document.GetShapeCount(), 1u);
+	ASSERT_EQ(m_document.GetShapeCount(), 1);
 	EXPECT_EQ(GetShapeType(m_document.GetShape(0)), ShapeType::Ellipse);
 	EXPECT_EQ(m_document.GetShape(0).GetFrame(), (Frame{ 100, 100, 200, 150 }));
 }
@@ -480,7 +480,7 @@ TEST_F(EditorControllerTest, CreateOverExistingShapeDoesNotMoveIt)
 	Drag({ 150, 150 }, { 250, 180 });
 
 	EXPECT_EQ(GetFrame(id), (Frame{ 100, 100, 200, 100 }));
-	ASSERT_EQ(m_document.GetShapeCount(), 2u);
+	ASSERT_EQ(m_document.GetShapeCount(), 2);
 	EXPECT_EQ(GetShapeType(m_document.GetShape(1)), ShapeType::Triangle);
 }
 
@@ -499,7 +499,7 @@ TEST_F(EditorControllerTest, CreateDuringGestureChangesOnlyPreview)
 	m_controller.OnMouseMove({ 50, 300 });
 
 	EXPECT_EQ(m_state.GetCreatingShape()->GetFrame(), (Frame{ 50, 100, 50, 200 }));
-	EXPECT_EQ(m_document.GetShapeCount(), 0u);
+	EXPECT_EQ(m_document.GetShapeCount(), 0);
 }
 
 TEST_F(EditorControllerTest, WholeCreateGestureChangesDocumentOnceAndClearsPreview)
@@ -519,7 +519,7 @@ TEST_F(EditorControllerTest, ClickWithShapeToolDoesNotCreateShape)
 
 	Click({ 100, 100 });
 
-	EXPECT_EQ(m_document.GetShapeCount(), 0u);
+	EXPECT_EQ(m_document.GetShapeCount(), 0);
 	EXPECT_EQ(m_state.GetShapeTool(), ShapeType::Rectangle);
 }
 
@@ -534,7 +534,7 @@ TEST_F(EditorControllerTest, CancelDuringCreateDropsPreviewAndIgnoresMouseUp)
 	m_controller.OnMouseUp({ 250, 250 });
 
 	EXPECT_EQ(m_state.GetCreatingShape(), nullptr);
-	EXPECT_EQ(m_document.GetShapeCount(), 0u);
+	EXPECT_EQ(m_document.GetShapeCount(), 0);
 	EXPECT_EQ(m_state.GetShapeTool(), ShapeType::Rectangle);
 }
 
@@ -576,10 +576,10 @@ TEST_F(EditorControllerTest, UndoAddRemovesShapeAndRedoRestoresIt)
 	const auto id = m_document.GetShapeId(0);
 
 	m_controller.Undo();
-	EXPECT_EQ(m_document.GetShapeCount(), 0u);
+	EXPECT_EQ(m_document.GetShapeCount(), 0);
 
 	m_controller.Redo();
-	ASSERT_EQ(m_document.GetShapeCount(), 1u);
+	ASSERT_EQ(m_document.GetShapeCount(), 1);
 	EXPECT_EQ(m_document.GetShapeId(0), id);
 	EXPECT_EQ(GetShapeType(m_document.GetShape(0)), ShapeType::Ellipse);
 }
@@ -645,7 +645,7 @@ TEST_F(EditorControllerTest, SequenceOfOperationsIsUndoneAndRedoneInOrder)
 	m_controller.Undo();
 	EXPECT_EQ(GetFrame(id), added);
 	m_controller.Undo();
-	EXPECT_EQ(m_document.GetShapeCount(), 0u);
+	EXPECT_EQ(m_document.GetShapeCount(), 0);
 
 	m_controller.Redo();
 	EXPECT_EQ(GetFrame(id), added);
@@ -662,7 +662,7 @@ TEST_F(EditorControllerTest, NewActionAfterUndoDropsRedo)
 	m_controller.AddShape(ShapeType::Triangle);
 	m_controller.Redo();
 
-	ASSERT_EQ(m_document.GetShapeCount(), 2u);
+	ASSERT_EQ(m_document.GetShapeCount(), 2);
 	EXPECT_EQ(GetShapeType(m_document.GetShape(1)), ShapeType::Triangle);
 	EXPECT_FALSE(m_history.CanRedo());
 }
@@ -673,7 +673,7 @@ TEST_F(EditorControllerTest, UndoAndRedoAtHistoryBoundsDoNothing)
 
 	EXPECT_NO_THROW(m_controller.Undo());
 	EXPECT_NO_THROW(m_controller.Redo());
-	EXPECT_EQ(m_document.GetShapeCount(), 1u);
+	EXPECT_EQ(m_document.GetShapeCount(), 1);
 }
 
 TEST_F(EditorControllerTest, SaveKeepsHistory)
@@ -683,6 +683,21 @@ TEST_F(EditorControllerTest, SaveKeepsHistory)
 	m_controller.SaveDocument(m_path);
 
 	EXPECT_TRUE(m_history.CanUndo());
+}
+
+TEST_F(EditorControllerTest, CheckStateAfterUndo)
+{
+	AddSelectedRectangle({ 10, 20, 50, 100 });
+	Drag({ 30, 40 }, { 100, 200 });
+	m_controller.AddShape(ShapeType::Ellipse);
+	m_controller.Undo();
+	m_controller.Undo();
+	m_controller.SaveDocument(m_path);
+	m_controller.OpenDocument(m_path);
+
+	ASSERT_EQ(m_document.GetShapeCount(), 1);
+	EXPECT_EQ(GetShapeType(m_document.GetShape(0)), ShapeType::Rectangle);
+	EXPECT_EQ(m_document.GetShape(0).GetFrame(), (Frame{ 10, 20, 50, 100 }));
 }
 
 TEST_F(EditorControllerTest, OpenClearsHistory)
@@ -913,13 +928,13 @@ TEST_F(EditorControllerTest, DeleteRemovesAllSelectedShapesAsOneOperation)
 
 	m_controller.DeleteSelectedShapes();
 
-	ASSERT_EQ(m_document.GetShapeCount(), 1u);
+	ASSERT_EQ(m_document.GetShapeCount(), 1);
 	EXPECT_EQ(m_document.GetShapeId(0), middle);
 	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
 
 	m_controller.Undo();
 
-	ASSERT_EQ(m_document.GetShapeCount(), 3u);
+	ASSERT_EQ(m_document.GetShapeCount(), 3);
 	EXPECT_EQ(m_document.GetShapeId(0), bottom);
 	EXPECT_EQ(m_document.GetShapeId(1), middle);
 	EXPECT_EQ(m_document.GetShapeId(2), top);

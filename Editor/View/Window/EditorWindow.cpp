@@ -9,6 +9,7 @@
 
 const sf::Color WORKSPACE_COLOR(210, 210, 210);
 const char* DEFAULT_FILE_NAME = "editor.draw";
+const sf::Time MOUSE_TRACK_INTERVAL = sf::milliseconds(15);
 
 EditorWindow::EditorWindow(Document& document, EditorState& state, EditorController& controller,
 	ShapeListController& shapeListController)
@@ -34,9 +35,14 @@ void EditorWindow::Run()
 {
 	while (m_window.isOpen())
 	{
-		if (const auto event = m_window.waitEvent())
+		const sf::Time timeout = m_mouseCapture == MouseCapture::None ? sf::Time::Zero : MOUSE_TRACK_INTERVAL;
+		if (const auto event = m_window.waitEvent(timeout))
 		{
 			HandleEvent(*event);
+		}
+		else if (m_mouseCapture != MouseCapture::None)
+		{
+			TrackMouse();
 		}
 		while (const auto event = m_window.pollEvent())
 		{
@@ -186,6 +192,31 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 		const bool isControl = released->control && released->code != Key::LControl && released->code != Key::RControl;
 		const bool isSystem = released->system && released->code != Key::LSystem && released->code != Key::RSystem;
 		m_isTogglePressed = isShift || isControl || isSystem;
+	}
+}
+
+void EditorWindow::TrackMouse()
+{
+	const sf::Vector2f point = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+	{
+		HandleMouseMoved(point);
+	}
+	else
+	{
+		HandleMouseReleased(point);
+	}
+}
+
+void EditorWindow::SkipInputEvents()
+{
+	while (const auto event = m_window.pollEvent())
+	{
+		if (!event->is<sf::Event::MouseButtonPressed>() && !event->is<sf::Event::MouseButtonReleased>()
+			&& !event->is<sf::Event::KeyPressed>())
+		{
+			HandleEvent(*event);
+		}
 	}
 }
 
@@ -366,6 +397,7 @@ void EditorWindow::OpenDocument()
 	{
 		RunFileOperation("Не удалось открыть документ.", [&] { m_controller.OpenDocument(*path); });
 	}
+	SkipInputEvents();
 }
 
 void EditorWindow::SaveDocument()
@@ -379,6 +411,7 @@ void EditorWindow::SaveDocument()
 	{
 		RunFileOperation("Не удалось сохранить документ.", [&] { m_controller.SaveDocument(*path); });
 	}
+	SkipInputEvents();
 }
 
 void EditorWindow::RunFileOperation(const std::string& errorMessage, const std::function<void()>& operation)

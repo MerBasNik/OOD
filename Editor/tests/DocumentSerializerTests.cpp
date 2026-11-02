@@ -64,7 +64,7 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresTypesInLayerOrder)
 
 	const auto shapes = SaveAndLoad();
 
-	ASSERT_EQ(shapes.size(), 3u);
+	ASSERT_EQ(shapes.size(), 3);
 	EXPECT_EQ(GetShapeType(*shapes[0]), ShapeType::Triangle);
 	EXPECT_EQ(GetShapeType(*shapes[1]), ShapeType::Rectangle);
 	EXPECT_EQ(GetShapeType(*shapes[2]), ShapeType::Ellipse);
@@ -77,7 +77,7 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresFractionalFrameExactly)
 
 	const auto shapes = SaveAndLoad();
 
-	ASSERT_EQ(shapes.size(), 1u);
+	ASSERT_EQ(shapes.size(), 1);
 	EXPECT_EQ(shapes[0]->GetFrame(), frame);
 }
 
@@ -87,7 +87,7 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresColor)
 
 	const auto shapes = SaveAndLoad();
 
-	ASSERT_EQ(shapes.size(), 1u);
+	ASSERT_EQ(shapes.size(), 1);
 	EXPECT_EQ(shapes[0]->GetFillColor(), 0xABCDEF);
 	EXPECT_EQ(shapes[0]->GetBorderColor(), 0x0A0B0C);
 }
@@ -96,7 +96,7 @@ TEST_F(DocumentSerializerTest, SkipsEmptyLines)
 {
 	const auto shapes = LoadFromString("\ntriangle 1 2 3 4 000000 000000\n\n");
 
-	ASSERT_EQ(shapes.size(), 1u);
+	ASSERT_EQ(shapes.size(), 1);
 	EXPECT_EQ(GetShapeType(*shapes[0]), ShapeType::Triangle);
 }
 
@@ -113,7 +113,7 @@ TEST_F(DocumentSerializerTest, SaveToFileReplacesPreviousVersionWithoutTempFile)
 
 	DocumentSerializer::SaveToFile(document, path);
 
-	EXPECT_EQ(DocumentSerializer::LoadFromFile(path).size(), 1u);
+	EXPECT_EQ(DocumentSerializer::LoadFromFile(path).size(), 1);
 	EXPECT_FALSE(std::filesystem::exists(path.string() + ".tmp"));
 	std::filesystem::remove(path);
 }

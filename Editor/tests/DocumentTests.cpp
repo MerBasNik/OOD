@@ -24,7 +24,7 @@ TEST_F(DocumentTest, NewShapeIsPlacedOnTopLayer)
 	const auto bottom = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	const auto top = document.AddShape(MakeRectangle({ 50, 50, 100, 100 }));
 
-	ASSERT_EQ(document.GetShapeCount(), 2u);
+	ASSERT_EQ(document.GetShapeCount(), 2);
 	EXPECT_EQ(document.GetShapeId(0), bottom);
 	EXPECT_EQ(document.GetShapeId(1), top);
 }
@@ -66,7 +66,7 @@ TEST_F(DocumentTest, RemoveShapeInvalidatesItsId)
 
 	document.RemoveShape(id);
 
-	EXPECT_EQ(document.GetShapeCount(), 0u);
+	EXPECT_EQ(document.GetShapeCount(), 0);
 	EXPECT_EQ(document.FindShape(id), nullptr);
 }
 
@@ -75,13 +75,13 @@ TEST_F(DocumentTest, RemoveUnknownShapeDoesNothing)
 	document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 
 	EXPECT_NO_THROW(document.RemoveShape(12345));
-	EXPECT_EQ(document.GetShapeCount(), 1u);
+	EXPECT_EQ(document.GetShapeCount(), 1);
 }
 
 TEST_F(DocumentTest, AddShapeRejectsShapeOutsideBounds)
 {
 	EXPECT_THROW(document.AddShape(MakeRectangle({ 450, 0, 100, 100 })), std::invalid_argument);
-	EXPECT_EQ(document.GetShapeCount(), 0u);
+	EXPECT_EQ(document.GetShapeCount(), 0);
 }
 
 TEST_F(DocumentTest, SetShapeFrameRejectsFrameOutsideBounds)
@@ -100,7 +100,7 @@ TEST_F(DocumentTest, ReplaceShapesIsAtomic)
 	shapes.push_back(MakeRectangle({ 480, 10, 50, 50 }));
 
 	EXPECT_THROW(document.ReplaceShapes(std::move(shapes)), std::invalid_argument);
-	ASSERT_EQ(document.GetShapeCount(), 1u);
+	ASSERT_EQ(document.GetShapeCount(), 1);
 	EXPECT_EQ(document.GetShape(0).GetFrame(), (Frame{ 0, 0, 100, 100 }));
 }
 
@@ -249,7 +249,7 @@ TEST_F(DocumentTest, FindShapeIndexReturnsPositionOfShape)
 	document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
 
-	EXPECT_EQ(document.FindShapeIndex(id), 1u);
+	EXPECT_EQ(document.FindShapeIndex(id), 1);
 	EXPECT_EQ(document.FindShapeIndex(id + 1), std::nullopt);
 }
 
@@ -261,7 +261,7 @@ TEST_F(DocumentTest, DeleteShapeRemovesAndReturnsShape)
 
 	ASSERT_NE(shape, nullptr);
 	EXPECT_EQ(shape->GetFrame(), (Frame{ 10, 20, 30, 40 }));
-	EXPECT_EQ(document.GetShapeCount(), 0u);
+	EXPECT_EQ(document.GetShapeCount(), 0);
 	EXPECT_THROW(document.DeleteShape(id), std::invalid_argument);
 }
 
@@ -283,5 +283,5 @@ TEST_F(DocumentTest, InsertShapeRejectsDuplicateIdAndInvalidPosition)
 
 	EXPECT_THROW(document.InsertShape(id, MakeRectangle({ 0, 0, 10, 10 }), 0), std::invalid_argument);
 	EXPECT_THROW(document.InsertShape(id + 1, MakeRectangle({ 0, 0, 10, 10 }), 2), std::out_of_range);
-	EXPECT_EQ(document.GetShapeCount(), 1u);
+	EXPECT_EQ(document.GetShapeCount(), 1);
 }

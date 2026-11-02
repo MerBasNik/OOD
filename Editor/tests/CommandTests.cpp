@@ -25,7 +25,7 @@ TEST_F(CommandTest, AddShapeCommandHasNoShapeIdBeforeExecute)
 	const AddShapeCommand command(document, MakeRectangle({ 10, 10, 50, 50 }));
 
 	EXPECT_EQ(command.GetShapeId(), std::nullopt);
-	EXPECT_EQ(document.GetShapeCount(), 0u);
+	EXPECT_EQ(document.GetShapeCount(), 0);
 }
 
 TEST_F(CommandTest, AddShapeCommandPlacesShapeOnTopLayer)
@@ -35,7 +35,7 @@ TEST_F(CommandTest, AddShapeCommandPlacesShapeOnTopLayer)
 
 	command.Execute();
 
-	ASSERT_EQ(document.GetShapeCount(), 2u);
+	ASSERT_EQ(document.GetShapeCount(), 2);
 	EXPECT_EQ(document.GetShape(1).GetFrame(), (Frame{ 10, 10, 50, 50 }));
 }
 
@@ -54,7 +54,7 @@ TEST_F(CommandTest, AddShapeCommandCanBeExecutedOnlyOnce)
 	command.Execute();
 
 	EXPECT_THROW(command.Execute(), std::logic_error);
-	EXPECT_EQ(document.GetShapeCount(), 1u);
+	EXPECT_EQ(document.GetShapeCount(), 1);
 }
 
 TEST_F(CommandTest, AddShapeCommandRejectsEmptyShape)
@@ -118,10 +118,10 @@ TEST_F(CommandTest, AddShapeCommandUndoRemovesShapeAndRedoRestoresSameId)
 	const auto id = *command.GetShapeId();
 
 	command.Unexecute();
-	EXPECT_EQ(document.GetShapeCount(), 0u);
+	EXPECT_EQ(document.GetShapeCount(), 0);
 
 	command.Execute();
-	ASSERT_EQ(document.GetShapeCount(), 1u);
+	ASSERT_EQ(document.GetShapeCount(), 1);
 	EXPECT_EQ(document.GetShapeId(0), id);
 	EXPECT_EQ(document.GetShape(0).GetFrame(), (Frame{ 10, 10, 50, 50 }));
 }
@@ -143,7 +143,7 @@ TEST_F(CommandTest, DeleteShapeCommandUndoRestoresShapeAtSamePosition)
 
 	command.Unexecute();
 
-	ASSERT_EQ(document.GetShapeCount(), 3u);
+	ASSERT_EQ(document.GetShapeCount(), 3);
 	EXPECT_EQ(document.GetShapeId(0), bottom);
 	EXPECT_EQ(document.GetShapeId(1), middle);
 	EXPECT_EQ(document.GetShapeId(2), top);
@@ -156,7 +156,7 @@ TEST_F(CommandTest, DeleteShapeCommandUndoOfMissingShapeDoesNothing)
 	command.Execute();
 
 	EXPECT_NO_THROW(command.Unexecute());
-	EXPECT_EQ(document.GetShapeCount(), 0u);
+	EXPECT_EQ(document.GetShapeCount(), 0);
 }
 
 TEST_F(CommandTest, ChangeShapeFrameCommandUndoRestoresOldFrame)

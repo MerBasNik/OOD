@@ -44,6 +44,8 @@ private:
 	void CancelColorPicker();
 	void InitCursors();
 	void HandleEvent(const sf::Event& event);
+	void TrackMouse();
+	void SkipInputEvents();
 	void HandleMousePressed(sf::Vector2f point);
 	void HandleMouseMoved(sf::Vector2f point);
 	void HandleMouseReleased(sf::Vector2f point);

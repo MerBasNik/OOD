@@ -124,7 +124,7 @@ TEST_F(ShapeListControllerTest, DropSlotIsShownOnlyWhenOrderWouldChange)
 	EXPECT_EQ(m_controller.GetDropSlot(), std::nullopt);
 
 	m_controller.OnMouseMove(3);
-	EXPECT_EQ(m_controller.GetDropSlot(), 3u);
+	EXPECT_EQ(m_controller.GetDropSlot(), 3);
 }
 
 TEST_F(ShapeListControllerTest, CancelDropsDragAndIgnoresMouseUp)
