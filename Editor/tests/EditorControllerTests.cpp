@@ -46,6 +46,7 @@ public:
 		return m_document.FindShape(id)->GetFrame();
 	}
 
+	// объедини click и toggleClick в одну функцию, передавай через параметр флаг isToggle
 	void Click(const Point point)
 	{
 		m_controller.OnMouseDown(point);
@@ -866,7 +867,7 @@ TEST_F(EditorControllerTest, DragOfSelectedShapeMovesWholeGroup)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ first, second }));
 }
 
-TEST_F(EditorControllerTest, GroupMoveIsOneHistoryOperation)
+TEST_F(EditorControllerTest, GroupMoveOneHistoryOperation)
 {
 	const auto first = AddRectangle({ 100, 100, 100, 100 });
 	const auto second = AddRectangle({ 400, 300, 100, 100 });
@@ -880,7 +881,7 @@ TEST_F(EditorControllerTest, GroupMoveIsOneHistoryOperation)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, GroupResizeScalesEachShapeRelativeToItsOwnSide)
+TEST_F(EditorControllerTest, GroupResizeScalesEachShapeOwnSide)
 {
 	const auto first = AddRectangle({ 100, 100, 100, 100 });
 	const auto second = AddRectangle({ 300, 100, 100, 100 });
@@ -892,7 +893,7 @@ TEST_F(EditorControllerTest, GroupResizeScalesEachShapeRelativeToItsOwnSide)
 	EXPECT_EQ(GetFrame(second), (Frame{ 300, 100, 200, 200 }));
 }
 
-TEST_F(EditorControllerTest, GroupResizeKeepsMinimumSizeOfSmallestShape)
+TEST_F(EditorControllerTest, GroupResizeKeepsMinSizeOfSmallestShape)
 {
 	const auto first = AddRectangle({ 100, 100, 200, 200 });
 	const auto second = AddRectangle({ 400, 100, 20, 20 });
@@ -904,7 +905,7 @@ TEST_F(EditorControllerTest, GroupResizeKeepsMinimumSizeOfSmallestShape)
 	EXPECT_EQ(GetFrame(second), (Frame{ 400, 100, ShapeDefaults::MIN_SIZE, ShapeDefaults::MIN_SIZE }));
 }
 
-TEST_F(EditorControllerTest, DeleteRemovesAllSelectedShapesAsOneOperation)
+TEST_F(EditorControllerTest, DeleteAllSelectedShapesOneOperation)
 {
 	const auto bottom = AddRectangle({ 0, 0, 100, 100 });
 	const auto middle = AddRectangle({ 200, 200, 100, 100 });
@@ -926,7 +927,7 @@ TEST_F(EditorControllerTest, DeleteRemovesAllSelectedShapesAsOneOperation)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, CommitColorsChangesAllSelectedShapesAsOneOperation)
+TEST_F(EditorControllerTest, CommitColorsAllSelectedShapesOneOperation)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
@@ -945,7 +946,7 @@ TEST_F(EditorControllerTest, CommitColorsChangesAllSelectedShapesAsOneOperation)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, UndoKeepsOnlyExistingShapesInSelection)
+TEST_F(EditorControllerTest, OnlyExistingShapesInSelectionAfterUndo)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	m_controller.AddShape(ShapeType::Ellipse);
@@ -956,7 +957,7 @@ TEST_F(EditorControllerTest, UndoKeepsOnlyExistingShapesInSelection)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ first });
 }
 
-TEST_F(EditorControllerTest, CheckStateAfterUndo)
+TEST_F(EditorControllerTest, CheckDocumentStateBeforeUndo)
 {
 	AddSelectedRectangle({ 10, 20, 50, 100 });
 	Drag({ 30, 40 }, { 100, 200 });
@@ -969,5 +970,19 @@ TEST_F(EditorControllerTest, CheckStateAfterUndo)
 	ASSERT_EQ(m_document.GetShapeCount(), 1);
 	EXPECT_EQ(GetShapeType(m_document.GetShape(0)), ShapeType::Rectangle);
 	EXPECT_EQ(m_document.GetShape(0).GetFrame(), (Frame{ 10, 20, 50, 100 }));
+}
+
+TEST_F(EditorControllerTest, CheckDocumentStateAfterUndo)
+{
+	AddSelectedRectangle({ 10, 20, 50, 100 });
+	Drag({ 30, 40 }, { 100, 200 });
+	m_controller.AddShape(ShapeType::Ellipse);
+	m_controller.SaveDocument(m_path);
+	m_controller.Undo();
+	m_controller.Undo();
+	m_controller.OpenDocument(m_path);
+
+	ASSERT_EQ(m_document.GetShapeCount(), 2);
+	EXPECT_EQ(GetShapeType(m_document.GetShape(1)), ShapeType::Ellipse);
 }
 
