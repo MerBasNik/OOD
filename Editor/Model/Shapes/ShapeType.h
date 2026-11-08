@@ -10,6 +10,7 @@ enum class ShapeType
 	Rectangle,
 	Ellipse,
 	Triangle,
+	Group,
 };
 
 #endif // OOD_EDITOR_SHAPETYPE_H

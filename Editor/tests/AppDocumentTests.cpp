@@ -221,3 +221,33 @@ TEST_F(AppDocumentTest, SaveAndLoadKeepTimeInterval)
 	ASSERT_EQ(loaded->GetDocument().GetShapeCount(), 1);
 	EXPECT_EQ(loaded->GetDocument().GetShape(0).GetTimeInterval(), (TimeInterval{ 2, 6 }));
 }
+
+TEST_F(AppDocumentTest, LoadedNestedGroupCanBeResizedUngroupedAndUndone)
+{
+	WriteFile("group\n"
+			  "  rectangle 0 0 100 100 ff0000 000000\n"
+			  "  group\n"
+			  "    ellipse 200 0 100 100 00ff00 000000\n"
+			  "    triangle 400 0 100 100 0000ff 000000\n"
+			  "  end\n"
+			  "end\n");
+	const auto loaded = Load();
+	Document& document = loaded->GetDocument();
+	EditorState state;
+	EditorController controller{ document, state, loaded->GetCommandHistory() };
+	const int id = document.GetShapeId(0);
+	state.SetSelectedShapeIds({ id });
+
+	controller.OnMouseDown({ 500, 100 });
+	controller.OnMouseMove({ 750, 150 });
+	controller.OnMouseUp({ 750, 150 });
+	EXPECT_EQ(document.FindShape(id)->GetFrame(), (Frame{ 0, 0, 750, 150 }));
+
+	controller.UngroupSelectedShape();
+	EXPECT_EQ(document.GetShapeCount(), 2);
+
+	controller.Undo();
+	controller.Undo();
+	EXPECT_EQ(document.FindShape(id)->GetFrame(), (Frame{ 0, 0, 500, 100 }));
+	EXPECT_FALSE(loaded->GetCommandHistory().CanUndo());
+}

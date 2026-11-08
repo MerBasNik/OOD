@@ -28,4 +28,4 @@ struct TimeInterval
 	}
 };
 
-#endif //OOD_TIMEINTERVAL_H
+#endif // OOD_TIMEINTERVAL_H

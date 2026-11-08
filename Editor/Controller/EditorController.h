@@ -20,11 +20,13 @@ public:
 	~EditorController() override;
 	void AddShape(ShapeType type);
 	void DeleteSelectedShapes();
+	void GroupSelectedShapes();
+	void UngroupSelectedShape();
 	void SelectShapeTool(std::optional<ShapeType> type);
 	void PreviewFillColor(Color color) const;
 	void PreviewBorderColor(Color color) const;
 	void CommitColors();
-	void CancelColors()const;
+	void CancelColors() const;
 	void Cancel();
 	void Undo();
 	void Redo();

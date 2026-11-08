@@ -7,11 +7,16 @@
 
 #include "Model/Shapes/ShapeType.h"
 #include <SFML/Graphics/Texture.hpp>
+#include <string>
 
 class ShapeIcons
 {
 public:
 	static sf::Texture Load(ShapeType type);
+	static sf::Texture LoadUngroup();
+
+private:
+	static sf::Texture LoadFile(const std::string& fileName);
 };
 
 #endif // OOD_EDITOR_SHAPEICONS_H

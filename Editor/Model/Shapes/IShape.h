@@ -12,6 +12,8 @@
 
 #include <memory>
 
+class GroupShape;
+
 class IShape
 {
 public:
@@ -27,6 +29,8 @@ public:
 	virtual void Accept(IShapeVisitor& visitor) const = 0;
 	virtual TimeInterval GetTimeInterval() const = 0;
 	virtual void SetTimeInterval(TimeInterval timeInterval) = 0;
+	virtual GroupShape* GetGroup() = 0;
+	virtual const GroupShape* GetGroup() const = 0;
 };
 
 #endif // OOD_EDITOR_ISHAPE_H

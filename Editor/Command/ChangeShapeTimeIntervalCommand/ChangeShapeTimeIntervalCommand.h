@@ -25,4 +25,4 @@ private:
 	std::optional<TimeInterval> m_lastTimeInterval;
 };
 
-#endif //OOD_CHANGESHAPETIMEINTERVALCOMMAND_H
+#endif // OOD_CHANGESHAPETIMEINTERVALCOMMAND_H

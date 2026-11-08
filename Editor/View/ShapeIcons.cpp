@@ -10,20 +10,29 @@ const std::filesystem::path ICONS_DIR = EDITOR_ICONS_DIR;
 
 sf::Texture ShapeIcons::Load(const ShapeType type)
 {
-	std::filesystem::path path;
 	switch (type)
 	{
 	case ShapeType::Ellipse:
-		path = ICONS_DIR / "ellipse.png";
-		break;
+		return LoadFile("ellipse.png");
 	case ShapeType::Rectangle:
-		path = ICONS_DIR / "rectangle.png";
-		break;
+		return LoadFile("rectangle.png");
 	case ShapeType::Triangle:
-		path = ICONS_DIR / "triangle.png";
-		break;
+		return LoadFile("triangle.png");
+	case ShapeType::Group:
+		return LoadFile("group.png");
 	}
+	return {};
+}
 
+// почему это отдельный метод?
+sf::Texture ShapeIcons::LoadUngroup()
+{
+	return LoadFile("ungroup.png");
+}
+
+sf::Texture ShapeIcons::LoadFile(const std::string& fileName)
+{
+	const std::filesystem::path path = ICONS_DIR / fileName;
 	sf::Texture icon;
 	if (!icon.loadFromFile(path))
 	{

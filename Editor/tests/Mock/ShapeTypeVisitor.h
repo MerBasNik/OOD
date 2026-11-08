@@ -28,6 +28,11 @@ public:
 	{
 		m_type = ShapeType::Triangle;
 	}
+
+	void Visit(const GroupShape&) override
+	{
+		m_type = ShapeType::Group;
+	}
 };
 
 inline std::optional<ShapeType> GetShapeType(const IShape& shape)

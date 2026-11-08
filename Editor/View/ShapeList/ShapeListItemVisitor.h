@@ -18,6 +18,7 @@ public:
 	void Visit(const Rectangle& rectangle) override;
 	void Visit(const Ellipse& ellipse) override;
 	void Visit(const Triangle& triangle) override;
+	void Visit(const GroupShape& group) override;
 
 	const std::string& GetName() const;
 	const sf::Texture& GetIcon() const;

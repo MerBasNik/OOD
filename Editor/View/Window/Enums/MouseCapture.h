@@ -13,4 +13,4 @@ enum class MouseCapture
 	Timeline,
 };
 
-#endif //OOD_MOUSECAPTURE_H
+#endif // OOD_MOUSECAPTURE_H

@@ -3,11 +3,12 @@
 //
 
 #include "Mock/InvalidDocumentCase.h"
+#include "Mock/ShapeTypeVisitor.h"
 #include "Model/Serialization/DocumentSerializer.h"
 #include "Model/Shapes/Ellipse.h"
+#include "Model/Shapes/GroupShape.h"
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
-#include "Mock/ShapeTypeVisitor.h"
 #include <gtest/gtest.h>
 #include <sstream>
 
@@ -112,6 +113,67 @@ TEST_F(DocumentSerializerTest, LoadOfLineWithoutTimeGivesDefaultInterval)
 	EXPECT_EQ(shapes[0]->GetTimeInterval(), TimeInterval{});
 }
 
+TEST_F(DocumentSerializerTest, SaveWritesGroupsAsNestedBlocks)
+{
+	std::vector<std::unique_ptr<IShape>> inner;
+	inner.push_back(std::make_unique<Triangle>(Frame{ 0, 0, 10, 10 }, 0, 0));
+	inner.push_back(std::make_unique<Rectangle>(Frame{ 20, 0, 10, 10 }, 0, 0));
+	std::vector<std::unique_ptr<IShape>> outer;
+	outer.push_back(std::make_unique<Ellipse>(Frame{ 0, 20, 10, 10 }, 0, 0));
+	outer.push_back(std::make_unique<GroupShape>(std::move(inner)));
+	document.AddShape(std::make_unique<GroupShape>(std::move(outer)));
+
+	std::ostringstream output;
+	DocumentSerializer::Save(document, output);
+
+	EXPECT_EQ(output.str(),
+		"group\n"
+		"  ellipse 0 20 10 10 000000 000000 0 10\n"
+		"  group\n"
+		"    triangle 0 0 10 10 000000 000000 0 10\n"
+		"    rectangle 20 0 10 10 000000 000000 0 10\n"
+		"  end\n"
+		"end\n");
+}
+
+TEST_F(DocumentSerializerTest, RoundTripRestoresNestedHierarchyAndOrder)
+{
+	document.AddShape(std::make_unique<Rectangle>(Frame{ 0, 0, 10, 10 }, 0, 0));
+	std::vector<std::unique_ptr<IShape>> inner;
+	inner.push_back(std::make_unique<Triangle>(Frame{ 100, 100, 30, 40 }, 0x111111, 0));
+	inner.push_back(std::make_unique<Rectangle>(Frame{ 200.5, 100, 30, 40 }, 0x222222, 0));
+	std::vector<std::unique_ptr<IShape>> outer;
+	outer.push_back(std::make_unique<Ellipse>(Frame{ 50, 50, 20, 20 }, 0, 0));
+	outer.push_back(std::make_unique<GroupShape>(std::move(inner)));
+	document.AddShape(std::make_unique<GroupShape>(std::move(outer)));
+	document.AddShape(std::make_unique<Ellipse>(Frame{ 300, 300, 10, 10 }, 0, 0));
+
+	const auto shapes = SaveAndLoad();
+
+	ASSERT_EQ(shapes.size(), 3);
+	EXPECT_EQ(GetShapeType(*shapes[0]), ShapeType::Rectangle);
+	EXPECT_EQ(GetShapeType(*shapes[2]), ShapeType::Ellipse);
+	const GroupShape* outerGroup = shapes[1]->GetGroup();
+	ASSERT_NE(outerGroup, nullptr);
+	ASSERT_EQ(outerGroup->GetChildCount(), 2);
+	EXPECT_EQ(GetShapeType(outerGroup->GetChild(0)), ShapeType::Ellipse);
+	const GroupShape* innerGroup = outerGroup->GetChild(1).GetGroup();
+	ASSERT_NE(innerGroup, nullptr);
+	ASSERT_EQ(innerGroup->GetChildCount(), 2);
+	EXPECT_EQ(GetShapeType(innerGroup->GetChild(0)), ShapeType::Triangle);
+	EXPECT_EQ(innerGroup->GetChild(1).GetFrame(), (Frame{ 200.5, 100, 30, 40 }));
+	EXPECT_EQ(innerGroup->GetChild(1).GetFillColor(), 0x222222);
+}
+
+TEST_F(DocumentSerializerTest, LoadAcceptsGroupWithoutIndentation)
+{
+	const auto shapes = LoadFromString("group\nrectangle 0 0 10 10 000000 000000\nellipse 20 0 10 10 000000 000000\nend\n");
+
+	ASSERT_EQ(shapes.size(), 1);
+	ASSERT_NE(shapes[0]->GetGroup(), nullptr);
+	EXPECT_EQ(shapes[0]->GetFrame(), (Frame{ 0, 0, 30, 10 }));
+}
+
 TEST_F(DocumentSerializerTest, SkipsEmptyLines)
 {
 	const auto shapes = LoadFromString("\ntriangle 1 2 3 4 000000 000000\n\n");
@@ -193,5 +255,9 @@ INSTANTIATE_TEST_SUITE_P(DocumentSerializerTest, DocumentSerializerInvalidConten
 		InvalidDocumentCase{ "ExtraDataAfterTime", "rectangle 0 0 10 10 000000 000000 1 2 3\n", "некорректное описание фигуры" },
 		InvalidDocumentCase{ "NotANumberTime", "rectangle 0 0 10 10 000000 000000 a 2\n", "некорректное время фигуры" },
 		InvalidDocumentCase{ "NegativeStartTime", "rectangle 0 0 10 10 000000 000000 -1 2\n", "некорректное время фигуры" },
-		InvalidDocumentCase{ "EndBeforeStart", "rectangle 0 0 10 10 000000 000000 3 2\n", "некорректное время фигуры" }),
+		InvalidDocumentCase{ "EndBeforeStart", "rectangle 0 0 10 10 000000 000000 3 2\n", "некорректное время фигуры" },
+		InvalidDocumentCase{ "EndWithoutGroup", "rectangle 0 0 10 10 000000 000000\nend\n", "лишний конец группы" },
+		InvalidDocumentCase{ "UnclosedGroup", "group\nrectangle 0 0 10 10 000000 000000\n", "группа не закрыта" },
+		InvalidDocumentCase{ "EmptyGroup", "group\nend\n", "пустая группа" },
+		InvalidDocumentCase{ "GroupWithData", "group 1\nrectangle 0 0 10 10 000000 000000\nend\n", "некорректное описание группы" }),
 	[](const ::testing::TestParamInfo<InvalidDocumentCase>& info) { return info.param.m_name; });

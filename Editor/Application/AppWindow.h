@@ -6,10 +6,10 @@
 #define OOD_APPWINDOW_H
 
 #include "AppDocument.h"
-#include "IApplication.h"
 #include "Controller/EditorController.h"
 #include "Controller/ShapeListController.h"
 #include "Controller/TimelineController.h"
+#include "IApplication.h"
 #include "Model/EditorState/EditorState.h"
 #include "View/Window/EditorWindow.h"
 #include <memory>

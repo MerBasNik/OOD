@@ -24,6 +24,11 @@ void ShapeListItemVisitor::Visit(const Triangle&)
 	SetItem("Треугольник", ShapeType::Triangle);
 }
 
+void ShapeListItemVisitor::Visit(const GroupShape&)
+{
+	SetItem("Группа", ShapeType::Group);
+}
+
 const std::string& ShapeListItemVisitor::GetName() const
 {
 	return m_name;

@@ -17,8 +17,7 @@ EditorWindow::EditorWindow(
 	EditorState& state,
 	EditorController& controller,
 	ShapeListController& shapeListController,
-	TimelineController& timelineController
-)
+	TimelineController& timelineController)
 	: m_application(application)
 	, m_appDocument(std::move(appDocument))
 	, m_document(m_appDocument->GetDocument())
@@ -27,20 +26,14 @@ EditorWindow::EditorWindow(
 	, m_state(state)
 	, m_controller(controller)
 	, m_window(sf::VideoMode({
-					static_cast<unsigned>(m_document.GetBounds().m_width + ShapeListView::WIDTH),
-					static_cast<unsigned>(m_document.GetBounds().m_height + Toolbar::HEIGHT + TimelineView::HEIGHT),
-				}),
-				sf::String::fromUtf8(m_title.begin(), m_title.end()))
+				   static_cast<unsigned>(m_document.GetBounds().m_width + ShapeListView::WIDTH),
+				   static_cast<unsigned>(m_document.GetBounds().m_height + Toolbar::HEIGHT + TimelineView::HEIGHT),
+			   }),
+		  sf::String::fromUtf8(m_title.begin(), m_title.end()))
 	, m_colorPicker(m_toolbar.GetFont(), [this] { m_controller.CommitColors(); }, [this] { m_controller.CancelColors(); })
-	, m_canvasView(m_document, state,
-		sf::FloatRect({ 0.f, Toolbar::HEIGHT },
-	{ static_cast<float>(m_document.GetBounds().m_width), static_cast<float>(m_document.GetBounds().m_height) }))
-	, m_shapeListView(m_document, state, shapeListController,
-		sf::FloatRect({ static_cast<float>(m_document.GetBounds().m_width), Toolbar::HEIGHT },
-	{ ShapeListView::WIDTH, static_cast<float>(m_document.GetBounds().m_height) }))
-	, m_timelineView(m_document, state, timelineController,
-		sf::FloatRect({ 0.f, Toolbar::HEIGHT + static_cast<float>(m_document.GetBounds().m_height) },
-	{ static_cast<float>(m_document.GetBounds().m_width) + ShapeListView::WIDTH, TimelineView::HEIGHT }))
+	, m_canvasView(m_document, state, sf::FloatRect({ 0.f, Toolbar::HEIGHT }, { static_cast<float>(m_document.GetBounds().m_width), static_cast<float>(m_document.GetBounds().m_height) }))
+	, m_shapeListView(m_document, state, shapeListController, sf::FloatRect({ static_cast<float>(m_document.GetBounds().m_width), Toolbar::HEIGHT }, { ShapeListView::WIDTH, static_cast<float>(m_document.GetBounds().m_height) }))
+	, m_timelineView(m_document, state, timelineController, sf::FloatRect({ 0.f, Toolbar::HEIGHT + static_cast<float>(m_document.GetBounds().m_height) }, { static_cast<float>(m_document.GetBounds().m_width) + ShapeListView::WIDTH, TimelineView::HEIGHT }))
 {
 	InitToolbar();
 	InitCursors();
@@ -89,6 +82,8 @@ void EditorWindow::InitToolbar()
 	m_borderButtonRect = m_toolbar.AddButton("Контур", [this] {
 		OpenColorPicker("Цвет контура", m_borderButtonRect, false);
 	});
+	m_toolbar.AddIconButton(ShapeIcons::Load(ShapeType::Group), [this] { GroupShapes(); }, [] { return false; });
+	m_toolbar.AddIconButton(ShapeIcons::LoadUngroup(), [this] { UngroupShape(); }, [] { return false; });
 	m_toolbar.AddButton("Удалить", [this] {
 		CancelColorPicker();
 		m_controller.DeleteSelectedShapes();
@@ -351,6 +346,9 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 		case sf::Keyboard::Key::Y:
 			Redo();
 			break;
+		case sf::Keyboard::Key::G:
+			key.shift ? UngroupShape() : GroupShapes();
+			break;
 		case sf::Keyboard::Key::Equal:
 			ZoomIn();
 			break;
@@ -519,6 +517,22 @@ std::string EditorWindow::GetTitle() const
 		title += " (" + path->filename().string() + ")";
 	}
 	return title + " — окно " + std::to_string(m_windowNumber);
+}
+
+void EditorWindow::GroupShapes()
+{
+	CancelColorPicker();
+	m_shapeListView.CancelDrag();
+	m_timelineView.CancelDrag();
+	m_controller.GroupSelectedShapes();
+}
+
+void EditorWindow::UngroupShape()
+{
+	CancelColorPicker();
+	m_shapeListView.CancelDrag();
+	m_timelineView.CancelDrag();
+	m_controller.UngroupSelectedShape();
 }
 
 void EditorWindow::Undo()

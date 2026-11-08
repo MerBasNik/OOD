@@ -19,6 +19,9 @@ public:
 	void SetBorderColor(Color color) override;
 	TimeInterval GetTimeInterval() const override;
 	void SetTimeInterval(TimeInterval timeInterval) override;
+	// почему два метода?
+	GroupShape* GetGroup() override;
+	const GroupShape* GetGroup() const override;
 
 private:
 	Frame m_frame;

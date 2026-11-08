@@ -120,7 +120,7 @@ void CanvasView::DrawBackground(sf::RenderTarget& target) const
 void CanvasView::DrawShapes(sf::RenderTarget& target) const
 {
 	Canvas canvas(target, m_rect.position);
-	RenderShape renderer(canvas);
+	RenderShape renderer(canvas, m_state.GetCurrentTime());
 	const auto previewFillColor = m_state.GetPreviewFillColor();
 	const auto previewBorderColor = m_state.GetPreviewBorderColor();
 	const bool hasColorPreview = previewFillColor || previewBorderColor;
@@ -133,11 +133,16 @@ void CanvasView::DrawShapes(sf::RenderTarget& target) const
 			continue;
 		}
 		const auto previewFrame = m_state.GetPreviewFrame(id);
-		const bool hasShapeColorPreview = hasColorPreview && m_state.IsShapeSelected(id);
-		if (previewFrame || hasShapeColorPreview)
+		const auto previewTimeInterval = m_state.GetPreviewTimeInterval(id);
+		const bool hasShapeColorPreview = hasColorPreview && m_state.IsShapeSelected(id) && !shape.GetGroup();
+		if (previewFrame || previewTimeInterval || hasShapeColorPreview)
 		{
 			const auto preview = shape.Clone();
 			preview->SetFrame(previewFrame ? *previewFrame : shape.GetFrame());
+			if (previewTimeInterval)
+			{
+				preview->SetTimeInterval(*previewTimeInterval);
+			}
 			if (hasShapeColorPreview)
 			{
 				preview->SetFillColor(previewFillColor ? *previewFillColor : shape.GetFillColor());

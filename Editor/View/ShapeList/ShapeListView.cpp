@@ -37,7 +37,7 @@ ShapeListView::ShapeListView(Document& document, EditorState& state, ShapeListCo
 	{
 		std::cerr << "Ошибка при загрузке шрифта" << std::endl;
 	}
-	for (const auto type : { ShapeType::Rectangle, ShapeType::Ellipse, ShapeType::Triangle })
+	for (const auto type : { ShapeType::Rectangle, ShapeType::Ellipse, ShapeType::Triangle, ShapeType::Group })
 	{
 		m_icons.emplace(type, ShapeIcons::Load(type));
 	}

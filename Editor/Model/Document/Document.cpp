@@ -30,14 +30,23 @@ double Document::GetDuration() const
 
 int Document::AddShape(std::unique_ptr<IShape> shape)
 {
+	return AddShapeAt(std::move(shape), m_shapesInner.size());
+}
+
+int Document::AddShapeAt(std::unique_ptr<IShape> shape, const size_t index)
+{
 	if (!shape)
 	{
 		throw std::invalid_argument("Фигура не задана");
 	}
+	if (index > m_shapesInner.size())
+	{
+		throw std::out_of_range("Недопустимая позиция фигуры");
+	}
 	CheckShape(*shape);
 
 	const int id = m_nextId++;
-	m_shapesInner.push_back({ id, std::move(shape) });
+	m_shapesInner.insert(m_shapesInner.begin() + static_cast<std::ptrdiff_t>(index), { id, std::move(shape) });
 	NotifyObservers();
 	return id;
 }

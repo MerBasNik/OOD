@@ -3,6 +3,7 @@ add_library(Editor_lib STATIC
         Model/Shapes/Rectangle.cpp
         Model/Shapes/Ellipse.cpp
         Model/Shapes/Triangle.cpp
+        Model/Shapes/GroupShape.cpp
         Model/Document/Document.cpp
         Model/EditorState/EditorState.cpp
         Model/EditorState/SelectionFrame.cpp
@@ -17,6 +18,8 @@ add_library(Editor_lib STATIC
         Command/ChangeShapeColorsCommand/ChangeShapeColorsCommand.cpp
         Command/ChangeShapeTimeIntervalCommand/ChangeShapeTimeIntervalCommand.cpp
         Command/MacroCommand/MacroCommand.cpp
+        Command/GroupShapesCommand/GroupShapesCommand.cpp
+        Command/UngroupShapeCommand/UngroupShapeCommand.cpp
         Controller/FrameCalculator.cpp
         Controller/ShapeDefaults.cpp
         Controller/EditorController.cpp
@@ -74,6 +77,8 @@ add_executable(Editor_tests
         tests/MultiWindowTests.cpp
         tests/TimelineControllerTests.cpp
         tests/ViewportTests.cpp
+        tests/GroupShapeTests.cpp
+        tests/GroupCommandTests.cpp
 )
 
 target_link_libraries(Editor_tests PRIVATE

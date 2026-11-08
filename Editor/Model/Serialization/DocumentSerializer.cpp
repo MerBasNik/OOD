@@ -4,6 +4,7 @@
 
 #include "DocumentSerializer.h"
 #include "Model/Shapes/Ellipse.h"
+#include "Model/Shapes/GroupShape.h"
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
 #include "ShapeSerializer.h"
@@ -89,22 +90,58 @@ void DocumentSerializer::Save(const Document& document, std::ostream& output)
 
 std::vector<std::unique_ptr<IShape>> DocumentSerializer::Load(std::istream& input)
 {
-	std::vector<std::unique_ptr<IShape>> shapes;
+	std::vector<std::vector<std::unique_ptr<IShape>>> levels(1);
 	std::string line;
 	size_t lineNumber = 0;
 	while (std::getline(input, line))
 	{
 		++lineNumber;
-		if (!line.empty())
+		std::istringstream stream(line);
+		std::string keyword;
+		if (!(stream >> keyword))
 		{
-			shapes.push_back(ParseShape(line, lineNumber));
+			continue;
+		}
+		if (keyword == ShapeSerializer::GROUP_NAME || keyword == ShapeSerializer::GROUP_END_NAME)
+		{
+			std::string extra;
+			if (stream >> extra)
+			{
+				throw std::runtime_error("некорректное описание группы \"" + line + "\"");
+			}
+		}
+		if (keyword == ShapeSerializer::GROUP_NAME)
+		{
+			levels.emplace_back();
+		}
+		else if (keyword == ShapeSerializer::GROUP_END_NAME)
+		{
+			if (levels.size() < 2)
+			{
+				throw std::runtime_error("лишний конец группы в строке " + std::to_string(lineNumber));
+			}
+			auto children = std::move(levels.back());
+			levels.pop_back();
+			if (children.empty())
+			{
+				throw std::runtime_error("пустая группа в строке " + std::to_string(lineNumber));
+			}
+			levels.back().push_back(std::make_unique<GroupShape>(std::move(children)));
+		}
+		else
+		{
+			levels.back().push_back(ParseShape(line, lineNumber));
 		}
 	}
 	if (input.bad())
 	{
 		throw std::runtime_error("Ошибка чтения файла");
 	}
-	return shapes;
+	if (levels.size() != 1)
+	{
+		throw std::runtime_error("группа не закрыта");
+	}
+	return std::move(levels.front());
 }
 
 void DocumentSerializer::SaveToFile(const Document& document, const std::filesystem::path& path)

@@ -5,11 +5,11 @@
 #ifndef OOD_EDITOR_EDITORWINDOW_H
 #define OOD_EDITOR_EDITORWINDOW_H
 
+#include "Application/IApplication.h"
 #include "ColorPicker.h"
 #include "Controller/EditorController.h"
-#include "Toolbar.h"
-#include "Application/IApplication.h"
 #include "Enums/MouseCapture.h"
+#include "Toolbar.h"
 #include "View/Canvas/CanvasView.h"
 #include "View/ShapeList/ShapeListView.h"
 #include "View/Timeline/TimelineView.h"
@@ -28,8 +28,7 @@ public:
 		EditorState& state,
 		EditorController& controller,
 		ShapeListController& shapeListController,
-		TimelineController& timelineController
-	);
+		TimelineController& timelineController);
 	void ProcessEvents();
 	void RenderWindow();
 	bool IsOpen() const;
@@ -79,6 +78,8 @@ private:
 	void NewWindow();
 	void UpdateTitle();
 	std::string GetTitle() const;
+	void GroupShapes();
+	void UngroupShape();
 	void Undo();
 	void Redo();
 	void OpenDocument();

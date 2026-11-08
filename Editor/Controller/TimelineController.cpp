@@ -80,8 +80,7 @@ void TimelineController::OnMouseMove(const size_t slot, const double time)
 		break;
 	case TimelineDragMode::MoveTime:
 	case TimelineDragMode::ResizeStart:
-	case TimelineDragMode::ResizeEnd:
-	{
+	case TimelineDragMode::ResizeEnd: {
 		const auto intervals = CalculateIntervals(time);
 		std::map<int, TimeInterval> previewIntervals;
 		for (size_t i = 0; i < intervals.size(); ++i)

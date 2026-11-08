@@ -24,6 +24,7 @@ public:
 	Frame GetBounds() const;
 	double GetDuration() const;
 	int AddShape(std::unique_ptr<IShape> shape);
+	int AddShapeAt(std::unique_ptr<IShape> shape, size_t index);
 	void RemoveShape(int id);
 	std::unique_ptr<IShape> DeleteShape(int id);
 	void InsertShape(int id, std::unique_ptr<IShape> shape, size_t index);

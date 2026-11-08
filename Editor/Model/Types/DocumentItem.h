@@ -14,4 +14,4 @@ struct DocumentItem
 	std::unique_ptr<IShape> m_shape;
 };
 
-#endif //OOD_DOCUMENTITEM_H
+#endif // OOD_DOCUMENTITEM_H

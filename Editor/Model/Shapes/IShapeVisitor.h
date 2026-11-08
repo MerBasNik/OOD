@@ -8,6 +8,7 @@
 class Rectangle;
 class Ellipse;
 class Triangle;
+class GroupShape;
 
 class IShapeVisitor
 {
@@ -16,6 +17,7 @@ public:
 	virtual void Visit(const Rectangle& rectangle) = 0;
 	virtual void Visit(const Ellipse& ellipse) = 0;
 	virtual void Visit(const Triangle& triangle) = 0;
+	virtual void Visit(const GroupShape& group) = 0;
 };
 
 #endif // OOD_EDITOR_ISHAPEVISITOR_H

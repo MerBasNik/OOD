@@ -4,11 +4,13 @@
 
 #include "ShapeSerializer.h"
 #include "Model/Shapes/Ellipse.h"
+#include "Model/Shapes/GroupShape.h"
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
 #include <iomanip>
 
 const int SET_PRECISION = 17;
+const std::string INDENT = "  ";
 
 ShapeSerializer::ShapeSerializer(std::ostream& output)
 	: m_output(output)
@@ -30,10 +32,33 @@ void ShapeSerializer::Visit(const Triangle& triangle)
 	Write(TRIANGLE_NAME, triangle);
 }
 
+void ShapeSerializer::Visit(const GroupShape& group)
+{
+	WriteIndent();
+	m_output << GROUP_NAME << "\n";
+	++m_depth;
+	for (size_t i = 0; i < group.GetChildCount(); ++i)
+	{
+		group.GetChild(i).Accept(*this);
+	}
+	--m_depth;
+	WriteIndent();
+	m_output << GROUP_END_NAME << "\n";
+}
+
+void ShapeSerializer::WriteIndent()
+{
+	for (size_t i = 0; i < m_depth; ++i)
+	{
+		m_output << INDENT;
+	}
+}
+
 void ShapeSerializer::Write(const std::string& typeName, const IShape& shape)
 {
 	const Frame frame = shape.GetFrame();
 	const TimeInterval timeInterval = shape.GetTimeInterval();
+	WriteIndent();
 	m_output << typeName << " "
 			 << std::setprecision(SET_PRECISION) << frame.m_left << " " << frame.m_top << " "
 			 << frame.m_width << " " << frame.m_height << " "

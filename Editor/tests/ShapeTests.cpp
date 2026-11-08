@@ -2,10 +2,10 @@
 // Created by Вадим Патрушев on 15.10.2026.
 //
 
+#include "Mock/ShapeTypeVisitor.h"
 #include "Model/Shapes/Ellipse.h"
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
-#include "Mock/ShapeTypeVisitor.h"
 #include <gtest/gtest.h>
 
 class ShapeTest : public ::testing::Test

@@ -7,7 +7,9 @@
 #include "Command/ChangeShapeColorsCommand/ChangeShapeColorsCommand.h"
 #include "Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.h"
 #include "Command/DeleteShapeCommand/DeleteShapeCommand.h"
+#include "Command/GroupShapesCommand/GroupShapesCommand.h"
 #include "Command/MacroCommand/MacroCommand.h"
+#include "Command/UngroupShapeCommand/UngroupShapeCommand.h"
 #include "FrameCalculator.h"
 #include "Model/EditorState/SelectionFrame.h"
 #include "Model/Shapes/Ellipse.h"
@@ -54,6 +56,47 @@ void EditorController::DeleteSelectedShapes()
 	ExecuteCommands(std::move(commands));
 }
 
+void EditorController::GroupSelectedShapes()
+{
+	std::vector<int> shapeIds;
+	for (const int id : m_state.GetSelectedShapeIds())
+	{
+		if (m_document.FindShape(id))
+		{
+			shapeIds.push_back(id);
+		}
+	}
+	if (shapeIds.size() < 2)
+	{
+		return;
+	}
+	ResetPreview();
+	auto command = std::make_unique<GroupShapesCommand>(m_document, std::move(shapeIds));
+	const GroupShapesCommand& groupCommand = *command;
+	m_history.Execute(std::move(command));
+	m_state.SetSelectedShapeIds({ *groupCommand.GetGroupId() });
+}
+
+void EditorController::UngroupSelectedShape()
+{
+	const auto& selectedIds = m_state.GetSelectedShapeIds();
+	if (selectedIds.size() != 1)
+	{
+		return;
+	}
+	const int id = selectedIds.front();
+	const IShape* shape = m_document.FindShape(id);
+	if (!shape || !shape->GetGroup())
+	{
+		return;
+	}
+	ResetPreview();
+	auto command = std::make_unique<UngroupShapeCommand>(m_document, id);
+	const UngroupShapeCommand& ungroupCommand = *command;
+	m_history.Execute(std::move(command));
+	m_state.SetSelectedShapeIds(ungroupCommand.GetChildIds());
+}
+
 void EditorController::SelectShapeTool(const std::optional<ShapeType> type)
 {
 	ResetPreview();
@@ -84,7 +127,7 @@ void EditorController::CommitColors()
 	for (const int id : m_state.GetSelectedShapeIds())
 	{
 		const IShape* shape = m_document.FindShape(id);
-		if (!shape)
+		if (!shape || shape->GetGroup())
 		{
 			continue;
 		}
@@ -174,8 +217,7 @@ void EditorController::OnMouseMove(const Point point)
 		m_state.SetCreatingShape(CreateShape(*m_state.GetShapeTool(), CalculateCreatedFrame(point)));
 		break;
 	case DragMode::Move:
-	case DragMode::Resize:
-	{
+	case DragMode::Resize: {
 		const auto frames = CalculateDraggedFrames(point);
 		std::map<int, Frame> previewFrames;
 		for (size_t i = 0; i < frames.size(); ++i)
@@ -348,6 +390,8 @@ std::unique_ptr<IShape> EditorController::CreateShape(const ShapeType type, cons
 		return std::make_unique<Ellipse>(frame, ShapeDefaults::ELLIPSE_COLOR, ShapeDefaults::BORDER_COLOR);
 	case ShapeType::Triangle:
 		return std::make_unique<Triangle>(frame, ShapeDefaults::TRIANGLE_COLOR, ShapeDefaults::BORDER_COLOR);
+	case ShapeType::Group:
+		break;
 	}
 	throw std::invalid_argument("Неизвестный тип фигуры");
 }

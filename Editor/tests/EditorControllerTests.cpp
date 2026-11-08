@@ -6,9 +6,9 @@
 #include "Controller/ShapeDefaults.h"
 #include "Mock/MockDocumentObserver.h"
 #include "Mock/ResizeCase.h"
+#include "Mock/ShapeTypeVisitor.h"
 #include "Model/Shapes/Ellipse.h"
 #include "Model/Shapes/Rectangle.h"
-#include "Mock/ShapeTypeVisitor.h"
 #include <gtest/gtest.h>
 
 class EditorControllerTest : public ::testing::Test

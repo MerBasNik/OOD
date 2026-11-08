@@ -50,3 +50,13 @@ void Shape::SetTimeInterval(const TimeInterval timeInterval)
 {
 	m_timeInterval = timeInterval;
 }
+
+GroupShape* Shape::GetGroup()
+{
+	return nullptr;
+}
+
+const GroupShape* Shape::GetGroup() const
+{
+	return nullptr;
+}
