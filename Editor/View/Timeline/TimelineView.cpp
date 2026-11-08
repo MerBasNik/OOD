@@ -8,7 +8,9 @@
 #include "View/ShapeList/ShapeListItemVisitor.h"
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 const float RULER_HEIGHT = 24.f;
@@ -21,6 +23,8 @@ const float EDGE_GRAB_WIDTH = 5.f;
 const float ICON_SIZE = 16.f;
 const float TICK_HEIGHT = 6.f;
 const float DROP_INDICATOR_HEIGHT = 2.f;
+const float MIN_TICK_SPACING = 60.f;
+const double MAX_TIME_ZOOM = 50;
 const float CURRENT_TIME_LINE_WIDTH = 2.f;
 const unsigned FONT_SIZE = 12;
 const std::string FONT_PATH = "/System/Library/Fonts/Supplemental/Arial.ttf";
@@ -40,6 +44,8 @@ TimelineView::TimelineView(Document& document, EditorState& state, TimelineContr
 	, m_state(state)
 	, m_controller(controller)
 	, m_rect(rect)
+	, m_timeViewport({ rect.size.x - LABEL_WIDTH - 2 * TRACK_PADDING, 1 }, { rect.size.x - LABEL_WIDTH - 2 * TRACK_PADDING, 1 },
+		  1, MAX_TIME_ZOOM)
 {
 	if (!m_font.openFromFile(FONT_PATH))
 	{
@@ -119,6 +125,36 @@ void TimelineView::OnMouseWheel(const sf::Vector2f point, const float delta)
 	{
 		SetScroll(m_scroll - delta * ROW_HEIGHT);
 	}
+}
+
+void TimelineView::ZoomAt(const sf::Vector2f point, const float delta)
+{
+	m_timeViewport.ZoomAt(std::pow(Viewport::ZOOM_STEP, delta), { point.x - GetTrackLeft(), 0 });
+	SetIsChange();
+}
+
+void TimelineView::ScrollTime(const float delta)
+{
+	m_timeViewport.Scroll({ delta, 0 });
+	SetIsChange();
+}
+
+void TimelineView::ZoomIn()
+{
+	m_timeViewport.ZoomIn();
+	SetIsChange();
+}
+
+void TimelineView::ZoomOut()
+{
+	m_timeViewport.ZoomOut();
+	SetIsChange();
+}
+
+void TimelineView::ResetZoom()
+{
+	m_timeViewport.ResetZoom();
+	SetIsChange();
 }
 
 void TimelineView::CancelDrag()
@@ -254,17 +290,22 @@ void TimelineView::DrawTimeScale(sf::RenderTarget& target) const
 	ruler.setFillColor(RULER_COLOR);
 	target.draw(ruler);
 
-	const auto seconds = static_cast<int>(std::floor(m_document.GetDuration()));
-	for (int second = 0; second <= seconds; ++second)
+	const double step = GetTimeScaleStep();
+	const double firstTime = std::max(0.0, GetTimeByPosition(GetTrackAreaLeft()));
+	const double lastTime = std::min(m_document.GetDuration(), GetTimeByPosition(m_rect.position.x + m_rect.size.x));
+	const auto lastTick = static_cast<int>(std::floor(lastTime / step + 1e-9));
+	for (auto tickIndex = static_cast<int>(std::ceil(firstTime / step - 1e-9)); tickIndex <= lastTick; ++tickIndex)
 	{
-		const float x = GetPositionByTime(second);
+		const double time = tickIndex * step;
+		const float x = GetPositionByTime(time);
 		sf::RectangleShape tick({ 1.f, TICK_HEIGHT });
 		tick.setPosition({ x, m_rect.position.y + RULER_HEIGHT - TICK_HEIGHT });
 		tick.setFillColor(BAR_BORDER_COLOR);
 		target.draw(tick);
 
-		const std::string label = std::to_string(second) + "s";
-		sf::Text text(m_font, label, FONT_SIZE);
+		std::ostringstream label;
+		label << std::setprecision(step < 1 ? 1 : 0) << std::fixed << time << "s";
+		sf::Text text(m_font, label.str(), FONT_SIZE);
 		text.setFillColor(TEXT_COLOR);
 		const sf::FloatRect bounds = text.getLocalBounds();
 		text.setOrigin({ bounds.position.x + bounds.size.x / 2, 0.f });
@@ -326,8 +367,13 @@ void TimelineView::DrawTimeBar(sf::RenderTarget& target, const size_t row, const
 	const float top) const
 {
 	const TimeInterval interval = GetShownTimeInterval(row);
-	const float left = GetPositionByTime(interval.m_start);
-	sf::RectangleShape bar({ GetPositionByTime(interval.m_end) - left, ROW_HEIGHT - 2 * BAR_MARGIN });
+	const float left = std::max(GetPositionByTime(interval.m_start), GetTrackAreaLeft());
+	const float right = std::min(GetPositionByTime(interval.m_end), m_rect.position.x + m_rect.size.x);
+	if (right <= left)
+	{
+		return;
+	}
+	sf::RectangleShape bar({ right - left, ROW_HEIGHT - 2 * BAR_MARGIN });
 	bar.setPosition({ left, top + BAR_MARGIN });
 	bar.setFillColor(Canvas::ConvertColorToSf(shape.GetFillColor()));
 	bar.setOutlineColor(isSelected ? SELECTION_COLOR : BAR_BORDER_COLOR);
@@ -354,8 +400,13 @@ void TimelineView::DrawDropIndicator(sf::RenderTarget& target, const size_t slot
 
 void TimelineView::DrawCurrentTimeLine(sf::RenderTarget& target) const
 {
+	const float x = GetPositionByTime(m_state.GetCurrentTime());
+	if (x < GetTrackAreaLeft() || x > m_rect.position.x + m_rect.size.x)
+	{
+		return;
+	}
 	sf::RectangleShape line({ CURRENT_TIME_LINE_WIDTH, m_rect.size.y });
-	line.setPosition({ GetPositionByTime(m_state.GetCurrentTime()) - CURRENT_TIME_LINE_WIDTH / 2, m_rect.position.y });
+	line.setPosition({ x - CURRENT_TIME_LINE_WIDTH / 2, m_rect.position.y });
 	line.setFillColor(CURRENT_TIME_COLOR);
 	target.draw(line);
 }
@@ -385,20 +436,39 @@ float TimelineView::GetTrackLeft() const
 	return m_rect.position.x + LABEL_WIDTH + TRACK_PADDING;
 }
 
-float TimelineView::GetPixelsPerSecond() const
+float TimelineView::GetTrackAreaLeft() const
 {
-	const float trackWidth = m_rect.size.x - LABEL_WIDTH - 2 * TRACK_PADDING;
-	return trackWidth / static_cast<float>(m_document.GetDuration());
+	return m_rect.position.x + LABEL_WIDTH;
+}
+
+float TimelineView::GetTrackWidth() const
+{
+	return m_rect.size.x - LABEL_WIDTH - 2 * TRACK_PADDING;
+}
+
+double TimelineView::GetTimeScaleStep() const
+{
+	const double pixelsPerSecond = GetTrackWidth() / m_document.GetDuration() * m_timeViewport.GetZoom();
+	for (const double step : { 0.1, 0.2, 0.5, 1.0, 2.0, 5.0 })
+	{
+		if (step * pixelsPerSecond >= MIN_TICK_SPACING)
+		{
+			return step;
+		}
+	}
+	return 10;
 }
 
 float TimelineView::GetPositionByTime(const double time) const
 {
-	return GetTrackLeft() + static_cast<float>(time) * GetPixelsPerSecond();
+	const double trackX = time / m_document.GetDuration() * GetTrackWidth();
+	return GetTrackLeft() + static_cast<float>(m_timeViewport.ToView({ trackX, 0 }).m_x);
 }
 
 double TimelineView::GetTimeByPosition(const float x) const
 {
-	return (x - GetTrackLeft()) / GetPixelsPerSecond();
+	const double trackX = m_timeViewport.ToContent({ x - GetTrackLeft(), 0 }).m_x;
+	return trackX / GetTrackWidth() * m_document.GetDuration();
 }
 
 size_t TimelineView::RowToIndex(const size_t row) const

@@ -9,6 +9,7 @@
 
 const sf::Color WORKSPACE_COLOR(210, 210, 210);
 const char* DEFAULT_FILE_NAME = "editor.draw";
+const float WHEEL_SCROLL_STEP = 40.f;
 
 EditorWindow::EditorWindow(
 	IApplication& application,
@@ -31,7 +32,9 @@ EditorWindow::EditorWindow(
 				}),
 				sf::String::fromUtf8(m_title.begin(), m_title.end()))
 	, m_colorPicker(m_toolbar.GetFont(), [this] { m_controller.CommitColors(); }, [this] { m_controller.CancelColors(); })
-	, m_canvasView(m_document, state, { 0.f, Toolbar::HEIGHT })
+	, m_canvasView(m_document, state,
+		sf::FloatRect({ 0.f, Toolbar::HEIGHT },
+	{ static_cast<float>(m_document.GetBounds().m_width), static_cast<float>(m_document.GetBounds().m_height) }))
 	, m_shapeListView(m_document, state, shapeListController,
 		sf::FloatRect({ static_cast<float>(m_document.GetBounds().m_width), Toolbar::HEIGHT },
 	{ ShapeListView::WIDTH, static_cast<float>(m_document.GetBounds().m_height) }))
@@ -175,6 +178,8 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 	else if (event.is<sf::Event::FocusLost>())
 	{
 		m_isTogglePressed = false;
+		m_isShiftPressed = false;
+		m_isCommandPressed = false;
 		HandleMouseReleased(m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
 	}
 	else if (const auto* pressed = event.getIf<sf::Event::MouseButtonPressed>())
@@ -197,13 +202,15 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 	}
 	else if (const auto* scrolled = event.getIf<sf::Event::MouseWheelScrolled>())
 	{
-		const sf::Vector2f point = m_window.mapPixelToCoords(scrolled->position);
-		m_shapeListView.OnMouseWheel(point, scrolled->delta);
-		m_timelineView.OnMouseWheel(point, scrolled->delta);
+		HandleMouseWheel(m_window.mapPixelToCoords(scrolled->position), scrolled->wheel, scrolled->delta);
 	}
 	else if (const auto* key = event.getIf<sf::Event::KeyPressed>())
 	{
+		using Key = sf::Keyboard::Key;
 		m_isTogglePressed = key->shift || key->control || key->system || IsToggleModifierKey(key->code);
+		m_isShiftPressed = key->shift || key->code == Key::LShift || key->code == Key::RShift;
+		m_isCommandPressed = key->control || key->system || key->code == Key::LControl || key->code == Key::RControl
+			|| key->code == Key::LSystem || key->code == Key::RSystem;
 		HandleKeyPressed(*key);
 	}
 	else if (const auto* released = event.getIf<sf::Event::KeyReleased>())
@@ -213,6 +220,8 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 		const bool isControl = released->control && released->code != Key::LControl && released->code != Key::RControl;
 		const bool isSystem = released->system && released->code != Key::LSystem && released->code != Key::RSystem;
 		m_isTogglePressed = isShift || isControl || isSystem;
+		m_isShiftPressed = isShift;
+		m_isCommandPressed = isControl || isSystem;
 	}
 }
 
@@ -342,6 +351,15 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 		case sf::Keyboard::Key::Y:
 			Redo();
 			break;
+		case sf::Keyboard::Key::Equal:
+			ZoomIn();
+			break;
+		case sf::Keyboard::Key::Hyphen:
+			ZoomOut();
+			break;
+		case sf::Keyboard::Key::Num0:
+			ResetZoom();
+			break;
 		default:
 			break;
 		}
@@ -364,6 +382,63 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 		CancelColorPicker();
 		m_controller.DeleteSelectedShapes();
 	}
+}
+
+void EditorWindow::HandleMouseWheel(const sf::Vector2f point, const sf::Mouse::Wheel wheel, const float delta)
+{
+	const bool isHorizontal = wheel == sf::Mouse::Wheel::Horizontal || m_isShiftPressed;
+	const float scroll = -delta * WHEEL_SCROLL_STEP;
+	if (m_timelineView.IsContains(point))
+	{
+		if (m_isCommandPressed)
+		{
+			m_timelineView.ZoomAt(point, delta);
+		}
+		else if (isHorizontal)
+		{
+			m_timelineView.ScrollTime(scroll);
+		}
+		else
+		{
+			m_timelineView.OnMouseWheel(point, delta);
+		}
+	}
+	else if (m_shapeListView.IsContains(point))
+	{
+		m_shapeListView.OnMouseWheel(point, delta);
+	}
+	else if (m_canvasView.IsContains(point))
+	{
+		if (m_isCommandPressed)
+		{
+			m_canvasView.ZoomAt(point, delta);
+		}
+		else
+		{
+			m_canvasView.Scroll(isHorizontal ? sf::Vector2f(scroll, 0.f) : sf::Vector2f(0.f, scroll));
+		}
+	}
+	UpdateCursor(point);
+}
+
+void EditorWindow::ZoomIn()
+{
+	IsMouseOverTimeline() ? m_timelineView.ZoomIn() : m_canvasView.ZoomIn();
+}
+
+void EditorWindow::ZoomOut()
+{
+	IsMouseOverTimeline() ? m_timelineView.ZoomOut() : m_canvasView.ZoomOut();
+}
+
+void EditorWindow::ResetZoom()
+{
+	IsMouseOverTimeline() ? m_timelineView.ResetZoom() : m_canvasView.ResetZoom();
+}
+
+bool EditorWindow::IsMouseOverTimeline() const
+{
+	return m_timelineView.IsContains(m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
 }
 
 void EditorWindow::UpdateCursor(const sf::Vector2f point)

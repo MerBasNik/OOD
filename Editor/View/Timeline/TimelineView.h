@@ -11,6 +11,7 @@
 #include "Model/EditorState/EditorState.h"
 #include "Model/Shapes/ShapeType.h"
 #include "TimelineHitResult.h"
+#include "View/Viewport/Viewport.h"
 #include <SFML/Graphics.hpp>
 #include <map>
 #include <optional>
@@ -30,6 +31,11 @@ public:
 	void OnMouseMove(sf::Vector2f point);
 	void OnMouseUp(sf::Vector2f point);
 	void OnMouseWheel(sf::Vector2f point, float delta);
+	void ZoomAt(sf::Vector2f point, float delta);
+	void ScrollTime(float delta);
+	void ZoomIn();
+	void ZoomOut();
+	void ResetZoom();
 	void CancelDrag();
 	CursorType GetCursorType(sf::Vector2f point) const;
 	bool IsChange() const;
@@ -46,6 +52,7 @@ private:
 	sf::Font m_font;
 	std::map<ShapeType, sf::Texture> m_icons;
 	float m_scroll = 0;
+	Viewport m_timeViewport;
 	std::vector<int> m_shownSelectedIds;
 	bool m_isChange = true;
 
@@ -65,7 +72,9 @@ private:
 	float GetRowsTop() const;
 	float GetRowsHeight() const;
 	float GetTrackLeft() const;
-	float GetPixelsPerSecond() const;
+	float GetTrackAreaLeft() const;
+	float GetTrackWidth() const;
+	double GetTimeScaleStep() const;
 	float GetPositionByTime(double time) const;
 	double GetTimeByPosition(float x) const;
 	size_t RowToIndex(size_t row) const;

@@ -22,6 +22,7 @@ add_library(Editor_lib STATIC
         Controller/EditorController.cpp
         Controller/ShapeListController.cpp
         Controller/TimelineController.cpp
+        View/Viewport/Viewport.cpp
         Application/AppDocument.cpp
 )
 
@@ -72,6 +73,7 @@ add_executable(Editor_tests
         tests/AppDocumentTests.cpp
         tests/MultiWindowTests.cpp
         tests/TimelineControllerTests.cpp
+        tests/ViewportTests.cpp
 )
 
 target_link_libraries(Editor_tests PRIVATE
