@@ -46,7 +46,7 @@ private:
 	std::optional<Color> m_previewBorderColor;
 	std::optional<ShapeType> m_shapeTool;
 	std::unique_ptr<IShape> m_creatingShape;
-	std::optional<std::filesystem::path> m_filePath;
+	// std::optional<std::filesystem::path> m_filePath;
 	std::vector<IEditorStateObserver*> m_observers;
 
 	void NotifyObservers();

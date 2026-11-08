@@ -11,9 +11,19 @@ const sf::Color WORKSPACE_COLOR(210, 210, 210);
 const char* DEFAULT_FILE_NAME = "editor.draw";
 const sf::Time MOUSE_TRACK_INTERVAL = sf::milliseconds(15);
 
-EditorWindow::EditorWindow(Document& document, EditorState& state, EditorController& controller,
-	ShapeListController& shapeListController)
-	: m_document(document)
+EditorWindow::EditorWindow(
+	Application& application,
+	std::shared_ptr<AppDocument> appDocument,
+	Document& document,
+	EditorState& state,
+	EditorController& controller,
+	ShapeListController& shapeListController,
+	const std::string& appName
+)
+	: m_application(application)
+	, m_appDocument(std::move(appDocument))
+	, m_document(document)
+	, m_appName(appName)
 	, m_state(state)
 	, m_controller(controller)
 	, m_window(sf::VideoMode({
@@ -31,28 +41,34 @@ EditorWindow::EditorWindow(Document& document, EditorState& state, EditorControl
 	InitCursors();
 }
 
-void EditorWindow::Run()
+void EditorWindow::ProcessEvents()
 {
-	while (m_window.isOpen())
+	const sf::Time timeout = m_mouseCapture == MouseCapture::None ? sf::Time::Zero : MOUSE_TRACK_INTERVAL;
+	if (const auto event = m_window.waitEvent(timeout))
 	{
-		const sf::Time timeout = m_mouseCapture == MouseCapture::None ? sf::Time::Zero : MOUSE_TRACK_INTERVAL;
-		if (const auto event = m_window.waitEvent(timeout))
-		{
-			HandleEvent(*event);
-		}
-		else if (m_mouseCapture != MouseCapture::None)
-		{
-			TrackMouse();
-		}
-		while (const auto event = m_window.pollEvent())
-		{
-			HandleEvent(*event);
-		}
-		if (m_window.isOpen() && (m_canvasView.IsChange() || m_shapeListView.IsChange()))
-		{
-			Render();
-		}
+		HandleEvent(*event);
 	}
+	else if (m_mouseCapture != MouseCapture::None)
+	{
+		TrackMouse();
+	}
+	while (const auto event = m_window.pollEvent())
+	{
+		HandleEvent(*event);
+	}
+}
+
+void EditorWindow::RenderWindow()
+{
+	if (IsOpen() && (m_canvasView.IsChange() || m_shapeListView.IsChange()))
+	{
+		Render();
+	}
+}
+
+bool EditorWindow::IsOpen() const
+{
+	return m_window.isOpen();
 }
 
 void EditorWindow::InitToolbar()
@@ -73,6 +89,9 @@ void EditorWindow::InitToolbar()
 	m_toolbar.AddButton("Удалить", [this] {
 		CancelColorPicker();
 		m_controller.DeleteSelectedShapes();
+	});
+	m_toolbar.AddButton("Новое окно", [this] {
+		NewDocument();
 	});
 	m_toolbar.AddButton("Новый", [this] {
 		NewDocument();
@@ -302,7 +321,7 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 			OpenDocument();
 			break;
 		case sf::Keyboard::Key::N:
-			NewDocument();
+			key.shift ? NewWindow() : NewDocument();
 			break;
 		case sf::Keyboard::Key::Z:
 			key.shift ? Redo() : Undo();

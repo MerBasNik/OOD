@@ -280,14 +280,14 @@ CursorType EditorController::GetCursorType(const Point point) const
 	return CursorType::Arrow;
 }
 
-void EditorController::NewDocument()
-{
-	ResetPreview();
-	m_state.SetSelectedShapeIds({});
-	m_state.SetFilePath(std::nullopt);
-	m_history.Clear();
-	m_document.Clear();
-}
+// void EditorController::NewDocument()
+// {
+// 	ResetPreview();
+// 	m_state.SetSelectedShapeIds({});
+// 	m_state.SetFilePath(std::nullopt);
+// 	m_history.Clear();
+// 	m_document.Clear();
+// }
 
 void EditorController::SaveDocument(const std::filesystem::path& path) const
 {
@@ -295,29 +295,29 @@ void EditorController::SaveDocument(const std::filesystem::path& path) const
 	m_state.SetFilePath(path);
 }
 
-void EditorController::OpenDocument(const std::filesystem::path& path)
-{
-	auto shapes = DocumentSerializer::LoadFromFile(path);
-	const Frame bounds = m_document.GetBounds();
-	for (const auto& shape : shapes)
-	{
-		const Frame frame = shape->GetFrame();
-		if (!bounds.IsContainsFrame(frame))
-		{
-			throw std::runtime_error("Фигура выходит за пределы холста");
-		}
-		if (frame.m_width < ShapeDefaults::MIN_SIZE || frame.m_height < ShapeDefaults::MIN_SIZE)
-		{
-			throw std::runtime_error("Размер фигуры меньше минимально допустимого");
-		}
-	}
-
-	ResetPreview();
-	m_state.SetSelectedShapeIds({});
-	m_document.ReplaceShapes(std::move(shapes));
-	m_history.Clear();
-	m_state.SetFilePath(path);
-}
+// void EditorController::OpenDocument(const std::filesystem::path& path)
+// {
+// 	auto shapes = DocumentSerializer::LoadFromFile(path);
+// 	const Frame bounds = m_document.GetBounds();
+// 	for (const auto& shape : shapes)
+// 	{
+// 		const Frame frame = shape->GetFrame();
+// 		if (!bounds.IsContainsFrame(frame))
+// 		{
+// 			throw std::runtime_error("Фигура выходит за пределы холста");
+// 		}
+// 		if (frame.m_width < ShapeDefaults::MIN_SIZE || frame.m_height < ShapeDefaults::MIN_SIZE)
+// 		{
+// 			throw std::runtime_error("Размер фигуры меньше минимально допустимого");
+// 		}
+// 	}
+//
+// 	ResetPreview();
+// 	m_state.SetSelectedShapeIds({});
+// 	m_document.ReplaceShapes(std::move(shapes));
+// 	m_history.Clear();
+// 	m_state.SetFilePath(path);
+// }
 
 std::optional<Frame> EditorController::GetShapeFrame(const int id) const
 {

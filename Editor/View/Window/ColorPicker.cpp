@@ -49,14 +49,14 @@ void ColorPicker::Open(const std::string& title, const sf::Vector2f position, co
 	const std::string applyLabel = "Применить";
 	const std::string cancelLabel = "Отмена";
 	const float buttonTop = m_rect.position.y + m_rect.size.y - PADDING - FOOTER_HEIGHT;
-	const float cancelLeft = m_rect.position.x + m_rect.size.x - PADDING - BUTTON_WIDTH;
-	const float applyLeft = cancelLeft - PADDING - BUTTON_WIDTH;
+	const float cancelLeftPos = m_rect.position.x + m_rect.size.x - PADDING - BUTTON_WIDTH;
+	const float applyLeftPos = cancelLeftPos - PADDING - BUTTON_WIDTH;
 	m_buttons = {
-		{ sf::String::fromUtf8(applyLabel.begin(), applyLabel.end()), sf::FloatRect({ applyLeft, buttonTop }, { BUTTON_WIDTH, FOOTER_HEIGHT }), [this] {
+		{ sf::String::fromUtf8(applyLabel.begin(), applyLabel.end()), sf::FloatRect({ applyLeftPos, buttonTop }, { BUTTON_WIDTH, FOOTER_HEIGHT }), [this] {
 			 Close();
 			 m_onApply();
 		 } },
-		{ sf::String::fromUtf8(cancelLabel.begin(), cancelLabel.end()), sf::FloatRect({ cancelLeft, buttonTop }, { BUTTON_WIDTH, FOOTER_HEIGHT }), [this] {
+		{ sf::String::fromUtf8(cancelLabel.begin(), cancelLabel.end()), sf::FloatRect({ cancelLeftPos, buttonTop }, { BUTTON_WIDTH, FOOTER_HEIGHT }), [this] {
 			 Cancel();
 		 } },
 	};

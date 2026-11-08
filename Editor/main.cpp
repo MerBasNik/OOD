@@ -2,29 +2,23 @@
 // Created by Вадим Патрушев on 15.10.2026.
 //
 
-#include "Controller/EditorController.h"
-#include "Controller/ShapeListController.h"
-#include "View/Window/EditorWindow.h"
+#include "Application/Application.h"
+
 #include <iostream>
 
-const double CANVAS_WIDTH = 1000;
-const double CANVAS_HEIGHT = 650;
 // TODO отслеживать позицию курсора за пределами экрана
 // TODO ограничить число открытий экрана сохранения
 // TODO посмотреть каких тестов не хватает
+
+// TODO добавить визуальное выделение кнопок
+// TODO скрывать кнопки, когда фигуры не выделены
 
 int main()
 {
 	try
 	{
-		Document document(CANVAS_WIDTH, CANVAS_HEIGHT);
-		EditorState state;
-		CommandHistory history;
-		EditorController controller(document, state, history);
-		ShapeListController shapeListController(document, state, history);
-		EditorWindow window(document, state, controller, shapeListController);
-		window.Run();
-		return 0;
+		Application app;
+		return app.Run();
 	}
 	catch (const std::exception& e)
 	{

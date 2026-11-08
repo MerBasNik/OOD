@@ -8,6 +8,7 @@
 #include "ColorPicker.h"
 #include "Controller/EditorController.h"
 #include "Toolbar.h"
+#include "Application/Application.h"
 #include "Enums/MouseCapture.h"
 #include "View/Canvas/CanvasView.h"
 #include "View/ShapeList/ShapeListView.h"
@@ -19,11 +20,22 @@
 class EditorWindow
 {
 public:
-	EditorWindow(Document& document, EditorState& state, EditorController& controller,
-		ShapeListController& shapeListController);
-	void Run();
+	EditorWindow(
+		Application& application,
+		std::shared_ptr<AppDocument> appDocument,
+		Document& document,
+		EditorState& state,
+		EditorController& controller,
+		ShapeListController& shapeListController,
+		const std::string& appName
+	);
+	void ProcessEvents();
+	void RenderWindow();
+	bool IsOpen()const;
 
 private:
+	Application& m_application;
+	std::shared_ptr<AppDocument> m_appDocument;
 	Document& m_document;
 	EditorState& m_state;
 	EditorController& m_controller;
@@ -38,6 +50,7 @@ private:
 	CursorType m_currentCursor = CursorType::Arrow;
 	MouseCapture m_mouseCapture = MouseCapture::None;
 	bool m_isTogglePressed = false;
+	std::string m_appName;
 
 	void InitToolbar();
 	void OpenColorPicker(const std::string& title, sf::FloatRect buttonRect, bool isFill);
