@@ -63,6 +63,46 @@ void EditorState::SetPreviewFrames(std::map<int, Frame> frames)
 	NotifyObservers();
 }
 
+const std::map<int, TimeInterval>& EditorState::GetPreviewTimeIntervals() const
+{
+	return m_previewTimeIntervals;
+}
+
+std::optional<TimeInterval> EditorState::GetPreviewTimeInterval(const int id) const
+{
+	const auto it = m_previewTimeIntervals.find(id);
+	if (it == m_previewTimeIntervals.end())
+	{
+		return std::nullopt;
+	}
+	return it->second;
+}
+
+void EditorState::SetPreviewTimeIntervals(std::map<int, TimeInterval> timeIntervals)
+{
+	if (m_previewTimeIntervals == timeIntervals)
+	{
+		return;
+	}
+	m_previewTimeIntervals = std::move(timeIntervals);
+	NotifyObservers();
+}
+
+double EditorState::GetCurrentTime() const
+{
+	return m_currentTime;
+}
+
+void EditorState::SetCurrentTime(const double time)
+{
+	if (m_currentTime == time)
+	{
+		return;
+	}
+	m_currentTime = time;
+	NotifyObservers();
+}
+
 std::optional<Color> EditorState::GetPreviewFillColor() const
 {
 	return m_previewFillColor;

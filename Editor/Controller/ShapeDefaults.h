@@ -12,6 +12,7 @@ class ShapeDefaults
 {
 public:
 	static constexpr double MIN_SIZE = 10;
+	static constexpr double MIN_DURATION = 0.1;
 	static constexpr double WIDTH = 160;
 	static constexpr double HEIGHT = 120;
 

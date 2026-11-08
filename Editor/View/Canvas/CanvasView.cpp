@@ -85,6 +85,10 @@ void CanvasView::DrawShapes(sf::RenderTarget& target) const
 	{
 		const IShape& shape = m_document.GetShape(i);
 		const int id = m_document.GetShapeId(i);
+		if (!IsShapeVisible(id))
+		{
+			continue;
+		}
 		const auto previewFrame = m_state.GetPreviewFrame(id);
 		const bool hasShapeColorPreview = hasColorPreview && m_state.IsShapeSelected(id);
 		if (previewFrame || hasShapeColorPreview)
@@ -115,13 +119,20 @@ void CanvasView::DrawSelection(sf::RenderTarget& target) const
 	for (const int id : m_state.GetSelectedShapeIds())
 	{
 		const IShape* shape = m_document.FindShape(id);
-		if (!shape)
+		if (!shape || !IsShapeVisible(id))
 		{
 			continue;
 		}
 		const auto previewFrame = m_state.GetPreviewFrame(id);
 		DrawSelectionFrame(target, previewFrame ? *previewFrame : shape->GetFrame());
 	}
+}
+
+bool CanvasView::IsShapeVisible(const int id) const
+{
+	const auto preview = m_state.GetPreviewTimeInterval(id);
+	const TimeInterval interval = preview ? *preview : m_document.FindShape(id)->GetTimeInterval();
+	return interval.IsContains(m_state.GetCurrentTime());
 }
 
 void CanvasView::DrawSelectionFrame(sf::RenderTarget& target, const Frame& frame) const

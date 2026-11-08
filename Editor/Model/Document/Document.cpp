@@ -8,14 +8,24 @@
 
 constexpr double BOUNDS_TOLERANCE = 1e-6;
 
-Document::Document(const double width, const double height)
+Document::Document(const double width, const double height, const double duration)
 	: m_bounds{ 0, 0, width, height }
+	, m_duration(duration)
 {
+	if (m_duration <= 0)
+	{
+		throw std::invalid_argument("Длительность документа должна быть положительной");
+	}
 }
 
 Frame Document::GetBounds() const
 {
 	return m_bounds;
+}
+
+double Document::GetDuration() const
+{
+	return m_duration;
 }
 
 int Document::AddShape(std::unique_ptr<IShape> shape)
@@ -24,7 +34,7 @@ int Document::AddShape(std::unique_ptr<IShape> shape)
 	{
 		throw std::invalid_argument("Фигура не задана");
 	}
-	CheckFrame(shape->GetFrame());
+	CheckShape(*shape);
 
 	const int id = m_nextId++;
 	m_shapesInner.push_back({ id, std::move(shape) });
@@ -70,7 +80,7 @@ void Document::InsertShape(const int id, std::unique_ptr<IShape> shape, const si
 	{
 		throw std::out_of_range("Недопустимая позиция фигуры");
 	}
-	CheckFrame(shape->GetFrame());
+	CheckShape(*shape);
 
 	m_shapesInner.insert(m_shapesInner.begin() + static_cast<std::ptrdiff_t>(index), { id, std::move(shape) });
 	NotifyObservers();
@@ -105,6 +115,22 @@ void Document::SetShapeColors(const int id, const Color fillColor, const Color b
 	}
 	it->m_shape->SetFillColor(fillColor);
 	it->m_shape->SetBorderColor(borderColor);
+	NotifyObservers();
+}
+
+void Document::SetShapeTimeInterval(const int id, const TimeInterval& timeInterval)
+{
+	const auto it = FindItem(id);
+	if (it == m_shapesInner.end())
+	{
+		throw std::invalid_argument("Фигура не найдена");
+	}
+	CheckTimeInterval(timeInterval);
+	if (it->m_shape->GetTimeInterval() == timeInterval)
+	{
+		return;
+	}
+	it->m_shape->SetTimeInterval(timeInterval);
 	NotifyObservers();
 }
 
@@ -143,7 +169,7 @@ void Document::ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes)
 		{
 			throw std::invalid_argument("Фигура не задана");
 		}
-		CheckFrame(shape->GetFrame());
+		CheckShape(*shape);
 	}
 
 	std::vector<DocumentItem> items;
@@ -193,11 +219,11 @@ std::optional<size_t> Document::FindShapeIndex(const int id) const
 	return static_cast<size_t>(it - m_shapesInner.begin());
 }
 
-std::optional<int> Document::FindTopShape(const Point point) const
+std::optional<int> Document::FindTopShape(const Point point, const double time) const
 {
 	for (auto it = m_shapesInner.rbegin(); it != m_shapesInner.rend(); ++it)
 	{
-		if (it->m_shape->HitTest(point))
+		if (it->m_shape->GetTimeInterval().IsContains(time) && it->m_shape->HitTest(point))
 		{
 			return it->m_id;
 		}
@@ -233,6 +259,20 @@ void Document::CheckFrame(const Frame& frame) const
 	{
 		throw std::invalid_argument("Фигура выходит за пределы холста");
 	}
+}
+
+void Document::CheckTimeInterval(const TimeInterval& timeInterval) const
+{
+	if (timeInterval.m_start < 0 || timeInterval.m_end > m_duration || timeInterval.m_start >= timeInterval.m_end)
+	{
+		throw std::invalid_argument("Недопустимый интервал времени фигуры");
+	}
+}
+
+void Document::CheckShape(const IShape& shape) const
+{
+	CheckFrame(shape.GetFrame());
+	CheckTimeInterval(shape.GetTimeInterval());
 }
 
 void Document::NotifyObservers()

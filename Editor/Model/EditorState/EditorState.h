@@ -10,6 +10,7 @@
 #include "Model/Shapes/ShapeType.h"
 #include "Model/Types/Color.h"
 #include "Model/Types/Frame.h"
+#include "Model/Types/TimeInterval.h"
 #include <map>
 #include <memory>
 #include <optional>
@@ -25,6 +26,11 @@ public:
 	const std::map<int, Frame>& GetPreviewFrames() const;
 	std::optional<Frame> GetPreviewFrame(int id) const;
 	void SetPreviewFrames(std::map<int, Frame> frames);
+	const std::map<int, TimeInterval>& GetPreviewTimeIntervals() const;
+	std::optional<TimeInterval> GetPreviewTimeInterval(int id) const;
+	void SetPreviewTimeIntervals(std::map<int, TimeInterval> timeIntervals);
+	double GetCurrentTime() const;
+	void SetCurrentTime(double time);
 	std::optional<Color> GetPreviewFillColor() const;
 	void SetPreviewFillColor(std::optional<Color> color);
 	std::optional<Color> GetPreviewBorderColor() const;
@@ -39,6 +45,8 @@ public:
 private:
 	std::vector<int> m_selectedShapeIds;
 	std::map<int, Frame> m_previewFrames;
+	std::map<int, TimeInterval> m_previewTimeIntervals;
+	double m_currentTime = 0;
 	std::optional<Color> m_previewFillColor;
 	std::optional<Color> m_previewBorderColor;
 	std::optional<ShapeType> m_shapeTool;

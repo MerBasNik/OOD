@@ -26,22 +26,56 @@ std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, 
 	Frame frame;
 	Color fillColor = 0;
 	Color borderColor = 0;
-	std::string extra;
 	stream >> frame.m_left >> frame.m_top >> frame.m_width >> frame.m_height >> std::hex >> fillColor >> borderColor;
-	if (!stream || fillColor > MAX_COLOR || borderColor > MAX_COLOR || stream >> extra)
+	if (!stream || fillColor > MAX_COLOR || borderColor > MAX_COLOR)
+	{
+		throw std::runtime_error("некорректное описание фигуры \"" + line + "\"");
+	}
+	const TimeInterval timeInterval = ParseTimeInterval(stream, line);
+
+	std::unique_ptr<IShape> shape;
+	if (typeName == ShapeSerializer::RECTANGLE_NAME)
+	{
+		shape = std::make_unique<Rectangle>(frame, fillColor, borderColor);
+	}
+	else if (typeName == ShapeSerializer::ELLIPSE_NAME)
+	{
+		shape = std::make_unique<Ellipse>(frame, fillColor, borderColor);
+	}
+	else
+	{
+		shape = std::make_unique<Triangle>(frame, fillColor, borderColor);
+	}
+	shape->SetTimeInterval(timeInterval);
+	return shape;
+}
+
+TimeInterval DocumentSerializer::ParseTimeInterval(std::istringstream& stream, const std::string& line)
+{
+	std::vector<std::string> tokens;
+	std::string token;
+	while (stream >> token)
+	{
+		tokens.push_back(token);
+	}
+	if (tokens.empty())
+	{
+		return {};
+	}
+	if (tokens.size() != 2)
 	{
 		throw std::runtime_error("некорректное описание фигуры \"" + line + "\"");
 	}
 
-	if (typeName == ShapeSerializer::RECTANGLE_NAME)
+	TimeInterval timeInterval;
+	std::istringstream times(tokens[0] + " " + tokens[1]);
+	std::string extra;
+	times >> std::dec >> timeInterval.m_start >> timeInterval.m_end;
+	if (!times || times >> extra || timeInterval.m_start < 0 || timeInterval.m_start >= timeInterval.m_end)
 	{
-		return std::make_unique<Rectangle>(frame, fillColor, borderColor);
+		throw std::runtime_error("некорректное время фигуры \"" + line + "\"");
 	}
-	if (typeName == ShapeSerializer::ELLIPSE_NAME)
-	{
-		return std::make_unique<Ellipse>(frame, fillColor, borderColor);
-	}
-	return std::make_unique<Triangle>(frame, fillColor, borderColor);
+	return timeInterval;
 }
 
 void DocumentSerializer::Save(const Document& document, std::ostream& output)

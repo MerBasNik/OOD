@@ -34,7 +34,7 @@ TEST_F(DocumentTest, FindTopShapeReturnsUpperShapeAtPoint)
 	document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	const auto top = document.AddShape(MakeRectangle({ 50, 50, 100, 100 }));
 
-	EXPECT_EQ(document.FindTopShape({ 75, 75 }), top);
+	EXPECT_EQ(document.FindTopShape({ 75, 75 }, 0), top);
 }
 
 TEST_F(DocumentTest, FindTopShapeReturnsLowerShapeOutsideUpperOne)
@@ -42,14 +42,14 @@ TEST_F(DocumentTest, FindTopShapeReturnsLowerShapeOutsideUpperOne)
 	const auto bottom = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	document.AddShape(MakeRectangle({ 50, 50, 100, 100 }));
 
-	EXPECT_EQ(document.FindTopShape({ 25, 25 }), bottom);
+	EXPECT_EQ(document.FindTopShape({ 25, 25 }, 0), bottom);
 }
 
 TEST_F(DocumentTest, FindTopShapeReturnsNothingOnEmptyArea)
 {
 	document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 
-	EXPECT_EQ(document.FindTopShape({ 400, 400 }), std::nullopt);
+	EXPECT_EQ(document.FindTopShape({ 400, 400 }, 0), std::nullopt);
 }
 
 TEST_F(DocumentTest, FindTopShapeUsesRealShapeGeometry)
@@ -57,7 +57,7 @@ TEST_F(DocumentTest, FindTopShapeUsesRealShapeGeometry)
 	const auto rectangle = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	document.AddShape(std::make_unique<Ellipse>(Frame{ 0, 0, 100, 100 }, 0, 0));
 
-	EXPECT_EQ(document.FindTopShape({ 3, 3 }), rectangle);
+	EXPECT_EQ(document.FindTopShape({ 3, 3 }, 0), rectangle);
 }
 
 TEST_F(DocumentTest, RemoveShapeInvalidatesItsId)
@@ -284,4 +284,48 @@ TEST_F(DocumentTest, InsertShapeRejectsDuplicateIdAndInvalidPosition)
 	EXPECT_THROW(document.InsertShape(id, MakeRectangle({ 0, 0, 10, 10 }), 0), std::invalid_argument);
 	EXPECT_THROW(document.InsertShape(id + 1, MakeRectangle({ 0, 0, 10, 10 }), 2), std::out_of_range);
 	EXPECT_EQ(document.GetShapeCount(), 1);
+}
+
+TEST_F(DocumentTest, FindTopShapeSkipsShapesHiddenAtTime)
+{
+	const auto bottom = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	const auto top = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	document.SetShapeTimeInterval(top, { 2, 5 });
+
+	EXPECT_EQ(document.FindTopShape({ 50, 50 }, 1), bottom);
+	EXPECT_EQ(document.FindTopShape({ 50, 50 }, 2), top);
+	EXPECT_EQ(document.FindTopShape({ 50, 50 }, 5), bottom);
+}
+
+TEST_F(DocumentTest, SetShapeTimeIntervalChangesIntervalAndNotifies)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	MockDocumentObserver observer;
+	document.AddObserver(observer);
+	EXPECT_CALL(observer, DocumentUpdate()).Times(1);
+
+	document.SetShapeTimeInterval(id, { 1, 3 });
+	document.SetShapeTimeInterval(id, { 1, 3 });
+
+	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), (TimeInterval{ 1, 3 }));
+	document.RemoveObserver(observer);
+}
+
+TEST_F(DocumentTest, SetShapeTimeIntervalRejectsInvalidInterval)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+
+	EXPECT_THROW(document.SetShapeTimeInterval(id, { -1, 3 }), std::invalid_argument);
+	EXPECT_THROW(document.SetShapeTimeInterval(id, { 3, 3 }), std::invalid_argument);
+	EXPECT_THROW(document.SetShapeTimeInterval(id, { 1, DEFAULT_DURATION + 1 }), std::invalid_argument);
+	EXPECT_THROW(document.SetShapeTimeInterval(id + 1, { 1, 3 }), std::invalid_argument);
+	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), TimeInterval{});
+}
+
+TEST_F(DocumentTest, AddShapeRejectsIntervalOutsideDuration)
+{
+	auto shape = MakeRectangle({ 0, 0, 100, 100 });
+	shape->SetTimeInterval({ 5, DEFAULT_DURATION + 5 });
+
+	EXPECT_THROW(document.AddShape(std::move(shape)), std::invalid_argument);
 }

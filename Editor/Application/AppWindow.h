@@ -9,6 +9,7 @@
 #include "IApplication.h"
 #include "Controller/EditorController.h"
 #include "Controller/ShapeListController.h"
+#include "Controller/TimelineController.h"
 #include "Model/EditorState/EditorState.h"
 #include "View/Window/EditorWindow.h"
 #include <memory>
@@ -27,6 +28,7 @@ private:
 	EditorState m_state;
 	EditorController m_controller;
 	ShapeListController m_shapeListController;
+	TimelineController m_timelineController;
 	EditorWindow m_editorWindow;
 };
 

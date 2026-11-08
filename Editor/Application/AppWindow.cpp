@@ -8,7 +8,8 @@ AppWindow::AppWindow(std::shared_ptr<AppDocument> appDocument, IApplication& app
 	: m_appDocument(std::move(appDocument))
 	, m_controller(m_appDocument->GetDocument(), m_state, m_appDocument->GetCommandHistory())
 	, m_shapeListController(m_appDocument->GetDocument(), m_state, m_appDocument->GetCommandHistory())
-	, m_editorWindow(application, m_appDocument, m_state, m_controller, m_shapeListController)
+	, m_timelineController(m_appDocument->GetDocument(), m_state, m_appDocument->GetCommandHistory())
+	, m_editorWindow(application, m_appDocument, m_state, m_controller, m_shapeListController, m_timelineController)
 {
 }
 

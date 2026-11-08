@@ -34,6 +34,7 @@ private:
 	void DrawBackground(sf::RenderTarget& target) const;
 	void DrawShapes(sf::RenderTarget& target) const;
 	void DrawSelection(sf::RenderTarget& target) const;
+	bool IsShapeVisible(int id) const;
 	void DrawSelectionFrame(sf::RenderTarget& target, const Frame& frame) const;
 	sf::Vector2f ToTargetPoint(Point point) const;
 };

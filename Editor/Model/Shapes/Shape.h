@@ -17,11 +17,14 @@ public:
 	Color GetBorderColor() const override;
 	void SetFillColor(Color color) override;
 	void SetBorderColor(Color color) override;
+	TimeInterval GetTimeInterval() const override;
+	void SetTimeInterval(TimeInterval timeInterval) override;
 
 private:
 	Frame m_frame;
 	Color m_fillColor;
 	Color m_borderColor;
+	TimeInterval m_timeInterval;
 };
 
 #endif // OOD_EDITOR_SHAPE_H

@@ -5,7 +5,7 @@
 #include "Application.h"
 
 constexpr double CANVAS_WIDTH = 1000;
-constexpr double CANVAS_HEIGHT = 650;
+constexpr double CANVAS_HEIGHT = 450;
 
 int Application::Run()
 {

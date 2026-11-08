@@ -10,6 +10,7 @@ enum class MouseCapture
 	None,
 	Canvas,
 	ShapeList,
+	Timeline,
 };
 
 #endif //OOD_MOUSECAPTURE_H

@@ -12,6 +12,7 @@
 #include "Enums/MouseCapture.h"
 #include "View/Canvas/CanvasView.h"
 #include "View/ShapeList/ShapeListView.h"
+#include "View/Timeline/TimelineView.h"
 #include <SFML/Graphics.hpp>
 #include <functional>
 #include <map>
@@ -26,7 +27,8 @@ public:
 		std::shared_ptr<AppDocument> appDocument,
 		EditorState& state,
 		EditorController& controller,
-		ShapeListController& shapeListController
+		ShapeListController& shapeListController,
+		TimelineController& timelineController
 	);
 	void ProcessEvents();
 	void RenderWindow();
@@ -47,6 +49,7 @@ private:
 	sf::FloatRect m_borderButtonRect;
 	CanvasView m_canvasView;
 	ShapeListView m_shapeListView;
+	TimelineView m_timelineView;
 	std::map<CursorType, sf::Cursor> m_cursors;
 	CursorType m_currentCursor = CursorType::Arrow;
 	MouseCapture m_mouseCapture = MouseCapture::None;

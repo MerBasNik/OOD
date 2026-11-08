@@ -15,7 +15,8 @@ EditorWindow::EditorWindow(
 	std::shared_ptr<AppDocument> appDocument,
 	EditorState& state,
 	EditorController& controller,
-	ShapeListController& shapeListController
+	ShapeListController& shapeListController,
+	TimelineController& timelineController
 )
 	: m_application(application)
 	, m_appDocument(std::move(appDocument))
@@ -26,7 +27,7 @@ EditorWindow::EditorWindow(
 	, m_controller(controller)
 	, m_window(sf::VideoMode({
 					static_cast<unsigned>(m_document.GetBounds().m_width + ShapeListView::WIDTH),
-					static_cast<unsigned>(m_document.GetBounds().m_height + Toolbar::HEIGHT),
+					static_cast<unsigned>(m_document.GetBounds().m_height + Toolbar::HEIGHT + TimelineView::HEIGHT),
 				}),
 				sf::String::fromUtf8(m_title.begin(), m_title.end()))
 	, m_colorPicker(m_toolbar.GetFont(), [this] { m_controller.CommitColors(); }, [this] { m_controller.CancelColors(); })
@@ -34,6 +35,9 @@ EditorWindow::EditorWindow(
 	, m_shapeListView(m_document, state, shapeListController,
 		sf::FloatRect({ static_cast<float>(m_document.GetBounds().m_width), Toolbar::HEIGHT },
 	{ ShapeListView::WIDTH, static_cast<float>(m_document.GetBounds().m_height) }))
+	, m_timelineView(m_document, state, timelineController,
+		sf::FloatRect({ 0.f, Toolbar::HEIGHT + static_cast<float>(m_document.GetBounds().m_height) },
+	{ static_cast<float>(m_document.GetBounds().m_width) + ShapeListView::WIDTH, TimelineView::HEIGHT }))
 {
 	InitToolbar();
 	InitCursors();
@@ -56,7 +60,7 @@ void EditorWindow::ProcessEvents()
 
 void EditorWindow::RenderWindow()
 {
-	if (IsOpen() && (m_canvasView.IsChange() || m_shapeListView.IsChange()))
+	if (IsOpen() && (m_canvasView.IsChange() || m_shapeListView.IsChange() || m_timelineView.IsChange()))
 	{
 		Render();
 	}
@@ -193,7 +197,9 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 	}
 	else if (const auto* scrolled = event.getIf<sf::Event::MouseWheelScrolled>())
 	{
-		m_shapeListView.OnMouseWheel(m_window.mapPixelToCoords(scrolled->position), scrolled->delta);
+		const sf::Vector2f point = m_window.mapPixelToCoords(scrolled->position);
+		m_shapeListView.OnMouseWheel(point, scrolled->delta);
+		m_timelineView.OnMouseWheel(point, scrolled->delta);
 	}
 	else if (const auto* key = event.getIf<sf::Event::KeyPressed>())
 	{
@@ -262,6 +268,11 @@ void EditorWindow::HandleMousePressed(const sf::Vector2f point)
 		m_mouseCapture = MouseCapture::ShapeList;
 		m_shapeListView.OnMouseDown(point, m_isTogglePressed);
 	}
+	else if (m_timelineView.IsContains(point))
+	{
+		m_mouseCapture = MouseCapture::Timeline;
+		m_timelineView.OnMouseDown(point, m_isTogglePressed);
+	}
 	else
 	{
 		m_mouseCapture = MouseCapture::Canvas;
@@ -280,6 +291,9 @@ void EditorWindow::HandleMouseMoved(const sf::Vector2f point)
 	case MouseCapture::ShapeList:
 		m_shapeListView.OnMouseMove(point);
 		break;
+	case MouseCapture::Timeline:
+		m_timelineView.OnMouseMove(point);
+		break;
 	case MouseCapture::None:
 		break;
 	}
@@ -295,6 +309,9 @@ void EditorWindow::HandleMouseReleased(const sf::Vector2f point)
 		break;
 	case MouseCapture::ShapeList:
 		m_shapeListView.OnMouseUp(point);
+		break;
+	case MouseCapture::Timeline:
+		m_timelineView.OnMouseUp(point);
 		break;
 	case MouseCapture::None:
 		break;
@@ -338,6 +355,7 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 			return;
 		}
 		m_shapeListView.CancelDrag();
+		m_timelineView.CancelDrag();
 		m_controller.Cancel();
 		UpdateCursor(m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
 	}
@@ -350,12 +368,21 @@ void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 
 void EditorWindow::UpdateCursor(const sf::Vector2f point)
 {
+	const bool isFree = m_mouseCapture == MouseCapture::None && !m_colorPicker.IsContains(point);
+	const bool isTimelineCursor = m_mouseCapture == MouseCapture::Timeline
+		|| (isFree && m_timelineView.IsContains(point));
 	const bool isCanvasCursor = m_mouseCapture == MouseCapture::Canvas
-		|| (m_mouseCapture == MouseCapture::None && !m_toolbar.IsContains(point) && !m_shapeListView.IsContains(point)
-			&& !m_colorPicker.IsContains(point));
-	const CursorType type = isCanvasCursor
-		? m_controller.GetCursorType(m_canvasView.ToDocumentPoint(point))
-		: CursorType::Arrow;
+		|| (isFree && !m_toolbar.IsContains(point) && !m_shapeListView.IsContains(point)
+			&& !m_timelineView.IsContains(point));
+	CursorType type = CursorType::Arrow;
+	if (isTimelineCursor)
+	{
+		type = m_timelineView.GetCursorType(point);
+	}
+	else if (isCanvasCursor)
+	{
+		type = m_controller.GetCursorType(m_canvasView.ToDocumentPoint(point));
+	}
 	if (type == m_currentCursor)
 	{
 		return;
@@ -378,11 +405,13 @@ void EditorWindow::Render()
 	m_window.clear(WORKSPACE_COLOR);
 	m_canvasView.Draw(m_window);
 	m_shapeListView.Draw(m_window);
+	m_timelineView.Draw(m_window);
 	m_toolbar.Draw(m_window);
 	m_colorPicker.Draw(m_window);
 	m_window.display();
 	m_canvasView.SetDontChange();
 	m_shapeListView.SetDontChange();
+	m_timelineView.SetDontChange();
 }
 
 void EditorWindow::NewDocument()
@@ -421,6 +450,7 @@ void EditorWindow::Undo()
 {
 	CancelColorPicker();
 	m_shapeListView.CancelDrag();
+	m_timelineView.CancelDrag();
 	m_controller.Undo();
 }
 
@@ -428,6 +458,7 @@ void EditorWindow::Redo()
 {
 	CancelColorPicker();
 	m_shapeListView.CancelDrag();
+	m_timelineView.CancelDrag();
 	m_controller.Redo();
 }
 

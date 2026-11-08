@@ -42,16 +42,9 @@ public:
 		return m_document.FindShape(id)->GetFrame();
 	}
 
-	// объедини click и toggleClick в одну функцию, передавай через параметр флаг isToggle
-	void Click(const Point point)
+	void Click(const Point point, const bool isToggle = false)
 	{
-		m_controller.OnMouseDown(point);
-		m_controller.OnMouseUp(point);
-	}
-
-	void ToggleClick(const Point point)
-	{
-		m_controller.OnMouseDown(point, true);
+		m_controller.OnMouseDown(point, isToggle);
 		m_controller.OnMouseUp(point);
 	}
 
@@ -665,7 +658,7 @@ TEST_F(EditorControllerTest, ToggleClickAddsShapeToSelection)
 	const auto first = AddSelectedRectangle({ 0, 0, 100, 100 });
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
 
-	ToggleClick({ 250, 250 });
+	Click({ 250, 250 }, true);
 
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ first, second }));
 }
@@ -676,7 +669,7 @@ TEST_F(EditorControllerTest, ToggleClickRemovesShapeFromSelection)
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
 	m_state.SetSelectedShapeIds({ first, second });
 
-	ToggleClick({ 50, 50 });
+	Click({ 50, 50 }, true);
 
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ second });
 }
@@ -685,7 +678,7 @@ TEST_F(EditorControllerTest, ToggleClickOnEmptyAreaKeepsSelection)
 {
 	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
 
-	ToggleClick({ 800, 500 });
+	Click({ 800, 500 }, true);
 
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ id });
 }
@@ -842,3 +835,43 @@ TEST_F(EditorControllerTest, UndoAtHistoryStartKeepsSelection)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ id });
 }
 
+TEST_F(EditorControllerTest, ClickOnShapeHiddenAtCurrentTimeDoesNotSelectIt)
+{
+	const auto id = AddRectangle({ 0, 0, 100, 100 });
+	m_document.SetShapeTimeInterval(id, { 2, 5 });
+	m_state.SetCurrentTime(1);
+
+	Click({ 50, 50 });
+
+	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
+}
+
+TEST_F(EditorControllerTest, CreatedShapeStartsAtCurrentTime)
+{
+	m_state.SetCurrentTime(3);
+
+	m_controller.AddShape(ShapeType::Rectangle);
+
+	ASSERT_EQ(m_document.GetShapeCount(), 1);
+	EXPECT_EQ(m_document.GetShape(0).GetTimeInterval(), (TimeInterval{ 3, m_document.GetDuration() }));
+}
+
+TEST_F(EditorControllerTest, DragMovesOnlySelectedShapesVisibleAtCurrentTime)
+{
+	const auto visible = AddRectangle({ 0, 0, 100, 100 });
+	const auto hidden = AddRectangle({ 200, 200, 100, 100 });
+	m_document.SetShapeTimeInterval(hidden, { 5, 8 });
+	m_state.SetSelectedShapeIds({ visible, hidden });
+
+	Drag({ 50, 50 }, { 100, 100 });
+
+	EXPECT_EQ(GetFrame(visible), (Frame{ 50, 50, 100, 100 }));
+	EXPECT_EQ(GetFrame(hidden), (Frame{ 200, 200, 100, 100 }));
+}
+
+TEST_F(EditorControllerTest, ChangingCurrentTimeDoesNotChangeHistory)
+{
+	m_state.SetCurrentTime(4);
+
+	EXPECT_FALSE(m_history.CanUndo());
+}

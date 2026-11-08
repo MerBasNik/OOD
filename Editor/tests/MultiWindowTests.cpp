@@ -145,3 +145,27 @@ TEST_F(MultiWindowTest, ShapeListDragOfDeletedShapeDoesNotChangeHistory)
 	m_history.Undo();
 	EXPECT_FALSE(m_history.CanUndo());
 }
+
+TEST_F(MultiWindowTest, WindowsHaveIndependentCurrentTime)
+{
+	m_firstState.SetCurrentTime(2);
+	m_secondState.SetCurrentTime(7);
+
+	EXPECT_EQ(m_firstState.GetCurrentTime(), 2);
+	EXPECT_EQ(m_secondState.GetCurrentTime(), 7);
+}
+
+TEST_F(MultiWindowTest, ShapeVisibilityDependsOnWindowTime)
+{
+	const auto id = AddRectangle({ 0, 0, 100, 100 });
+	m_document.SetShapeTimeInterval(id, { 0, 5 });
+	m_secondState.SetCurrentTime(6);
+
+	m_first.OnMouseDown({ 50, 50 });
+	m_first.OnMouseUp({ 50, 50 });
+	m_second.OnMouseDown({ 50, 50 });
+	m_second.OnMouseUp({ 50, 50 });
+
+	EXPECT_EQ(m_firstState.GetSelectedShapeIds(), std::vector{ id });
+	EXPECT_TRUE(m_secondState.GetSelectedShapeIds().empty());
+}

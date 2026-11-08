@@ -195,3 +195,29 @@ TEST_F(AppDocumentTest, DifferentDocumentsHaveIndependentHistories)
 	EXPECT_TRUE(other.GetCommandHistory().CanUndo());
 	EXPECT_FALSE(m_history.CanUndo());
 }
+
+TEST_F(AppDocumentTest, LoadRejectsTimeOutsideDuration)
+{
+	WriteFile("rectangle 0 0 50 50 ff0000 000000 5 20\n");
+
+	EXPECT_THROW(Load(), std::runtime_error);
+}
+
+TEST_F(AppDocumentTest, LoadRejectsTooShortTimeInterval)
+{
+	WriteFile("rectangle 0 0 50 50 ff0000 000000 5 5.01\n");
+
+	EXPECT_THROW(Load(), std::runtime_error);
+}
+
+TEST_F(AppDocumentTest, SaveAndLoadKeepTimeInterval)
+{
+	const auto id = AddRectangle({ 0, 0, 100, 100 });
+	m_document.SetShapeTimeInterval(id, { 2, 6 });
+
+	m_appDocument.Save(m_path);
+	const auto loaded = Load();
+
+	ASSERT_EQ(loaded->GetDocument().GetShapeCount(), 1);
+	EXPECT_EQ(loaded->GetDocument().GetShape(0).GetTimeInterval(), (TimeInterval{ 2, 6 }));
+}

@@ -8,6 +8,7 @@
 #include "Model/Document/Document.h"
 #include <filesystem>
 #include <iosfwd>
+#include <sstream>
 #include <string>
 
 class DocumentSerializer
@@ -20,6 +21,7 @@ public:
 
 private:
 	static std::unique_ptr<IShape> ParseShape(const std::string& line, size_t lineNumber);
+	static TimeInterval ParseTimeInterval(std::istringstream& stream, const std::string& line);
 };
 
 #endif // OOD_EDITOR_DOCUMENTSERIALIZER_H

@@ -39,8 +39,8 @@ TEST_F(DocumentSerializerTest, SaveWritesShapesInLayerOrder)
 	DocumentSerializer::Save(document, output);
 
 	EXPECT_EQ(output.str(),
-		"rectangle 10 20 30 40 ff0000 000000\n"
-		"ellipse 1.5 2.25 100 50 00ff00 123456\n");
+		"rectangle 10 20 30 40 ff0000 000000 0 10\n"
+		"ellipse 1.5 2.25 100 50 00ff00 123456 0 10\n");
 }
 
 TEST_F(DocumentSerializerTest, SaveEmptyDocumentWritesNothing)
@@ -90,6 +90,26 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresColor)
 	ASSERT_EQ(shapes.size(), 1);
 	EXPECT_EQ(shapes[0]->GetFillColor(), 0xABCDEF);
 	EXPECT_EQ(shapes[0]->GetBorderColor(), 0x0A0B0C);
+}
+
+TEST_F(DocumentSerializerTest, RoundTripRestoresTimeInterval)
+{
+	auto shape = std::make_unique<Rectangle>(Frame{ 10, 20, 30, 40 }, 0, 0);
+	shape->SetTimeInterval({ 1.25, 7.5 });
+	document.AddShape(std::move(shape));
+
+	const auto shapes = SaveAndLoad();
+
+	ASSERT_EQ(shapes.size(), 1);
+	EXPECT_EQ(shapes[0]->GetTimeInterval(), (TimeInterval{ 1.25, 7.5 }));
+}
+
+TEST_F(DocumentSerializerTest, LoadOfLineWithoutTimeGivesDefaultInterval)
+{
+	const auto shapes = LoadFromString("rectangle 10 20 30 40 ff0000 000000\n");
+
+	ASSERT_EQ(shapes.size(), 1);
+	EXPECT_EQ(shapes[0]->GetTimeInterval(), TimeInterval{});
 }
 
 TEST_F(DocumentSerializerTest, SkipsEmptyLines)
@@ -168,5 +188,10 @@ INSTANTIATE_TEST_SUITE_P(DocumentSerializerTest, DocumentSerializerInvalidConten
 		InvalidDocumentCase{ "TooLargeColor", "rectangle 0 0 10 10 1000000 000000\n", "некорректное описание фигуры" },
 		InvalidDocumentCase{ "TooLargeBorderColor", "rectangle 0 0 10 10 000000 1000000\n", "некорректное описание фигуры" },
 		InvalidDocumentCase{ "ExtraData", "rectangle 0 0 10 10 000000 000000 extra\n", "некорректное описание фигуры" },
-		InvalidDocumentCase{ "Comment", "# comment\n", "неизвестный тип фигуры" }),
+		InvalidDocumentCase{ "Comment", "# comment\n", "неизвестный тип фигуры" },
+		InvalidDocumentCase{ "MissingEndTime", "rectangle 0 0 10 10 000000 000000 1\n", "некорректное описание фигуры" },
+		InvalidDocumentCase{ "ExtraDataAfterTime", "rectangle 0 0 10 10 000000 000000 1 2 3\n", "некорректное описание фигуры" },
+		InvalidDocumentCase{ "NotANumberTime", "rectangle 0 0 10 10 000000 000000 a 2\n", "некорректное время фигуры" },
+		InvalidDocumentCase{ "NegativeStartTime", "rectangle 0 0 10 10 000000 000000 -1 2\n", "некорректное время фигуры" },
+		InvalidDocumentCase{ "EndBeforeStart", "rectangle 0 0 10 10 000000 000000 3 2\n", "некорректное время фигуры" }),
 	[](const ::testing::TestParamInfo<InvalidDocumentCase>& info) { return info.param.m_name; });

@@ -29,6 +29,15 @@ std::shared_ptr<AppDocument> AppDocument::Load(const std::filesystem::path& path
 		{
 			throw std::runtime_error("Размер фигуры меньше минимально допустимого");
 		}
+		const TimeInterval timeInterval = shape->GetTimeInterval();
+		if (timeInterval.m_end > appDocument->m_document.GetDuration())
+		{
+			throw std::runtime_error("Время фигуры выходит за длительность документа");
+		}
+		if (timeInterval.GetDuration() < ShapeDefaults::MIN_DURATION)
+		{
+			throw std::runtime_error("Длительность фигуры меньше минимально допустимой");
+		}
 	}
 
 	appDocument->m_document.ReplaceShapes(std::move(shapes));

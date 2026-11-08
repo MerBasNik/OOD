@@ -14,6 +14,7 @@
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
 #include "ShapeDefaults.h"
+#include <algorithm>
 #include <stdexcept>
 
 EditorController::EditorController(Document& document, EditorState& state, CommandHistory& history)
@@ -135,7 +136,7 @@ void EditorController::OnMouseDown(const Point point, const bool isToggle)
 	if (isToggle)
 	{
 		ResetPreview();
-		if (const auto shapeId = m_document.FindTopShape(point))
+		if (const auto shapeId = m_document.FindTopShape(point, m_state.GetCurrentTime()))
 		{
 			m_state.ToggleShapeSelection(*shapeId);
 		}
@@ -224,7 +225,7 @@ HitResult EditorController::HitTest(const Point point) const
 		}
 	}
 
-	if (const auto shapeId = m_document.FindTopShape(point))
+	if (const auto shapeId = m_document.FindTopShape(point, m_state.GetCurrentTime()))
 	{
 		return { HitArea::Shape, shapeId, std::nullopt };
 	}
@@ -295,7 +296,7 @@ void EditorController::DocumentUpdate()
 std::optional<Frame> EditorController::GetShapeFrame(const int id) const
 {
 	const IShape* shape = m_document.FindShape(id);
-	if (!shape)
+	if (!shape || !shape->GetTimeInterval().IsContains(m_state.GetCurrentTime()))
 	{
 		return std::nullopt;
 	}
@@ -357,12 +358,17 @@ void EditorController::StartDrag(const DragMode mode, const int id, const Point 
 	DragState drag{ mode, handle, point };
 	for (const int selectedId : m_state.GetSelectedShapeIds())
 	{
+		const auto frame = GetShapeFrame(selectedId);
+		if (!frame)
+		{
+			continue;
+		}
 		if (selectedId == id)
 		{
 			drag.m_shapeIndex = drag.m_shapeIds.size();
 		}
 		drag.m_shapeIds.push_back(selectedId);
-		drag.m_startFrames.push_back(m_document.FindShape(selectedId)->GetFrame());
+		drag.m_startFrames.push_back(*frame);
 	}
 	m_drag = std::move(drag);
 }
@@ -413,6 +419,9 @@ void EditorController::FinishDrag(const Point point)
 
 void EditorController::AddSelectShape(std::unique_ptr<IShape> shape) const
 {
+	const double duration = m_document.GetDuration();
+	const double start = std::min(m_state.GetCurrentTime(), duration - ShapeDefaults::MIN_DURATION);
+	shape->SetTimeInterval({ start, duration });
 	auto command = std::make_unique<AddShapeCommand>(m_document, std::move(shape));
 	const AddShapeCommand& addCommand = *command;
 	m_history.Execute(std::move(command));
@@ -457,6 +466,16 @@ void EditorController::RemoveMissingShapesFromState()
 		}
 	}
 	m_state.SetPreviewFrames(std::move(previewFrames));
+
+	std::map<int, TimeInterval> previewTimeIntervals;
+	for (const auto& [id, timeInterval] : m_state.GetPreviewTimeIntervals())
+	{
+		if (m_document.FindShape(id))
+		{
+			previewTimeIntervals.emplace(id, timeInterval);
+		}
+	}
+	m_state.SetPreviewTimeIntervals(std::move(previewTimeIntervals));
 }
 
 bool EditorController::IsDraggedShapeMissing() const

@@ -15,11 +15,13 @@ add_library(Editor_lib STATIC
         Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.cpp
         Command/ChangeShapeIndexCommand/ChangeShapeIndexCommand.cpp
         Command/ChangeShapeColorsCommand/ChangeShapeColorsCommand.cpp
+        Command/ChangeShapeTimeIntervalCommand/ChangeShapeTimeIntervalCommand.cpp
         Command/MacroCommand/MacroCommand.cpp
         Controller/FrameCalculator.cpp
         Controller/ShapeDefaults.cpp
         Controller/EditorController.cpp
         Controller/ShapeListController.cpp
+        Controller/TimelineController.cpp
         Application/AppDocument.cpp
 )
 
@@ -33,6 +35,7 @@ add_executable(Editor
         View/Canvas/CanvasView.cpp
         View/ShapeList/ShapeListView.cpp
         View/ShapeList/ShapeListItemVisitor.cpp
+        View/Timeline/TimelineView.cpp
         View/ShapeIcons.cpp
         View/Window/Toolbar.cpp
         View/Window/ColorPicker.cpp
@@ -68,6 +71,7 @@ add_executable(Editor_tests
         tests/MacroCommandTests.cpp
         tests/AppDocumentTests.cpp
         tests/MultiWindowTests.cpp
+        tests/TimelineControllerTests.cpp
 )
 
 target_link_libraries(Editor_tests PRIVATE

@@ -6,6 +6,7 @@
 #include "Command/ChangeShapeColorsCommand/ChangeShapeColorsCommand.h"
 #include "Command/ChangeShapeFrameCommand/ChangeShapeFrameCommand.h"
 #include "Command/ChangeShapeIndexCommand/ChangeShapeIndexCommand.h"
+#include "Command/ChangeShapeTimeIntervalCommand/ChangeShapeTimeIntervalCommand.h"
 #include "Command/DeleteShapeCommand/DeleteShapeCommand.h"
 #include "Model/Shapes/Rectangle.h"
 #include <gtest/gtest.h>
@@ -225,5 +226,29 @@ TEST_F(CommandTest, ChangeShapeColorsCommandUndoBeforeExecuteThrows)
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	ChangeShapeColorsCommand command(document, id, 0x112233, 0x445566);
 
+	EXPECT_THROW(command.Unexecute(), std::logic_error);
+}
+
+TEST_F(CommandTest, ChangeShapeTimeIntervalCommandChangesAndRestoresInterval)
+{
+	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
+	ChangeShapeTimeIntervalCommand command(document, id, { 2, 4 });
+
+	command.Execute();
+	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), (TimeInterval{ 2, 4 }));
+
+	command.Unexecute();
+	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), TimeInterval{});
+
+	command.Execute();
+	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), (TimeInterval{ 2, 4 }));
+	EXPECT_EQ(command.GetShapeIds(), std::vector{ id });
+}
+
+TEST_F(CommandTest, ChangeShapeTimeIntervalCommandOfMissingShapeThrows)
+{
+	ChangeShapeTimeIntervalCommand command(document, 42, { 2, 4 });
+
+	EXPECT_THROW(command.Execute(), std::invalid_argument);
 	EXPECT_THROW(command.Unexecute(), std::logic_error);
 }
