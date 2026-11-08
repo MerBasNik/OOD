@@ -8,6 +8,7 @@
 #include "Command/ICommand.h"
 #include <deque>
 #include <memory>
+#include <vector>
 
 class CommandHistory
 {
@@ -16,8 +17,8 @@ public:
 
 	explicit CommandHistory(size_t maxSize = DEFAULT_MAX_SIZE);
 	void Execute(std::unique_ptr<ICommand> command);
-	void Undo();
-	void Redo();
+	std::vector<int> Undo();
+	std::vector<int> Redo();
 	void Clear();
 	bool CanUndo() const;
 	bool CanRedo() const;

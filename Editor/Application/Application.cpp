@@ -3,39 +3,67 @@
 //
 
 #include "Application.h"
-#include <iostream>
 
-Application::Application()
+constexpr double CANVAS_WIDTH = 1000;
+constexpr double CANVAS_HEIGHT = 650;
+
+int Application::Run()
 {
+	NewApplication();
+	while (true)
+	{
+		AddNewWindows();
+		if (m_appWindows.empty())
+		{
+			return 0;
+		}
+		for (const auto& appWindow : m_appWindows)
+		{
+			appWindow->ProcessEvents();
+		}
+		for (const auto& appWindow : m_appWindows)
+		{
+			appWindow->RenderWindow();
+		}
+		for (auto it = m_appWindows.begin(); it != m_appWindows.end();)
+		{
+			if ((*it)->IsOpen())
+			{
+				++it;
+			}
+			else
+			{
+				it = m_appWindows.erase(it);
+			}
+		}
+	}
 }
 
 void Application::NewApplication()
 {
-	const auto appDocument = std::make_shared<AppDocument>(CANVAS_WIDTH, CANVAS_HEIGHT);
-	appDocument->NewWindow();
-	m_appCount++;
+	NewWindow(std::make_shared<AppDocument>(CANVAS_WIDTH, CANVAS_HEIGHT, NextDocumentName()));
 }
 
 void Application::OpenApplication(const std::filesystem::path& path)
 {
-	appDocument->Load(path);
-	appDocument->OpenWindow();
+	NewWindow(AppDocument::Load(path, CANVAS_WIDTH, CANVAS_HEIGHT, NextDocumentName()));
 }
 
 void Application::NewWindow(std::shared_ptr<AppDocument> appDocument)
 {
-	m_appWindows.push_back(appDocument);
+	m_newAppWindows.push_back(std::make_unique<AppWindow>(std::move(appDocument), *this));
 }
 
-int Application::Run()
+void Application::AddNewWindows()
 {
-	while (!m_appWindows.empty())
+	for (auto& appWindow : m_newAppWindows)
 	{
-		for (auto appDocument : m_appWindows)
-		{
-			appDocument.ProcessEvents();
-			appDocument.RenderWindow();
-		}
+		m_appWindows.push_back(std::move(appWindow));
 	}
-	return 0;
+	m_newAppWindows.clear();
+}
+
+std::string Application::NextDocumentName()
+{
+	return "Документ " + std::to_string(++m_documentCount);
 }

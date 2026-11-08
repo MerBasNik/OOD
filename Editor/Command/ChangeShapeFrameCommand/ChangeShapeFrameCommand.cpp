@@ -32,3 +32,8 @@ void ChangeShapeFrameCommand::Unexecute()
 	}
 	m_document.SetShapeFrame(m_shapeId, *m_oldFrame);
 }
+
+std::vector<int> ChangeShapeFrameCommand::GetShapeIds() const
+{
+	return { m_shapeId };
+}

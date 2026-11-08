@@ -7,23 +7,24 @@
 
 #include "AppWindow.h"
 #include "IApplication.h"
-#include "Controller/EditorController.h"
-
-const double CANVAS_WIDTH = 1000;
-const double CANVAS_HEIGHT = 650;
+#include <memory>
+#include <vector>
 
 class Application : public IApplication
 {
 public:
-	Application();
+	int Run();
 	void NewApplication() override;
 	void OpenApplication(const std::filesystem::path& path) override;
 	void NewWindow(std::shared_ptr<AppDocument> appDocument) override;
-	int Run() override;
 
 private:
-	int m_appCount = 0;
+	int m_documentCount = 0;
 	std::vector<std::unique_ptr<AppWindow>> m_appWindows;
+	std::vector<std::unique_ptr<AppWindow>> m_newAppWindows;
+
+	void AddNewWindows();
+	std::string NextDocumentName();
 };
 
-#endif //OOD_APPLICATION_H
+#endif // OOD_APPLICATION_H

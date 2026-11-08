@@ -8,8 +8,6 @@
 #include "Mock/ResizeCase.h"
 #include "Model/Shapes/Ellipse.h"
 #include "Model/Shapes/Rectangle.h"
-#include <filesystem>
-#include <fstream>
 #include "Mock/ShapeTypeVisitor.h"
 #include <gtest/gtest.h>
 
@@ -21,12 +19,10 @@ public:
 	CommandHistory m_history;
 	EditorController m_controller{ m_document, m_state, m_history };
 	MockDocumentObserver m_documentObserver;
-	std::filesystem::path m_path = std::filesystem::temp_directory_path() / "test.draw";
 
 	void TearDown() override
 	{
 		m_document.RemoveObserver(m_documentObserver);
-		std::filesystem::remove(m_path);
 	}
 
 	int AddRectangle(const Frame& frame)
@@ -65,12 +61,6 @@ public:
 		m_controller.OnMouseMove({ (from.m_x + to.m_x) / 2, (from.m_y + to.m_y) / 2 });
 		m_controller.OnMouseMove(to);
 		m_controller.OnMouseUp(to);
-	}
-
-	void WriteFile(const std::string& content) const
-	{
-		std::ofstream file(m_path);
-		file << content;
 	}
 };
 
@@ -365,93 +355,6 @@ TEST_F(EditorControllerTest, NewGestureWithoutMouseUpDropsOldPreview)
 	EXPECT_TRUE(m_state.GetPreviewFrames().empty());
 }
 
-TEST_F(EditorControllerTest, SaveRemembersFilePath)
-{
-	AddRectangle({ 10, 20, 100, 50 });
-
-	m_controller.SaveDocument(m_path);
-
-	EXPECT_EQ(m_state.GetFilePath(), m_path);
-}
-
-TEST_F(EditorControllerTest, NewDocumentClearsShapesAndFilePath)
-{
-	AddRectangle({ 10, 20, 100, 50 });
-	m_controller.SaveDocument(m_path);
-
-	m_controller.NewDocument();
-
-	EXPECT_EQ(m_document.GetShapeCount(), 0);
-	EXPECT_EQ(m_state.GetFilePath(), std::nullopt);
-}
-
-TEST_F(EditorControllerTest, OpenRestoresSavedShapes)
-{
-	AddRectangle({ 10, 20, 100, 50 });
-	m_controller.AddShape(ShapeType::Triangle);
-	m_controller.SaveDocument(m_path);
-	m_controller.NewDocument();
-
-	m_controller.OpenDocument(m_path);
-
-	ASSERT_EQ(m_document.GetShapeCount(), 2);
-	EXPECT_EQ(GetShapeType(m_document.GetShape(0)), ShapeType::Rectangle);
-	EXPECT_EQ(m_document.GetShape(0).GetFrame(), (Frame{ 10, 20, 100, 50 }));
-	EXPECT_EQ(GetShapeType(m_document.GetShape(1)), ShapeType::Triangle);
-}
-
-TEST_F(EditorControllerTest, OpenClearsSelectionAndRemembersFilePath)
-{
-	WriteFile("rectangle 10 20 100 50 ff0000 000000\n");
-	AddSelectedRectangle({ 0, 0, 100, 100 });
-
-	m_controller.OpenDocument(m_path);
-
-	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
-	EXPECT_EQ(m_state.GetFilePath(), m_path);
-}
-
-TEST_F(EditorControllerTest, FailedOpenOfInvalidFileKeepsCurrentDocument)
-{
-	WriteFile("rectangle 0 0 50 50 ff0000 000000\nhexagon 0 0 50 50 ff0000 000000\n");
-	const auto id = AddSelectedRectangle({ 10, 20, 100, 50 });
-
-	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
-
-	ASSERT_EQ(m_document.GetShapeCount(), 1);
-	EXPECT_EQ(GetFrame(id), (Frame{ 10, 20, 100, 50 }));
-	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ id });
-	EXPECT_EQ(m_state.GetFilePath(), std::nullopt);
-}
-
-TEST_F(EditorControllerTest, FailedOpenOfMissingFileKeepsCurrentDocument)
-{
-	AddRectangle({ 10, 20, 100, 50 });
-
-	EXPECT_THROW(m_controller.OpenDocument(m_path.string() + ".missing"), std::runtime_error);
-
-	EXPECT_EQ(m_document.GetShapeCount(), 1);
-	EXPECT_EQ(m_state.GetFilePath(), std::nullopt);
-}
-
-TEST_F(EditorControllerTest, OpenRejectsShapesOutsideCanvas)
-{
-	WriteFile("rectangle 950 0 100 50 ff0000 000000\n");
-	AddRectangle({ 10, 20, 100, 50 });
-
-	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
-	EXPECT_EQ(m_document.GetShapeCount(), 1);
-}
-
-TEST_F(EditorControllerTest, OpenRejectsShapesSmallerThanMinimumSize)
-{
-	WriteFile("rectangle 0 0 5 50 ff0000 000000\n");
-	AddRectangle({ 10, 20, 100, 50 });
-
-	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
-	EXPECT_EQ(m_document.GetShapeCount(), 1);
-}
-
 TEST_F(EditorControllerTest, DragWithShapeToolCreatesShapeOfThatType)
 {
 	m_controller.SelectShapeTool(ShapeType::Ellipse);
@@ -677,47 +580,6 @@ TEST_F(EditorControllerTest, UndoAndRedoAtHistoryBoundsDoNothing)
 	EXPECT_EQ(m_document.GetShapeCount(), 1);
 }
 
-TEST_F(EditorControllerTest, SaveKeepsHistory)
-{
-	m_controller.AddShape(ShapeType::Rectangle);
-
-	m_controller.SaveDocument(m_path);
-
-	EXPECT_TRUE(m_history.CanUndo());
-}
-
-TEST_F(EditorControllerTest, OpenClearsHistory)
-{
-	m_controller.AddShape(ShapeType::Rectangle);
-	m_controller.SaveDocument(m_path);
-	m_controller.AddShape(ShapeType::Ellipse);
-	m_controller.Undo();
-
-	m_controller.OpenDocument(m_path);
-
-	EXPECT_FALSE(m_history.CanUndo());
-	EXPECT_FALSE(m_history.CanRedo());
-}
-
-TEST_F(EditorControllerTest, FailedOpenKeepsHistory)
-{
-	WriteFile("hexagon 0 0 50 50 ff0000 000000\n");
-	m_controller.AddShape(ShapeType::Rectangle);
-
-	EXPECT_THROW(m_controller.OpenDocument(m_path), std::runtime_error);
-
-	EXPECT_TRUE(m_history.CanUndo());
-}
-
-TEST_F(EditorControllerTest, NewDocumentClearsHistory)
-{
-	m_controller.AddShape(ShapeType::Rectangle);
-
-	m_controller.NewDocument();
-
-	EXPECT_FALSE(m_history.CanUndo());
-}
-
 TEST_F(EditorControllerTest, CreatedShapeHasDefaultBorderColor)
 {
 	m_controller.AddShape(ShapeType::Rectangle);
@@ -796,21 +658,6 @@ TEST_F(EditorControllerTest, MouseDownDiscardsColorPreview)
 	Click({ 500, 500 });
 
 	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
-}
-
-TEST_F(EditorControllerTest, SaveWritesCommittedColorsOnly)
-{
-	AddSelectedRectangle({ 0, 0, 100, 100 });
-	m_controller.PreviewFillColor(0x112233);
-	m_controller.CommitColors();
-	m_controller.PreviewBorderColor(0x445566);
-
-	m_controller.SaveDocument(m_path);
-	m_controller.OpenDocument(m_path);
-
-	ASSERT_EQ(m_document.GetShapeCount(), 1);
-	EXPECT_EQ(m_document.GetShape(0).GetFillColor(), 0x112233);
-	EXPECT_EQ(m_document.GetShape(0).GetBorderColor(), 0);
 }
 
 TEST_F(EditorControllerTest, ToggleClickAddsShapeToSelection)
@@ -946,7 +793,7 @@ TEST_F(EditorControllerTest, CommitColorsAllSelectedShapesOneOperation)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, OnlyExistingShapesInSelectionAfterUndo)
+TEST_F(EditorControllerTest, UndoAddLeavesNoSelectionOfRemovedShape)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	m_controller.AddShape(ShapeType::Ellipse);
@@ -954,35 +801,44 @@ TEST_F(EditorControllerTest, OnlyExistingShapesInSelectionAfterUndo)
 
 	m_controller.Undo();
 
-	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ first });
+	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
 }
 
-TEST_F(EditorControllerTest, CheckDocumentStateBeforeUndo)
+TEST_F(EditorControllerTest, UndoDeleteSelectsAllRestoredShapes)
 {
-	AddSelectedRectangle({ 10, 20, 50, 100 });
-	Drag({ 30, 40 }, { 100, 200 });
-	m_controller.AddShape(ShapeType::Ellipse);
-	m_controller.Undo();
-	m_controller.Undo();
-	m_controller.SaveDocument(m_path);
-	m_controller.OpenDocument(m_path);
+	const auto bottom = AddRectangle({ 0, 0, 100, 100 });
+	AddRectangle({ 200, 200, 100, 100 });
+	const auto top = AddRectangle({ 400, 400, 100, 100 });
+	m_state.SetSelectedShapeIds({ bottom, top });
+	m_controller.DeleteSelectedShapes();
 
-	ASSERT_EQ(m_document.GetShapeCount(), 1);
-	EXPECT_EQ(GetShapeType(m_document.GetShape(0)), ShapeType::Rectangle);
-	EXPECT_EQ(m_document.GetShape(0).GetFrame(), (Frame{ 10, 20, 50, 100 }));
+	m_controller.Undo();
+
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ bottom, top }));
 }
 
-TEST_F(EditorControllerTest, CheckDocumentStateAfterUndo)
+TEST_F(EditorControllerTest, UndoAndRedoSelectChangedShapes)
 {
-	AddSelectedRectangle({ 10, 20, 50, 100 });
-	Drag({ 30, 40 }, { 100, 200 });
-	m_controller.AddShape(ShapeType::Ellipse);
-	m_controller.SaveDocument(m_path);
-	m_controller.Undo();
-	m_controller.Undo();
-	m_controller.OpenDocument(m_path);
+	const auto first = AddRectangle({ 0, 0, 100, 100 });
+	const auto second = AddRectangle({ 200, 200, 100, 100 });
+	m_state.SetSelectedShapeIds({ first, second });
+	Drag({ 50, 50 }, { 100, 100 });
+	m_state.SetSelectedShapeIds({});
 
-	ASSERT_EQ(m_document.GetShapeCount(), 2);
-	EXPECT_EQ(GetShapeType(m_document.GetShape(1)), ShapeType::Ellipse);
+	m_controller.Undo();
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ first, second }));
+
+	m_state.SetSelectedShapeIds({});
+	m_controller.Redo();
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ first, second }));
+}
+
+TEST_F(EditorControllerTest, UndoAtHistoryStartKeepsSelection)
+{
+	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
+
+	m_controller.Undo();
+
+	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ id });
 }
 

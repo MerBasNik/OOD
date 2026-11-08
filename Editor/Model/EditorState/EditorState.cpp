@@ -123,21 +123,6 @@ void EditorState::SetCreatingShape(std::unique_ptr<IShape> shape)
 	NotifyObservers();
 }
 
-// std::optional<std::filesystem::path> EditorState::GetFilePath() const
-// {
-// 	return m_filePath;
-// }
-//
-// void EditorState::SetFilePath(std::optional<std::filesystem::path> path)
-// {
-// 	if (m_filePath == path)
-// 	{
-// 		return;
-// 	}
-// 	m_filePath = std::move(path);
-// 	NotifyObservers();
-// }
-
 void EditorState::AddObserver(IEditorStateObserver& observer)
 {
 	if (std::ranges::find(m_observers, &observer) == m_observers.end())

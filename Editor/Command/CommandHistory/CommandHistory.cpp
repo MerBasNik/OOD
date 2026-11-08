@@ -30,24 +30,28 @@ void CommandHistory::Execute(std::unique_ptr<ICommand> command)
 	m_executedCount = m_commands.size();
 }
 
-void CommandHistory::Undo()
+std::vector<int> CommandHistory::Undo()
 {
 	if (!CanUndo())
 	{
-		return;
+		return {};
 	}
-	m_commands[m_executedCount - 1]->Unexecute();
+	ICommand& command = *m_commands[m_executedCount - 1];
+	command.Unexecute();
 	--m_executedCount;
+	return command.GetShapeIds();
 }
 
-void CommandHistory::Redo()
+std::vector<int> CommandHistory::Redo()
 {
 	if (!CanRedo())
 	{
-		return;
+		return {};
 	}
-	m_commands[m_executedCount]->Execute();
+	ICommand& command = *m_commands[m_executedCount];
+	command.Execute();
 	++m_executedCount;
+	return command.GetShapeIds();
 }
 
 void CommandHistory::Clear()

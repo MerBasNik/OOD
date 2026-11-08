@@ -31,3 +31,8 @@ void ChangeShapeIndexCommand::Unexecute()
 	}
 	m_document.SetShapeIndex(m_shapeId, *m_oldIndex);
 }
+
+std::vector<int> ChangeShapeIndexCommand::GetShapeIds() const
+{
+	return { m_shapeId };
+}

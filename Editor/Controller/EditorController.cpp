@@ -10,7 +10,6 @@
 #include "Command/MacroCommand/MacroCommand.h"
 #include "FrameCalculator.h"
 #include "Model/EditorState/SelectionFrame.h"
-#include "Model/Serialization/DocumentSerializer.h"
 #include "Model/Shapes/Ellipse.h"
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
@@ -22,6 +21,12 @@ EditorController::EditorController(Document& document, EditorState& state, Comma
 	, m_state(state)
 	, m_history(history)
 {
+	m_document.AddObserver(*this);
+}
+
+EditorController::~EditorController()
+{
+	m_document.RemoveObserver(*this);
 }
 
 void EditorController::AddShape(const ShapeType type)
@@ -111,15 +116,13 @@ void EditorController::Cancel()
 void EditorController::Undo()
 {
 	ResetPreview();
-	m_history.Undo();
-	ResetSelection();
+	SelectShapes(m_history.Undo());
 }
 
 void EditorController::Redo()
 {
 	ResetPreview();
-	m_history.Redo();
-	ResetSelection();
+	SelectShapes(m_history.Redo());
 }
 
 void EditorController::OnMouseDown(const Point point, const bool isToggle)
@@ -280,44 +283,14 @@ CursorType EditorController::GetCursorType(const Point point) const
 	return CursorType::Arrow;
 }
 
-// void EditorController::NewDocument()
-// {
-// 	ResetPreview();
-// 	m_state.SetSelectedShapeIds({});
-// 	m_state.SetFilePath(std::nullopt);
-// 	m_history.Clear();
-// 	m_document.Clear();
-// }
-
-void EditorController::SaveDocument(const std::filesystem::path& path) const
+void EditorController::DocumentUpdate()
 {
-	DocumentSerializer::SaveToFile(m_document, path);
-	m_state.SetFilePath(path);
+	if (IsDraggedShapeMissing())
+	{
+		ResetPreview();
+	}
+	RemoveMissingShapesFromState();
 }
-
-// void EditorController::OpenDocument(const std::filesystem::path& path)
-// {
-// 	auto shapes = DocumentSerializer::LoadFromFile(path);
-// 	const Frame bounds = m_document.GetBounds();
-// 	for (const auto& shape : shapes)
-// 	{
-// 		const Frame frame = shape->GetFrame();
-// 		if (!bounds.IsContainsFrame(frame))
-// 		{
-// 			throw std::runtime_error("Фигура выходит за пределы холста");
-// 		}
-// 		if (frame.m_width < ShapeDefaults::MIN_SIZE || frame.m_height < ShapeDefaults::MIN_SIZE)
-// 		{
-// 			throw std::runtime_error("Размер фигуры меньше минимально допустимого");
-// 		}
-// 	}
-//
-// 	ResetPreview();
-// 	m_state.SetSelectedShapeIds({});
-// 	m_document.ReplaceShapes(std::move(shapes));
-// 	m_history.Clear();
-// 	m_state.SetFilePath(path);
-// }
 
 std::optional<Frame> EditorController::GetShapeFrame(const int id) const
 {
@@ -446,7 +419,24 @@ void EditorController::AddSelectShape(std::unique_ptr<IShape> shape) const
 	m_state.SetSelectedShapeIds({ *addCommand.GetShapeId() });
 }
 
-void EditorController::ResetSelection() const
+void EditorController::SelectShapes(const std::vector<int>& ids) const
+{
+	if (ids.empty())
+	{
+		return;
+	}
+	std::vector<int> selectedIds;
+	for (const int id : ids)
+	{
+		if (m_document.FindShape(id))
+		{
+			selectedIds.push_back(id);
+		}
+	}
+	m_state.SetSelectedShapeIds(std::move(selectedIds));
+}
+
+void EditorController::RemoveMissingShapesFromState()
 {
 	std::vector<int> selectedIds;
 	for (const int id : m_state.GetSelectedShapeIds())
@@ -457,4 +447,26 @@ void EditorController::ResetSelection() const
 		}
 	}
 	m_state.SetSelectedShapeIds(std::move(selectedIds));
+
+	std::map<int, Frame> previewFrames;
+	for (const auto& [id, frame] : m_state.GetPreviewFrames())
+	{
+		if (m_document.FindShape(id))
+		{
+			previewFrames.emplace(id, frame);
+		}
+	}
+	m_state.SetPreviewFrames(std::move(previewFrames));
+}
+
+bool EditorController::IsDraggedShapeMissing() const
+{
+	for (const int id : m_drag.m_shapeIds)
+	{
+		if (!m_document.FindShape(id))
+		{
+			return true;
+		}
+	}
+	return false;
 }

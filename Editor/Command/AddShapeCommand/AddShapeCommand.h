@@ -14,6 +14,7 @@ public:
 	AddShapeCommand(Document& document, std::unique_ptr<IShape> shape);
 	void Execute() override;
 	void Unexecute() override;
+	std::vector<int> GetShapeIds() const override;
 	std::optional<int> GetShapeId() const;
 
 private:

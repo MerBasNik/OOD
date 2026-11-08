@@ -20,12 +20,15 @@ add_library(Editor_lib STATIC
         Controller/ShapeDefaults.cpp
         Controller/EditorController.cpp
         Controller/ShapeListController.cpp
+        Application/AppDocument.cpp
 )
 
 target_include_directories(Editor_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(Editor
         main.cpp
+        Application/Application.cpp
+        Application/AppWindow.cpp
         View/Canvas/Canvas.cpp
         View/Canvas/CanvasView.cpp
         View/ShapeList/ShapeListView.cpp
@@ -63,6 +66,8 @@ add_executable(Editor_tests
         tests/CommandHistoryTests.cpp
         tests/ShapeRendererTests.cpp
         tests/MacroCommandTests.cpp
+        tests/AppDocumentTests.cpp
+        tests/MultiWindowTests.cpp
 )
 
 target_link_libraries(Editor_tests PRIVATE

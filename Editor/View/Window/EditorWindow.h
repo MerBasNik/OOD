@@ -8,35 +8,36 @@
 #include "ColorPicker.h"
 #include "Controller/EditorController.h"
 #include "Toolbar.h"
-#include "Application/Application.h"
+#include "Application/IApplication.h"
 #include "Enums/MouseCapture.h"
 #include "View/Canvas/CanvasView.h"
 #include "View/ShapeList/ShapeListView.h"
 #include <SFML/Graphics.hpp>
 #include <functional>
 #include <map>
+#include <memory>
 #include <string>
 
 class EditorWindow
 {
 public:
 	EditorWindow(
-		Application& application,
+		IApplication& application,
 		std::shared_ptr<AppDocument> appDocument,
-		Document& document,
 		EditorState& state,
 		EditorController& controller,
-		ShapeListController& shapeListController,
-		const std::string& appName
+		ShapeListController& shapeListController
 	);
 	void ProcessEvents();
 	void RenderWindow();
-	bool IsOpen()const;
+	bool IsOpen() const;
 
 private:
-	Application& m_application;
+	IApplication& m_application;
 	std::shared_ptr<AppDocument> m_appDocument;
 	Document& m_document;
+	int m_windowNumber;
+	std::string m_title;
 	EditorState& m_state;
 	EditorController& m_controller;
 	sf::RenderWindow m_window;
@@ -50,7 +51,6 @@ private:
 	CursorType m_currentCursor = CursorType::Arrow;
 	MouseCapture m_mouseCapture = MouseCapture::None;
 	bool m_isTogglePressed = false;
-	std::string m_appName;
 
 	void InitToolbar();
 	void OpenColorPicker(const std::string& title, sf::FloatRect buttonRect, bool isFill);
@@ -66,6 +66,9 @@ private:
 	void UpdateCursor(sf::Vector2f point);
 	void Render();
 	void NewDocument();
+	void NewWindow();
+	void UpdateTitle();
+	std::string GetTitle() const;
 	void Undo();
 	void Redo();
 	void OpenDocument();

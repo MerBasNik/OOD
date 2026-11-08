@@ -15,6 +15,7 @@ public:
 	ChangeShapeFrameCommand(Document& document, int shapeId, const Frame& frame);
 	void Execute() override;
 	void Unexecute() override;
+	std::vector<int> GetShapeIds() const override;
 
 private:
 	Document& m_document;

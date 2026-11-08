@@ -11,13 +11,13 @@
 #include "HitResult.h"
 #include "Model/Document/Document.h"
 #include "Model/EditorState/EditorState.h"
-#include <filesystem>
 #include <optional>
 
-class EditorController
+class EditorController : public IDocumentObserver
 {
 public:
 	EditorController(Document& document, EditorState& state, CommandHistory& history);
+	~EditorController() override;
 	void AddShape(ShapeType type);
 	void DeleteSelectedShapes();
 	void SelectShapeTool(std::optional<ShapeType> type);
@@ -33,9 +33,7 @@ public:
 	void OnMouseUp(Point point);
 	HitResult HitTest(Point point) const;
 	CursorType GetCursorType(Point point) const;
-	void NewDocument();
-	void SaveDocument(const std::filesystem::path& path) const;
-	void OpenDocument(const std::filesystem::path& path);
+	void DocumentUpdate() override;
 
 private:
 	Document& m_document;
@@ -50,7 +48,9 @@ private:
 	void FinishDrag(Point point);
 	void ResetPreview();
 	void AddSelectShape(std::unique_ptr<IShape> shape) const;
-	void ResetSelection() const;
+	void SelectShapes(const std::vector<int>& ids) const;
+	void RemoveMissingShapesFromState();
+	bool IsDraggedShapeMissing() const;
 	std::vector<Frame> CalculateDraggedFrames(Point point) const;
 	void ExecuteCommands(std::vector<std::unique_ptr<ICommand>> commands) const;
 	Frame CalculateCreatedFrame(Point point) const;

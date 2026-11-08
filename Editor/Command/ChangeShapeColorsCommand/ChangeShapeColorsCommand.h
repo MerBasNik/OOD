@@ -15,6 +15,7 @@ public:
 	ChangeShapeColorsCommand(Document& document, int shapeId, Color fillColor, Color borderColor);
 	void Execute() override;
 	void Unexecute() override;
+	std::vector<int> GetShapeIds() const override;
 
 private:
 	Document& m_document;

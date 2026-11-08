@@ -4,22 +4,19 @@
 
 #ifndef OOD_APPWINDOW_H
 #define OOD_APPWINDOW_H
+
+#include "AppDocument.h"
 #include "IApplication.h"
 #include "Controller/EditorController.h"
 #include "Controller/ShapeListController.h"
 #include "Model/EditorState/EditorState.h"
 #include "View/Window/EditorWindow.h"
-
-
 #include <memory>
 
-
-
-class AppWindow {
+class AppWindow
+{
 public:
-	AppWindow(std::shared_ptr<AppDocument> appDocument, IApplication& application, const std::string& appName);
-	AppWindow(const AppWindow&) = delete;
-	AppWindow& operator=(const AppWindow&) = delete;
+	AppWindow(std::shared_ptr<AppDocument> appDocument, IApplication& application);
 
 	bool IsOpen() const;
 	void ProcessEvents();
@@ -33,6 +30,4 @@ private:
 	EditorWindow m_editorWindow;
 };
 
-
-
-#endif //OOD_APPWINDOW_H
+#endif // OOD_APPWINDOW_H

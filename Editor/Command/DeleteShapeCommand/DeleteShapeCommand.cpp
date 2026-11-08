@@ -28,3 +28,8 @@ void DeleteShapeCommand::Unexecute()
 		m_document.InsertShape(m_shapeId, std::move(m_shape), m_index);
 	}
 }
+
+std::vector<int> DeleteShapeCommand::GetShapeIds() const
+{
+	return { m_shapeId };
+}

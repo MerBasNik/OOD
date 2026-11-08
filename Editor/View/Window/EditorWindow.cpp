@@ -9,33 +9,31 @@
 
 const sf::Color WORKSPACE_COLOR(210, 210, 210);
 const char* DEFAULT_FILE_NAME = "editor.draw";
-const sf::Time MOUSE_TRACK_INTERVAL = sf::milliseconds(15);
 
 EditorWindow::EditorWindow(
-	Application& application,
+	IApplication& application,
 	std::shared_ptr<AppDocument> appDocument,
-	Document& document,
 	EditorState& state,
 	EditorController& controller,
-	ShapeListController& shapeListController,
-	const std::string& appName
+	ShapeListController& shapeListController
 )
 	: m_application(application)
 	, m_appDocument(std::move(appDocument))
-	, m_document(document)
-	, m_appName(appName)
+	, m_document(m_appDocument->GetDocument())
+	, m_windowNumber(m_appDocument->NextWindowNumber())
+	, m_title(GetTitle())
 	, m_state(state)
 	, m_controller(controller)
 	, m_window(sf::VideoMode({
-					static_cast<unsigned>(document.GetBounds().m_width + ShapeListView::WIDTH),
-					static_cast<unsigned>(document.GetBounds().m_height + Toolbar::HEIGHT),
+					static_cast<unsigned>(m_document.GetBounds().m_width + ShapeListView::WIDTH),
+					static_cast<unsigned>(m_document.GetBounds().m_height + Toolbar::HEIGHT),
 				}),
-				"Editor")
+				sf::String::fromUtf8(m_title.begin(), m_title.end()))
 	, m_colorPicker(m_toolbar.GetFont(), [this] { m_controller.CommitColors(); }, [this] { m_controller.CancelColors(); })
-	, m_canvasView(document, state, { 0.f, Toolbar::HEIGHT })
-	, m_shapeListView(document, state, shapeListController,
-		sf::FloatRect({ static_cast<float>(document.GetBounds().m_width), Toolbar::HEIGHT },
-	{ ShapeListView::WIDTH, static_cast<float>(document.GetBounds().m_height) }))
+	, m_canvasView(m_document, state, { 0.f, Toolbar::HEIGHT })
+	, m_shapeListView(m_document, state, shapeListController,
+		sf::FloatRect({ static_cast<float>(m_document.GetBounds().m_width), Toolbar::HEIGHT },
+	{ ShapeListView::WIDTH, static_cast<float>(m_document.GetBounds().m_height) }))
 {
 	InitToolbar();
 	InitCursors();
@@ -43,19 +41,17 @@ EditorWindow::EditorWindow(
 
 void EditorWindow::ProcessEvents()
 {
-	const sf::Time timeout = m_mouseCapture == MouseCapture::None ? sf::Time::Zero : MOUSE_TRACK_INTERVAL;
-	if (const auto event = m_window.waitEvent(timeout))
+	bool hasEvents = false;
+	while (const auto event = m_window.pollEvent())
 	{
+		hasEvents = true;
 		HandleEvent(*event);
 	}
-	else if (m_mouseCapture != MouseCapture::None)
+	if (!hasEvents && m_mouseCapture != MouseCapture::None)
 	{
 		TrackMouse();
 	}
-	while (const auto event = m_window.pollEvent())
-	{
-		HandleEvent(*event);
-	}
+	UpdateTitle();
 }
 
 void EditorWindow::RenderWindow()
@@ -91,7 +87,7 @@ void EditorWindow::InitToolbar()
 		m_controller.DeleteSelectedShapes();
 	});
 	m_toolbar.AddButton("Новое окно", [this] {
-		NewDocument();
+		NewWindow();
 	});
 	m_toolbar.AddButton("Новый", [this] {
 		NewDocument();
@@ -392,7 +388,33 @@ void EditorWindow::Render()
 void EditorWindow::NewDocument()
 {
 	CancelColorPicker();
-	m_controller.NewDocument();
+	m_application.NewApplication();
+}
+
+void EditorWindow::NewWindow()
+{
+	CancelColorPicker();
+	m_application.NewWindow(m_appDocument);
+}
+
+void EditorWindow::UpdateTitle()
+{
+	std::string title = GetTitle();
+	if (title != m_title)
+	{
+		m_title = std::move(title);
+		m_window.setTitle(sf::String::fromUtf8(m_title.begin(), m_title.end()));
+	}
+}
+
+std::string EditorWindow::GetTitle() const
+{
+	std::string title = m_appDocument->GetName();
+	if (const auto path = m_appDocument->GetFilePath())
+	{
+		title += " (" + path->filename().string() + ")";
+	}
+	return title + " — окно " + std::to_string(m_windowNumber);
 }
 
 void EditorWindow::Undo()
@@ -414,21 +436,21 @@ void EditorWindow::OpenDocument()
 	CancelColorPicker();
 	if (const auto path = FileWindows::ShowOpenFileWindow())
 	{
-		RunFileOperation("Не удалось открыть документ.", [&] { m_controller.OpenDocument(*path); });
+		RunFileOperation("Не удалось открыть документ.", [&] { m_application.OpenApplication(*path); });
 	}
 	SkipInputEvents();
 }
 
 void EditorWindow::SaveDocument()
 {
-	auto path = m_state.GetFilePath();
+	auto path = m_appDocument->GetFilePath();
 	if (!path)
 	{
 		path = FileWindows::ShowSaveFileWindow(DEFAULT_FILE_NAME);
 	}
 	if (path)
 	{
-		RunFileOperation("Не удалось сохранить документ.", [&] { m_controller.SaveDocument(*path); });
+		RunFileOperation("Не удалось сохранить документ.", [&] { m_appDocument->Save(*path); });
 	}
 	SkipInputEvents();
 }

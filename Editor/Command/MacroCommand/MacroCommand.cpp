@@ -3,6 +3,7 @@
 //
 
 #include "MacroCommand.h"
+#include <algorithm>
 #include <stdexcept>
 
 MacroCommand::MacroCommand(std::vector<std::unique_ptr<ICommand>> commands)
@@ -41,4 +42,20 @@ void MacroCommand::Rollback(size_t commandIndex) const
 	{
 		m_commands[--commandIndex]->Unexecute();
 	}
+}
+
+std::vector<int> MacroCommand::GetShapeIds() const
+{
+	std::vector<int> ids;
+	for (const auto& command : m_commands)
+	{
+		for (const int id : command->GetShapeIds())
+		{
+			if (std::ranges::find(ids, id) == ids.end())
+			{
+				ids.push_back(id);
+			}
+		}
+	}
+	return ids;
 }

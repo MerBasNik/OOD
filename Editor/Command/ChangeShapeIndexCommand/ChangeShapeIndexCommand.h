@@ -15,6 +15,7 @@ public:
 	ChangeShapeIndexCommand(Document& document, int shapeId, size_t index);
 	void Execute() override;
 	void Unexecute() override;
+	std::vector<int> GetShapeIds() const override;
 
 private:
 	Document& m_document;

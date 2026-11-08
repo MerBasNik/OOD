@@ -43,3 +43,8 @@ std::optional<int> AddShapeCommand::GetShapeId() const
 {
 	return m_shapeId;
 }
+
+std::vector<int> AddShapeCommand::GetShapeIds() const
+{
+	return m_shapeId ? std::vector{ *m_shapeId } : std::vector<int>{};
+}

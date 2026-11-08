@@ -35,3 +35,8 @@ void ChangeShapeColorsCommand::Unexecute()
 	}
 	m_document.SetShapeColors(m_shapeId, *m_oldFillColor, *m_oldBorderColor);
 }
+
+std::vector<int> ChangeShapeColorsCommand::GetShapeIds() const
+{
+	return { m_shapeId };
+}

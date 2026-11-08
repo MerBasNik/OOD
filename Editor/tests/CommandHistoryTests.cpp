@@ -6,6 +6,8 @@
 #include "Mock/MockCommand.h"
 #include <gtest/gtest.h>
 
+using ::testing::AnyNumber;
+using ::testing::Return;
 using ::testing::StrictMock;
 using ::testing::Throw;
 
@@ -26,6 +28,7 @@ public:
 		EXPECT_CALL(result, Execute);
 		history.Execute(std::move(command));
 		::testing::Mock::VerifyAndClearExpectations(&result);
+		EXPECT_CALL(result, GetShapeIds).Times(AnyNumber()).WillRepeatedly(Return(std::vector<int>{}));
 		return result;
 	}
 };
@@ -66,6 +69,24 @@ TEST_F(CommandHistoryTest, NewCommandAfterUndoDropsRedo)
 	Execute();
 
 	EXPECT_FALSE(m_history.CanRedo());
+}
+
+TEST_F(CommandHistoryTest, UndoAndRedoReturnShapeIdsOfCommand)
+{
+	auto& command = Execute();
+	EXPECT_CALL(command, GetShapeIds).WillRepeatedly(Return(std::vector{ 1, 2 }));
+	EXPECT_CALL(command, Unexecute);
+	EXPECT_CALL(command, Execute);
+
+	EXPECT_EQ(m_history.Undo(), (std::vector{ 1, 2 }));
+	EXPECT_EQ(m_history.Redo(), (std::vector{ 1, 2 }));
+}
+
+TEST_F(CommandHistoryTest, UndoAndRedoAtBoundsReturnNoShapeIds)
+{
+	EXPECT_TRUE(m_history.Undo().empty());
+	Execute();
+	EXPECT_TRUE(m_history.Redo().empty());
 }
 
 TEST_F(CommandHistoryTest, UndoAtBeginningDoesNothing)

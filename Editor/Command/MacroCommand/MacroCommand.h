@@ -15,6 +15,7 @@ public:
 	explicit MacroCommand(std::vector<std::unique_ptr<ICommand>> commands);
 	void Execute() override;
 	void Unexecute() override;
+	std::vector<int> GetShapeIds() const override;
 
 private:
 	std::vector<std::unique_ptr<ICommand>> m_commands;

@@ -13,6 +13,7 @@ class MockCommand : public ICommand
 public:
 	MOCK_METHOD(void, Execute, (), (override));
 	MOCK_METHOD(void, Unexecute, (), (override));
+	MOCK_METHOD(std::vector<int>, GetShapeIds, (), (const, override));
 };
 
 #endif // OOD_EDITOR_MOCKCOMMAND_H

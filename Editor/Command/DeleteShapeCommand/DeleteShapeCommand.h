@@ -14,6 +14,7 @@ public:
 	DeleteShapeCommand(Document& document, int shapeId);
 	void Execute() override;
 	void Unexecute() override;
+	std::vector<int> GetShapeIds() const override;
 
 private:
 	Document& m_document;
