@@ -10,6 +10,7 @@
 #include "Controller/EditorController.h"
 #include "Enums/MouseCapture.h"
 #include "Toolbar.h"
+#include <optional>
 #include "View/Canvas/CanvasView.h"
 #include "View/ShapeList/ShapeListView.h"
 #include "View/Timeline/TimelineView.h"
@@ -57,6 +58,8 @@ private:
 	bool m_isCommandPressed = false;
 
 	void InitToolbar();
+	bool HasSelectedShapes() const;
+	void UpdateToolbarHover(std::optional<sf::Vector2f> point);
 	void OpenColorPicker(const std::string& title, sf::FloatRect buttonRect, bool isFill);
 	void CancelColorPicker();
 	void InitCursors();

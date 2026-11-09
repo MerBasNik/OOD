@@ -20,7 +20,6 @@ public:
 
 private:
 	ICanvas& m_canvas;
-	// для чего нужен m_time?
 	std::optional<double> m_time;
 };
 

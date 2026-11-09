@@ -18,6 +18,7 @@ struct Button
 	std::function<void()> m_onClick;
 	std::function<bool()> m_isActive;
 	std::optional<sf::Texture> m_icon;
+	std::function<bool()> m_isVisible;
 };
 
 #endif // OOD_EDITOR_BUTTON_H

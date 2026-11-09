@@ -24,7 +24,6 @@ sf::Texture ShapeIcons::Load(const ShapeType type)
 	return {};
 }
 
-// почему это отдельный метод?
 sf::Texture ShapeIcons::LoadUngroup()
 {
 	return LoadFile("ungroup.png");

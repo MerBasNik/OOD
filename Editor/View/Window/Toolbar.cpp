@@ -16,6 +16,8 @@ const std::string FONT_PATH = "/System/Library/Fonts/Supplemental/Arial.ttf";
 const sf::Color TOOLBAR_COLOR(236, 236, 236);
 const sf::Color BUTTON_COLOR(250, 250, 250);
 const sf::Color BUTTON_BORDER_COLOR(170, 170, 170);
+const sf::Color HOVER_BUTTON_COLOR(228, 236, 248);
+const sf::Color HOVER_BUTTON_BORDER_COLOR(120, 160, 215);
 const sf::Color ACTIVE_BUTTON_COLOR(205, 225, 250);
 const sf::Color ACTIVE_BUTTON_BORDER_COLOR(30, 120, 230);
 const sf::Color TEXT_COLOR(30, 30, 30);
@@ -29,15 +31,19 @@ Toolbar::Toolbar()
 	}
 }
 
-sf::FloatRect Toolbar::AddButton(const std::string& label, std::function<void()> onClick)
+sf::FloatRect Toolbar::AddButton(const std::string& label, std::function<void()> onClick,
+	std::function<bool()> isVisible)
 {
-	AddButton({ sf::String::fromUtf8(label.begin(), label.end()), {}, std::move(onClick) }, BUTTON_WIDTH);
+	AddButton({ sf::String::fromUtf8(label.begin(), label.end()), {}, std::move(onClick), {}, {}, std::move(isVisible) },
+		BUTTON_WIDTH);
 	return m_buttons.back().m_rect;
 }
 
-void Toolbar::AddIconButton(sf::Texture icon, std::function<void()> onClick, std::function<bool()> isActive)
+void Toolbar::AddIconButton(sf::Texture icon, std::function<void()> onClick, std::function<bool()> isActive,
+	std::function<bool()> isVisible)
 {
-	AddButton({ {}, {}, std::move(onClick), std::move(isActive), std::move(icon) }, TOOL_BUTTON_WIDTH);
+	AddButton({ {}, {}, std::move(onClick), std::move(isActive), std::move(icon), std::move(isVisible) },
+		TOOL_BUTTON_WIDTH);
 }
 
 void Toolbar::AddButton(Button button, const float width)
@@ -53,13 +59,19 @@ void Toolbar::Draw(sf::RenderTarget& target) const
 	background.setFillColor(TOOLBAR_COLOR);
 	target.draw(background);
 
+	const Button* hoveredButton = FindButton(m_hoverPoint);
 	for (const auto& button : m_buttons)
 	{
+		if (!IsVisible(button))
+		{
+			continue;
+		}
 		const bool isActive = button.m_isActive && button.m_isActive();
+		const bool isHovered = &button == hoveredButton;
 		sf::RectangleShape rect(button.m_rect.size);
 		rect.setPosition(button.m_rect.position);
-		rect.setFillColor(isActive ? ACTIVE_BUTTON_COLOR : BUTTON_COLOR);
-		rect.setOutlineColor(isActive ? ACTIVE_BUTTON_BORDER_COLOR : BUTTON_BORDER_COLOR);
+		rect.setFillColor(isActive ? ACTIVE_BUTTON_COLOR : isHovered ? HOVER_BUTTON_COLOR : BUTTON_COLOR);
+		rect.setOutlineColor(isActive ? ACTIVE_BUTTON_BORDER_COLOR : isHovered ? HOVER_BUTTON_BORDER_COLOR : BUTTON_BORDER_COLOR);
 		rect.setOutlineThickness(-1.f);
 		target.draw(rect);
 
@@ -90,15 +102,39 @@ bool Toolbar::HandleClick(const sf::Vector2f point) const
 	{
 		return false;
 	}
-	for (const auto& button : m_buttons)
+	if (const Button* button = FindButton(point))
 	{
-		if (button.m_rect.contains(point))
-		{
-			button.m_onClick();
-			break;
-		}
+		button->m_onClick();
 	}
 	return true;
+}
+
+bool Toolbar::SetHoverPoint(const std::optional<sf::Vector2f> point)
+{
+	const Button* oldButton = FindButton(m_hoverPoint);
+	m_hoverPoint = point;
+	return FindButton(m_hoverPoint) != oldButton;
+}
+
+const Button* Toolbar::FindButton(const std::optional<sf::Vector2f> point) const
+{
+	if (!point)
+	{
+		return nullptr;
+	}
+	for (const auto& button : m_buttons)
+	{
+		if (IsVisible(button) && button.m_rect.contains(*point))
+		{
+			return &button;
+		}
+	}
+	return nullptr;
+}
+
+bool Toolbar::IsVisible(const Button& button)
+{
+	return !button.m_isVisible || button.m_isVisible();
 }
 
 bool Toolbar::IsContains(const sf::Vector2f point) const

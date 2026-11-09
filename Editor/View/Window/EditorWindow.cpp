@@ -76,18 +76,6 @@ void EditorWindow::InitToolbar()
 			m_controller.SelectShapeTool(m_state.GetShapeTool() == type ? std::nullopt : std::optional(type));
 		}, [this, type] { return m_state.GetShapeTool() == type; });
 	}
-	m_fillButtonRect = m_toolbar.AddButton("Заливка", [this] {
-		OpenColorPicker("Цвет заливки", m_fillButtonRect, true);
-	});
-	m_borderButtonRect = m_toolbar.AddButton("Контур", [this] {
-		OpenColorPicker("Цвет контура", m_borderButtonRect, false);
-	});
-	m_toolbar.AddIconButton(ShapeIcons::Load(ShapeType::Group), [this] { GroupShapes(); }, [] { return false; });
-	m_toolbar.AddIconButton(ShapeIcons::LoadUngroup(), [this] { UngroupShape(); }, [] { return false; });
-	m_toolbar.AddButton("Удалить", [this] {
-		CancelColorPicker();
-		m_controller.DeleteSelectedShapes();
-	});
 	m_toolbar.AddButton("Новое окно", [this] {
 		NewWindow();
 	});
@@ -100,6 +88,41 @@ void EditorWindow::InitToolbar()
 	m_toolbar.AddButton("Сохранить", [this] {
 		SaveDocument();
 	});
+
+	const auto hasSelection = [this] { return HasSelectedShapes(); };
+	m_fillButtonRect = m_toolbar.AddButton("Заливка", [this] {
+		OpenColorPicker("Цвет заливки", m_fillButtonRect, true);
+	}, hasSelection);
+	m_borderButtonRect = m_toolbar.AddButton("Контур", [this] {
+		OpenColorPicker("Цвет контура", m_borderButtonRect, false);
+	}, hasSelection);
+	m_toolbar.AddIconButton(ShapeIcons::Load(ShapeType::Group), [this] { GroupShapes(); }, [] { return false; }, hasSelection);
+	m_toolbar.AddIconButton(ShapeIcons::LoadUngroup(), [this] { UngroupShape(); }, [] { return false; }, hasSelection);
+	m_toolbar.AddButton("Удалить", [this] {
+		CancelColorPicker();
+		m_controller.DeleteSelectedShapes();
+	}, hasSelection);
+}
+
+bool EditorWindow::HasSelectedShapes() const
+{
+	for (const int id : m_state.GetSelectedShapeIds())
+	{
+		if (m_document.FindShape(id))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void EditorWindow::UpdateToolbarHover(const std::optional<sf::Vector2f> point)
+{
+	const bool isFree = point && m_mouseCapture == MouseCapture::None && !m_colorPicker.IsContains(*point);
+	if (m_toolbar.SetHoverPoint(isFree ? point : std::nullopt))
+	{
+		m_canvasView.SetIsChange();
+	}
 }
 
 void EditorWindow::OpenColorPicker(const std::string& title, const sf::FloatRect buttonRect, const bool isFill)
@@ -165,6 +188,10 @@ void EditorWindow::HandleEvent(const sf::Event& event)
 	{
 		m_window.setView(sf::View(sf::FloatRect({ 0.f, 0.f }, sf::Vector2f(resized->size))));
 		m_canvasView.SetIsChange();
+	}
+	else if (event.is<sf::Event::MouseLeft>())
+	{
+		UpdateToolbarHover(std::nullopt);
 	}
 	else if (event.is<sf::Event::FocusGained>())
 	{
@@ -301,6 +328,7 @@ void EditorWindow::HandleMouseMoved(const sf::Vector2f point)
 	case MouseCapture::None:
 		break;
 	}
+	UpdateToolbarHover(point);
 	UpdateCursor(point);
 }
 
@@ -321,6 +349,7 @@ void EditorWindow::HandleMouseReleased(const sf::Vector2f point)
 		break;
 	}
 	m_mouseCapture = MouseCapture::None;
+	UpdateToolbarHover(point);
 	UpdateCursor(point);
 }
 
