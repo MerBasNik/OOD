@@ -71,7 +71,7 @@ TEST_F(CommandHistoryTest, NewCommandAfterUndoDropsRedo)
 	EXPECT_FALSE(m_history.CanRedo());
 }
 
-TEST_F(CommandHistoryTest, UndoAndRedoReturnShapeIdsOfCommand)
+TEST_F(CommandHistoryTest, UndoRedoReturnShapeIds)
 {
 	auto& command = Execute();
 	EXPECT_CALL(command, GetShapeIds).WillRepeatedly(Return(std::vector{ 1, 2 }));
@@ -82,7 +82,7 @@ TEST_F(CommandHistoryTest, UndoAndRedoReturnShapeIdsOfCommand)
 	EXPECT_EQ(m_history.Redo(), (std::vector{ 1, 2 }));
 }
 
-TEST_F(CommandHistoryTest, UndoAndRedoAtBoundsReturnNoShapeIds)
+TEST_F(CommandHistoryTest, UndoRedoAtBoundsReturnNoIds)
 {
 	EXPECT_TRUE(m_history.Undo().empty());
 	Execute();

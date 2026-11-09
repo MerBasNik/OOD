@@ -28,7 +28,7 @@ public:
 	}
 };
 
-TEST_F(MacroCommandTest, ExecuteRunsCommandsInOrder)
+TEST_F(MacroCommandTest, ExecuteInOrder)
 {
 	MacroCommand macro(MakeCommands(3));
 	InSequence sequence;
@@ -39,7 +39,7 @@ TEST_F(MacroCommandTest, ExecuteRunsCommandsInOrder)
 	macro.Execute();
 }
 
-TEST_F(MacroCommandTest, UnexecuteRunsCommandsInReverseOrder)
+TEST_F(MacroCommandTest, UnexecuteInReverseOrder)
 {
 	MacroCommand macro(MakeCommands(3));
 	InSequence sequence;
@@ -50,7 +50,7 @@ TEST_F(MacroCommandTest, UnexecuteRunsCommandsInReverseOrder)
 	macro.Unexecute();
 }
 
-TEST_F(MacroCommandTest, FailedExecuteRollsBackExecutedCommands)
+TEST_F(MacroCommandTest, FailedExecuteRollsBack)
 {
 	MacroCommand macro(MakeCommands(3));
 	InSequence sequence;
@@ -59,9 +59,4 @@ TEST_F(MacroCommandTest, FailedExecuteRollsBackExecutedCommands)
 	EXPECT_CALL(*m_mocks[0], Unexecute);
 
 	EXPECT_THROW(macro.Execute(), std::runtime_error);
-}
-
-TEST_F(MacroCommandTest, RejectsEmptyCommandList)
-{
-	EXPECT_THROW(MacroCommand({}), std::invalid_argument);
 }

@@ -214,6 +214,7 @@ void EditorController::OnMouseMove(const Point point)
 	case DragMode::None:
 		break;
 	case DragMode::Create:
+		UpdateCreateDirection(point);
 		m_state.SetCreatingShape(CreateShape(*m_state.GetShapeTool(), CalculateCreatedFrame(point)));
 		break;
 	case DragMode::Move:
@@ -377,7 +378,16 @@ void EditorController::ExecuteCommands(std::vector<std::unique_ptr<ICommand>> co
 
 Frame EditorController::CalculateCreatedFrame(const Point point) const
 {
-	return FrameCalculator::CalculateCreatedFrame(m_drag.m_startPoint, point, m_document.GetBounds(), ShapeDefaults::MIN_SIZE);
+	return FrameCalculator::CalculateCreatedFrame(m_drag.m_startPoint, point, m_document.GetBounds(), ShapeDefaults::MIN_SIZE,
+		m_drag.m_isCreateForwardX, m_drag.m_isCreateForwardY);
+}
+
+void EditorController::UpdateCreateDirection(const Point point)
+{
+	m_drag.m_isCreateForwardX = FrameCalculator::IsCreateForward(m_drag.m_startPoint.m_x, point.m_x,
+		ShapeDefaults::MIN_SIZE, m_drag.m_isCreateForwardX);
+	m_drag.m_isCreateForwardY = FrameCalculator::IsCreateForward(m_drag.m_startPoint.m_y, point.m_y,
+		ShapeDefaults::MIN_SIZE, m_drag.m_isCreateForwardY);
 }
 
 std::unique_ptr<IShape> EditorController::CreateShape(const ShapeType type, const Frame& frame)
@@ -422,12 +432,15 @@ void EditorController::StartCreate(const Point point)
 	ResetPreview();
 	m_drag.m_mode = DragMode::Create;
 	m_drag.m_startPoint = point;
+	m_drag.m_isCreateForwardX = std::nullopt;
+	m_drag.m_isCreateForwardY = std::nullopt;
 }
 
 void EditorController::FinishCreate(const Point point)
 {
 	const bool isMoved = point != m_drag.m_startPoint;
 	const ShapeType type = *m_state.GetShapeTool();
+	UpdateCreateDirection(point);
 	const Frame frame = CalculateCreatedFrame(point);
 	ResetPreview();
 	if (!isMoved)

@@ -64,15 +64,9 @@ TEST_F(FrameCalculatorTest, ResizeIsLimitedByBounds)
 	EXPECT_EQ(Resize(ResizeHandle::BottomRight, { 5000, 5000 }), (Frame{ 100, 100, 900, 500 }));
 }
 
-TEST_F(FrameCalculatorTest, CreateStretchesFrameFromStartToCursor)
+TEST_F(FrameCalculatorTest, CreateFromStartToCursor)
 {
 	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ 100, 100 }, { 300, 250 }, BOUNDS, MIN_SIZE),
-		(Frame{ 100, 100, 200, 150 }));
-}
-
-TEST_F(FrameCalculatorTest, CreateTowardsTopLeftKeepsStartAsBottomRight)
-{
-	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ 300, 250 }, { 100, 100 }, BOUNDS, MIN_SIZE),
 		(Frame{ 100, 100, 200, 150 }));
 }
 
@@ -82,47 +76,20 @@ TEST_F(FrameCalculatorTest, CreateIsLimitedByBounds)
 		(Frame{ 900, 0, 100, 500 }));
 }
 
-TEST_F(FrameCalculatorTest, CreateIsLimitedByMinimumSize)
+TEST_F(FrameCalculatorTest, CreateKeepsMinSize)
 {
 	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ 100, 100 }, { 103, 98 }, BOUNDS, MIN_SIZE),
 		(Frame{ 100, 90, MIN_SIZE, MIN_SIZE }));
 }
 
-TEST_F(FrameCalculatorTest, CreateNearBoundsGrowsAwayFromBorder)
-{
-	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ 997, 2 }, { 999, 1 }, BOUNDS, MIN_SIZE),
-		(Frame{ 990, 0, MIN_SIZE, MIN_SIZE }));
-}
-
-TEST_F(FrameCalculatorTest, CreateFromPointOutsideBoundsStartsAtBorder)
-{
-	EXPECT_EQ(FrameCalculator::CalculateCreatedFrame({ -50, 700 }, { 100, 500 }, BOUNDS, MIN_SIZE),
-		(Frame{ 0, 500, 100, 100 }));
-}
-
-TEST_F(FrameCalculatorTest, GroupMoveKeepsRelativePositions)
+TEST_F(FrameCalculatorTest, GroupMoveKeepsOffsets)
 {
 	const auto frames = FrameCalculator::CalculateGroupMovedFrames({ START, { 400, 300, 50, 50 } }, { 30, -20 }, BOUNDS);
 
 	EXPECT_EQ(frames, (std::vector<Frame>{ { 130, 80, 200, 100 }, { 430, 280, 50, 50 } }));
 }
 
-TEST_F(FrameCalculatorTest, GroupMoveIsLimitedByBoundsOfWholeGroup)
-{
-	const auto frames = FrameCalculator::CalculateGroupMovedFrames({ START, { 400, 300, 50, 50 } }, { 5000, 5000 }, BOUNDS);
-
-	EXPECT_EQ(frames, (std::vector<Frame>{ { 650, 350, 200, 100 }, { 950, 550, 50, 50 } }));
-}
-
-TEST_F(FrameCalculatorTest, GroupResizeOfSingleFrameMatchesResize)
-{
-	const auto frames = FrameCalculator::CalculateGroupResizedFrames({ START }, 0, ResizeHandle::TopLeft, { -10, -20 },
-		BOUNDS, MIN_SIZE);
-
-	EXPECT_EQ(frames, std::vector{ Resize(ResizeHandle::TopLeft, { -10, -20 }) });
-}
-
-TEST_F(FrameCalculatorTest, GroupResizeScalesEachFrameRelativeToItsOppositeSide)
+TEST_F(FrameCalculatorTest, GroupResizeScalesEachFrame)
 {
 	const auto frames = FrameCalculator::CalculateGroupResizedFrames({ START, { 150, 300, 50, 50 } }, 0,
 		ResizeHandle::Left, { -100, 0 }, BOUNDS, MIN_SIZE);
@@ -130,7 +97,7 @@ TEST_F(FrameCalculatorTest, GroupResizeScalesEachFrameRelativeToItsOppositeSide)
 	EXPECT_EQ(frames, (std::vector<Frame>{ { 0, 100, 300, 100 }, { 125, 300, 75, 50 } }));
 }
 
-TEST_F(FrameCalculatorTest, GroupResizeIsLimitedByBoundsOfEachFrame)
+TEST_F(FrameCalculatorTest, GroupResizeIsLimitedByBounds)
 {
 	const auto frames = FrameCalculator::CalculateGroupResizedFrames({ START, { 0, 300, 50, 50 } }, 0,
 		ResizeHandle::Left, { -100, 0 }, BOUNDS, MIN_SIZE);

@@ -89,7 +89,7 @@ TEST_F(ShapeTest, ShapeKeepsFrameAndColorFromConstructor)
 	EXPECT_EQ(shape.GetBorderColor(), BORDER_COLOR);
 }
 
-TEST_F(ShapeTest, SetColorsChangeFillAndBorderIndependently)
+TEST_F(ShapeTest, FillAndBorderChangeIndependently)
 {
 	Rectangle shape(FRAME, COLOR, BORDER_COLOR);
 

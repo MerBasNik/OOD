@@ -56,6 +56,7 @@ private:
 	std::vector<Frame> CalculateDraggedFrames(Point point) const;
 	void ExecuteCommands(std::vector<std::unique_ptr<ICommand>> commands) const;
 	Frame CalculateCreatedFrame(Point point) const;
+	void UpdateCreateDirection(Point point);
 	static std::unique_ptr<IShape> CreateShape(ShapeType type, const Frame& frame);
 	static CursorType GetResizeCursor(ResizeHandle handle);
 };

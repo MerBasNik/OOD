@@ -8,6 +8,7 @@
 #include "Enums/DragMode.h"
 #include "Model/EditorState/Enums/ResizeHandle.h"
 #include "Model/Types/Frame.h"
+#include <optional>
 #include <vector>
 
 struct DragState
@@ -18,6 +19,8 @@ struct DragState
 	std::vector<int> m_shapeIds;
 	std::vector<Frame> m_startFrames;
 	size_t m_shapeIndex = 0;
+	std::optional<bool> m_isCreateForwardX;
+	std::optional<bool> m_isCreateForwardY;
 };
 
 #endif // OOD_EDITOR_DRAGSTATE_H

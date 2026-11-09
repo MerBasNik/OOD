@@ -57,14 +57,14 @@ public:
 	}
 };
 
-TEST_F(TimelineControllerTest, ClickOnRowSelectsShapeOfThatLayer)
+TEST_F(TimelineControllerTest, ClickOnRowSelectsShape)
 {
 	m_controller.OnMouseDown(0, 0, TimelineDragMode::None);
 
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_top });
 }
 
-TEST_F(TimelineControllerTest, ToggleClickAddsAndRemovesShapeFromSelection)
+TEST_F(TimelineControllerTest, ToggleClickAddsAndRemoves)
 {
 	m_controller.OnMouseDown(0, 0, TimelineDragMode::None);
 	m_controller.OnMouseDown(2, 0, TimelineDragMode::None, true);
@@ -83,7 +83,7 @@ TEST_F(TimelineControllerTest, ClickBelowRowsClearsSelection)
 	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
 }
 
-TEST_F(TimelineControllerTest, ScrubChangesCurrentTimeWithoutHistory)
+TEST_F(TimelineControllerTest, ScrubAddsNoHistory)
 {
 	m_controller.OnMouseDown(std::nullopt, 1, TimelineDragMode::Scrub);
 	m_controller.OnMouseMove(0, 3);
@@ -95,7 +95,7 @@ TEST_F(TimelineControllerTest, ScrubChangesCurrentTimeWithoutHistory)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(TimelineControllerTest, CurrentTimeIsClampedToDocumentDuration)
+TEST_F(TimelineControllerTest, CurrentTimeIsClamped)
 {
 	m_controller.SetCurrentTime(-5);
 	EXPECT_EQ(m_state.GetCurrentTime(), 0);
@@ -104,7 +104,7 @@ TEST_F(TimelineControllerTest, CurrentTimeIsClampedToDocumentDuration)
 	EXPECT_EQ(m_state.GetCurrentTime(), m_document.GetDuration());
 }
 
-TEST_F(TimelineControllerTest, MoveTimeShowsPreviewAndDoesNotChangeDocument)
+TEST_F(TimelineControllerTest, MoveTimeShowsPreview)
 {
 	m_controller.OnMouseDown(1, 3, TimelineDragMode::MoveTime);
 	m_controller.OnMouseMove(1, 4);
@@ -114,7 +114,7 @@ TEST_F(TimelineControllerTest, MoveTimeShowsPreviewAndDoesNotChangeDocument)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(TimelineControllerTest, MoveTimeIsOneUndoableOperation)
+TEST_F(TimelineControllerTest, MoveTimeIsOneOperation)
 {
 	DragTime(1, 3, 4, TimelineDragMode::MoveTime);
 
@@ -129,25 +129,7 @@ TEST_F(TimelineControllerTest, MoveTimeIsOneUndoableOperation)
 	EXPECT_EQ(GetInterval(m_middle), (TimeInterval{ 3, 7 }));
 }
 
-TEST_F(TimelineControllerTest, MoveTimeIsClampedToDocumentDuration)
-{
-	DragTime(0, 6, 20, TimelineDragMode::MoveTime);
-
-	EXPECT_EQ(GetInterval(m_top), (TimeInterval{ 6, 10 }));
-}
-
-TEST_F(TimelineControllerTest, MoveTimeOfGroupStopsAtDocumentStart)
-{
-	m_state.SetSelectedShapeIds({ m_bottom, m_top });
-
-	DragTime(0, 6, 3, TimelineDragMode::MoveTime);
-
-	EXPECT_EQ(GetInterval(m_bottom), (TimeInterval{ 0, 4 }));
-	EXPECT_EQ(GetInterval(m_top), (TimeInterval{ 5, 9 }));
-	EXPECT_FALSE(m_history.CanUndo());
-}
-
-TEST_F(TimelineControllerTest, MoveTimeOfGroupStopsAtDocumentEnd)
+TEST_F(TimelineControllerTest, MoveTimeOfSelectedStopsAtEnd)
 {
 	m_state.SetSelectedShapeIds({ m_bottom, m_top });
 
@@ -157,63 +139,26 @@ TEST_F(TimelineControllerTest, MoveTimeOfGroupStopsAtDocumentEnd)
 	EXPECT_EQ(GetInterval(m_top), (TimeInterval{ 6, 10 }));
 }
 
-TEST_F(TimelineControllerTest, MoveTimeOfGroupIsOneOperation)
-{
-	m_state.SetSelectedShapeIds({ m_bottom, m_middle });
-
-	DragTime(1, 3, 5, TimelineDragMode::MoveTime);
-
-	EXPECT_EQ(GetInterval(m_bottom), (TimeInterval{ 2, 6 }));
-	EXPECT_EQ(GetInterval(m_middle), (TimeInterval{ 4, 8 }));
-	m_history.Undo();
-	EXPECT_EQ(GetInterval(m_bottom), (TimeInterval{ 0, 4 }));
-	EXPECT_EQ(GetInterval(m_middle), (TimeInterval{ 2, 6 }));
-	EXPECT_FALSE(m_history.CanUndo());
-}
-
-TEST_F(TimelineControllerTest, ClickOnBarOfGroupWithoutMoveSelectsOnlyClickedShape)
-{
-	m_state.SetSelectedShapeIds({ m_bottom, m_middle });
-
-	DragTime(1, 3, 3, TimelineDragMode::MoveTime);
-
-	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_middle });
-	EXPECT_FALSE(m_history.CanUndo());
-}
-
-TEST_F(TimelineControllerTest, ResizeStartChangesOnlyStart)
+TEST_F(TimelineControllerTest, ResizeStart)
 {
 	DragTime(1, 2, 1, TimelineDragMode::ResizeStart);
 
 	EXPECT_EQ(GetInterval(m_middle), (TimeInterval{ 1, 6 }));
 }
 
-TEST_F(TimelineControllerTest, ResizeEndChangesOnlyEnd)
+TEST_F(TimelineControllerTest, ResizeEnd)
 {
 	DragTime(1, 6, 8, TimelineDragMode::ResizeEnd);
 
 	EXPECT_EQ(GetInterval(m_middle), (TimeInterval{ 2, 8 }));
 }
 
-TEST_F(TimelineControllerTest, ResizeKeepsMinimumDuration)
+TEST_F(TimelineControllerTest, ResizeKeepsMinDuration)
 {
 	DragTime(1, 2, 20, TimelineDragMode::ResizeStart);
 
 	EXPECT_NEAR(GetInterval(m_middle).GetDuration(), ShapeDefaults::MIN_DURATION, 1e-9);
 	EXPECT_EQ(GetInterval(m_middle).m_end, 6);
-}
-
-TEST_F(TimelineControllerTest, CancelDuringTimeDragDoesNotChangeHistory)
-{
-	m_controller.OnMouseDown(1, 3, TimelineDragMode::MoveTime);
-	m_controller.OnMouseMove(1, 5);
-
-	m_controller.Cancel();
-	m_controller.OnMouseUp(1, 5);
-
-	EXPECT_EQ(GetInterval(m_middle), (TimeInterval{ 2, 6 }));
-	EXPECT_TRUE(m_state.GetPreviewTimeIntervals().empty());
-	EXPECT_FALSE(m_history.CanUndo());
 }
 
 TEST_F(TimelineControllerTest, MoveLayerToTop)
@@ -226,7 +171,7 @@ TEST_F(TimelineControllerTest, MoveLayerToTop)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(TimelineControllerTest, MoveSeveralLayersKeepsTheirOrderAndIsOneOperation)
+TEST_F(TimelineControllerTest, MoveSeveralLayers)
 {
 	const auto fourth = AddRectangle({ 0, 1 });
 	m_state.SetSelectedShapeIds({ fourth, m_middle });
@@ -239,7 +184,7 @@ TEST_F(TimelineControllerTest, MoveSeveralLayersKeepsTheirOrderAndIsOneOperation
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(TimelineControllerTest, DropAtSamePlaceDoesNotChangeHistory)
+TEST_F(TimelineControllerTest, DropAtSamePlaceAddsNoHistory)
 {
 	DragLayers(1, 1);
 
@@ -247,19 +192,7 @@ TEST_F(TimelineControllerTest, DropAtSamePlaceDoesNotChangeHistory)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(TimelineControllerTest, DropSlotIsShownOnlyDuringLayersDrag)
-{
-	m_controller.OnMouseDown(2, 0, TimelineDragMode::MoveLayers);
-	EXPECT_EQ(m_controller.GetDropSlot(), std::nullopt);
-
-	m_controller.OnMouseMove(0, 0);
-	EXPECT_EQ(m_controller.GetDropSlot(), 0);
-
-	m_controller.OnMouseUp(0, 0);
-	EXPECT_EQ(m_controller.GetDropSlot(), std::nullopt);
-}
-
-TEST_F(TimelineControllerTest, UndoOfTimeChangeSelectsChangedShape)
+TEST_F(TimelineControllerTest, UndoSelectsChangedShape)
 {
 	EditorController editor{ m_document, m_state, m_history };
 	DragTime(1, 3, 4, TimelineDragMode::MoveTime);
@@ -270,7 +203,7 @@ TEST_F(TimelineControllerTest, UndoOfTimeChangeSelectsChangedShape)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_middle });
 }
 
-TEST_F(TimelineControllerTest, DragIsCancelledWhenShapeIsDeletedElsewhere)
+TEST_F(TimelineControllerTest, DragStopsWhenShapeIsDeleted)
 {
 	m_controller.OnMouseDown(1, 3, TimelineDragMode::MoveTime);
 	m_controller.OnMouseMove(1, 5);

@@ -26,10 +26,8 @@ public:
 
 private:
 	std::ostream& m_output;
-	size_t m_depth = 0;
 
 	void Write(const std::string& typeName, const IShape& shape);
-	void WriteIndent();
 };
 
 #endif // OOD_EDITOR_SHAPESERIALIZER_H

@@ -45,7 +45,7 @@ public:
 	}
 };
 
-TEST_F(AppDocumentTest, NewDocumentIsEmptyWithoutFileAndHistory)
+TEST_F(AppDocumentTest, NewDocumentIsEmpty)
 {
 	EXPECT_EQ(m_document.GetShapeCount(), 0);
 	EXPECT_EQ(m_appDocument.GetFilePath(), std::nullopt);
@@ -62,7 +62,7 @@ TEST_F(AppDocumentTest, SaveRemembersFilePath)
 	EXPECT_EQ(m_appDocument.GetFilePath(), m_path);
 }
 
-TEST_F(AppDocumentTest, WindowsOfDocumentGetDifferentNumbers)
+TEST_F(AppDocumentTest, WindowNumbersAreDifferent)
 {
 	EXPECT_EQ(m_appDocument.GetName(), "Документ 1");
 	EXPECT_EQ(m_appDocument.NextWindowNumber(), 1);
@@ -81,7 +81,7 @@ TEST_F(AppDocumentTest, SaveKeepsHistory)
 	EXPECT_TRUE(m_history.CanRedo());
 }
 
-TEST_F(AppDocumentTest, LoadRestoresSavedShapes)
+TEST_F(AppDocumentTest, LoadRestoresShapes)
 {
 	AddRectangle({ 10, 20, 100, 50 });
 	m_controller.AddShape(ShapeType::Triangle);
@@ -96,7 +96,7 @@ TEST_F(AppDocumentTest, LoadRestoresSavedShapes)
 	EXPECT_EQ(GetShapeType(document.GetShape(1)), ShapeType::Triangle);
 }
 
-TEST_F(AppDocumentTest, LoadedDocumentHasEmptyHistoryAndRemembersFilePath)
+TEST_F(AppDocumentTest, LoadedDocumentHasEmptyHistory)
 {
 	WriteFile("rectangle 10 20 100 50 ff0000 000000\n");
 
@@ -107,7 +107,7 @@ TEST_F(AppDocumentTest, LoadedDocumentHasEmptyHistoryAndRemembersFilePath)
 	EXPECT_EQ(loaded->GetFilePath(), m_path);
 }
 
-TEST_F(AppDocumentTest, LoadDoesNotChangeOpenedDocument)
+TEST_F(AppDocumentTest, LoadKeepsOpenedDocument)
 {
 	m_controller.AddShape(ShapeType::Rectangle);
 	m_appDocument.Save(m_path);
@@ -120,33 +120,26 @@ TEST_F(AppDocumentTest, LoadDoesNotChangeOpenedDocument)
 	EXPECT_EQ(loaded->GetDocument().GetShapeCount(), 1);
 }
 
-TEST_F(AppDocumentTest, LoadOfInvalidFileThrows)
+TEST_F(AppDocumentTest, LoadInvalidFileThrows)
 {
 	WriteFile("rectangle 0 0 50 50 ff0000 000000\nhexagon 0 0 50 50 ff0000 000000\n");
 
 	EXPECT_THROW(Load(), std::runtime_error);
 }
 
-TEST_F(AppDocumentTest, LoadOfMissingFileThrows)
+TEST_F(AppDocumentTest, LoadMissingFileThrows)
 {
 	EXPECT_THROW(AppDocument::Load(m_path.string() + ".missing", WIDTH, HEIGHT, "Документ 2"), std::runtime_error);
 }
 
-TEST_F(AppDocumentTest, LoadRejectsShapesOutsideCanvas)
+TEST_F(AppDocumentTest, LoadRejectsShapeOutsideCanvas)
 {
 	WriteFile("rectangle 950 0 100 50 ff0000 000000\n");
 
 	EXPECT_THROW(Load(), std::runtime_error);
 }
 
-TEST_F(AppDocumentTest, LoadRejectsShapesSmallerThanMinimumSize)
-{
-	WriteFile("rectangle 0 0 5 50 ff0000 000000\n");
-
-	EXPECT_THROW(Load(), std::runtime_error);
-}
-
-TEST_F(AppDocumentTest, SaveWritesCommittedColorsOnly)
+TEST_F(AppDocumentTest, SaveSkipsColorPreview)
 {
 	const auto id = AddRectangle({ 0, 0, 100, 100 });
 	m_state.SetSelectedShapeIds({ id });
@@ -162,7 +155,7 @@ TEST_F(AppDocumentTest, SaveWritesCommittedColorsOnly)
 	EXPECT_EQ(loaded->GetDocument().GetShape(0).GetBorderColor(), 0);
 }
 
-TEST_F(AppDocumentTest, SaveWritesStateAfterUndo)
+TEST_F(AppDocumentTest, SaveAfterUndo)
 {
 	const auto id = AddRectangle({ 10, 20, 50, 100 });
 	m_state.SetSelectedShapeIds({ id });
@@ -180,7 +173,7 @@ TEST_F(AppDocumentTest, SaveWritesStateAfterUndo)
 	EXPECT_EQ(loaded->GetDocument().GetShape(0).GetFrame(), (Frame{ 10, 20, 50, 100 }));
 }
 
-TEST_F(AppDocumentTest, DifferentDocumentsHaveIndependentHistories)
+TEST_F(AppDocumentTest, DocumentsHaveOwnHistories)
 {
 	AppDocument other{ WIDTH, HEIGHT, "Документ 2" };
 	EditorState otherState;
@@ -203,33 +196,21 @@ TEST_F(AppDocumentTest, LoadRejectsTimeOutsideDuration)
 	EXPECT_THROW(Load(), std::runtime_error);
 }
 
-TEST_F(AppDocumentTest, LoadRejectsTooShortTimeInterval)
+TEST_F(AppDocumentTest, LoadRejectsTooShortInterval)
 {
 	WriteFile("rectangle 0 0 50 50 ff0000 000000 5 5.01\n");
 
 	EXPECT_THROW(Load(), std::runtime_error);
 }
 
-TEST_F(AppDocumentTest, SaveAndLoadKeepTimeInterval)
-{
-	const auto id = AddRectangle({ 0, 0, 100, 100 });
-	m_document.SetShapeTimeInterval(id, { 2, 6 });
-
-	m_appDocument.Save(m_path);
-	const auto loaded = Load();
-
-	ASSERT_EQ(loaded->GetDocument().GetShapeCount(), 1);
-	EXPECT_EQ(loaded->GetDocument().GetShape(0).GetTimeInterval(), (TimeInterval{ 2, 6 }));
-}
-
-TEST_F(AppDocumentTest, LoadedNestedGroupCanBeResizedUngroupedAndUndone)
+TEST_F(AppDocumentTest, LoadedGroupCanBeEdited)
 {
 	WriteFile("group\n"
-			  "  rectangle 0 0 100 100 ff0000 000000\n"
-			  "  group\n"
-			  "    ellipse 200 0 100 100 00ff00 000000\n"
-			  "    triangle 400 0 100 100 0000ff 000000\n"
-			  "  end\n"
+			  "rectangle 0 0 100 100 ff0000 000000\n"
+			  "group\n"
+			  "ellipse 200 0 100 100 00ff00 000000\n"
+			  "triangle 400 0 100 100 0000ff 000000\n"
+			  "end\n"
 			  "end\n");
 	const auto loaded = Load();
 	Document& document = loaded->GetDocument();

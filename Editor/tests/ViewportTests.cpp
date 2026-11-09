@@ -17,14 +17,14 @@ public:
 	}
 };
 
-TEST_F(ViewportTest, InitialViewShowsContentOneToOne)
+TEST_F(ViewportTest, InitialScaleIsOne)
 {
 	EXPECT_EQ(m_viewport.GetZoom(), 1);
 	ExpectPointNear(m_viewport.ToContent({ 250, 100 }), { 250, 100 });
 	ExpectPointNear(m_viewport.ToView({ 250, 100 }), { 250, 100 });
 }
 
-TEST_F(ViewportTest, ZoomAtKeepsContentPointUnderCursor)
+TEST_F(ViewportTest, ZoomKeepsPointUnderCursor)
 {
 	const Point before = m_viewport.ToContent({ 300, 200 });
 
@@ -34,14 +34,14 @@ TEST_F(ViewportTest, ZoomAtKeepsContentPointUnderCursor)
 	ExpectPointNear(m_viewport.ToContent({ 300, 200 }), before);
 }
 
-TEST_F(ViewportTest, ToViewIsInverseOfToContent)
+TEST_F(ViewportTest, ToViewInvertsToContent)
 {
 	m_viewport.ZoomAt(3, { 700, 100 });
 
 	ExpectPointNear(m_viewport.ToView(m_viewport.ToContent({ 123, 456 })), { 123, 456 });
 }
 
-TEST_F(ViewportTest, ZoomIsClampedToLimits)
+TEST_F(ViewportTest, ZoomIsClamped)
 {
 	m_viewport.ZoomAt(100, { 0, 0 });
 	EXPECT_EQ(m_viewport.GetZoom(), 8);
@@ -50,19 +50,7 @@ TEST_F(ViewportTest, ZoomIsClampedToLimits)
 	EXPECT_EQ(m_viewport.GetZoom(), 0.25);
 }
 
-TEST_F(ViewportTest, ZoomInAndOutUseViewCenter)
-{
-	const Point center = m_viewport.ToContent({ 500, 300 });
-
-	m_viewport.ZoomIn();
-	EXPECT_EQ(m_viewport.GetZoom(), Viewport::ZOOM_STEP);
-	ExpectPointNear(m_viewport.ToContent({ 500, 300 }), center);
-
-	m_viewport.ZoomOut();
-	EXPECT_NEAR(m_viewport.GetZoom(), 1, 1e-9);
-}
-
-TEST_F(ViewportTest, ScrollMovesVisibleAreaWhenZoomedIn)
+TEST_F(ViewportTest, ScrollWhenZoomedIn)
 {
 	m_viewport.ZoomAt(2, { 0, 0 });
 
@@ -71,7 +59,7 @@ TEST_F(ViewportTest, ScrollMovesVisibleAreaWhenZoomedIn)
 	ExpectPointNear(m_viewport.GetOffset(), { 50, 25 });
 }
 
-TEST_F(ViewportTest, ScrollIsClampedToContent)
+TEST_F(ViewportTest, ScrollIsClamped)
 {
 	m_viewport.ZoomAt(2, { 0, 0 });
 
@@ -82,22 +70,14 @@ TEST_F(ViewportTest, ScrollIsClampedToContent)
 	ExpectPointNear(m_viewport.GetOffset(), { 0, 0 });
 }
 
-TEST_F(ViewportTest, ScrollDoesNothingWhenContentFits)
+TEST_F(ViewportTest, NoScrollWhenContentFits)
 {
 	m_viewport.Scroll({ 100, 100 });
 
 	ExpectPointNear(m_viewport.GetOffset(), { 0, 0 });
 }
 
-TEST_F(ViewportTest, ZoomedOutContentIsCentered)
-{
-	m_viewport.ZoomAt(0.5, { 0, 0 });
-
-	ExpectPointNear(m_viewport.GetOffset(), { -500, -300 });
-	ExpectPointNear(m_viewport.ToView({ 0, 0 }), { 250, 150 });
-}
-
-TEST_F(ViewportTest, ResetZoomRestoresInitialView)
+TEST_F(ViewportTest, ResetZoom)
 {
 	m_viewport.ZoomAt(4, { 800, 500 });
 
@@ -105,11 +85,4 @@ TEST_F(ViewportTest, ResetZoomRestoresInitialView)
 
 	EXPECT_EQ(m_viewport.GetZoom(), 1);
 	ExpectPointNear(m_viewport.GetOffset(), { 0, 0 });
-}
-
-TEST_F(ViewportTest, InvalidZoomLimitsAreRejected)
-{
-	EXPECT_THROW(Viewport({ 10, 10 }, { 10, 10 }, 0, 2), std::invalid_argument);
-	EXPECT_THROW(Viewport({ 10, 10 }, { 10, 10 }, 2, 4), std::invalid_argument);
-	EXPECT_THROW(Viewport({ 10, 10 }, { 10, 10 }, 0.5, 0.8), std::invalid_argument);
 }

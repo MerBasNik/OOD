@@ -42,13 +42,31 @@ Frame FrameCalculator::CalculateResizedFrame(const Frame& startFrame, const Resi
 }
 
 Frame FrameCalculator::CalculateCreatedFrame(const Point startPoint, const Point currentPoint, const Frame& bounds,
-	const double minSize)
+	const double minSize, const std::optional<bool> isForwardX, const std::optional<bool> isForwardY)
 {
-	const auto [left, right] = CalculateCreatedRange(startPoint.m_x, currentPoint.m_x,
-		bounds.m_left, bounds.GetRight(), minSize);
-	const auto [top, bottom] = CalculateCreatedRange(startPoint.m_y, currentPoint.m_y,
-		bounds.m_top, bounds.GetBottom(), minSize);
+	const auto [left, right] = CalculateCreatedRange(startPoint.m_x, currentPoint.m_x, bounds.m_left, bounds.GetRight(),
+		minSize, isForwardX.value_or(currentPoint.m_x >= startPoint.m_x));
+	const auto [top, bottom] = CalculateCreatedRange(startPoint.m_y, currentPoint.m_y, bounds.m_top, bounds.GetBottom(),
+		minSize, isForwardY.value_or(currentPoint.m_y >= startPoint.m_y));
 	return { left, top, right - left, bottom - top };
+}
+
+std::optional<bool> FrameCalculator::IsCreateForward(const double start, const double current, const double minSize,
+	const std::optional<bool> wasForward)
+{
+	if (wasForward)
+	{
+		return wasForward;
+	}
+	if (current - start >= minSize)
+	{
+		return true;
+	}
+	if (start - current >= minSize)
+	{
+		return false;
+	}
+	return std::nullopt;
 }
 
 std::vector<Frame> FrameCalculator::CalculateGroupMovedFrames(const std::vector<Frame>& startFrames, const Point offset, const Frame& bounds)
@@ -116,11 +134,11 @@ Frame FrameCalculator::GetBoundingFrame(const std::vector<Frame>& frames)
 }
 
 std::pair<double, double> FrameCalculator::CalculateCreatedRange(double start, double current,
-	const double min, const double max, const double minSize)
+	const double min, const double max, const double minSize, const bool isForward)
 {
 	start = std::clamp(start, min, max);
 	current = std::clamp(current, min, max);
-	if (current >= start)
+	if (isForward)
 	{
 		const double high = std::min(std::max(current, start + minSize), max);
 		const double low = std::min(start, high - minSize);

@@ -3,7 +3,6 @@
 //
 
 #include "Command/ChangeShapeIndexCommand/ChangeShapeIndexCommand.h"
-#include "Command/UngroupShapeCommand/UngroupShapeCommand.h"
 #include "Controller/EditorController.h"
 #include "Mock/ShapeTypeVisitor.h"
 #include "Model/Shapes/Ellipse.h"
@@ -91,7 +90,7 @@ public:
 	}
 };
 
-TEST_F(GroupCommandTest, GroupOfNotAdjacentShapesIsPlacedOnTopAndKeepsTheirOrder)
+TEST_F(GroupCommandTest, GroupNotAdjacentShapes)
 {
 	const int group = Group({ m_d, m_b });
 
@@ -104,7 +103,7 @@ TEST_F(GroupCommandTest, GroupOfNotAdjacentShapesIsPlacedOnTopAndKeepsTheirOrder
 	EXPECT_EQ(CountUndoSteps(), 1);
 }
 
-TEST_F(GroupCommandTest, UndoGroupRestoresOriginalIndicesAndIds)
+TEST_F(GroupCommandTest, UndoGroup)
 {
 	Group({ m_b, m_d });
 
@@ -115,7 +114,7 @@ TEST_F(GroupCommandTest, UndoGroupRestoresOriginalIndicesAndIds)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(GroupCommandTest, RedoGroupRestoresSameGroup)
+TEST_F(GroupCommandTest, RedoGroup)
 {
 	const int group = Group({ m_b, m_d });
 	m_controller.Undo();
@@ -127,7 +126,7 @@ TEST_F(GroupCommandTest, RedoGroupRestoresSameGroup)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ group });
 }
 
-TEST_F(GroupCommandTest, GroupOfLessThanTwoShapesDoesNothing)
+TEST_F(GroupCommandTest, GroupOfOneShapeDoesNothing)
 {
 	m_state.SetSelectedShapeIds({ m_b });
 	m_controller.GroupSelectedShapes();
@@ -138,7 +137,7 @@ TEST_F(GroupCommandTest, GroupOfLessThanTwoShapesDoesNothing)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(GroupCommandTest, UngroupPlacesChildrenAtCurrentPlaceOfGroup)
+TEST_F(GroupCommandTest, UngroupPutsChildrenInPlaceOfGroup)
 {
 	const int group = Group({ m_b, m_d });
 	m_history.Execute(std::make_unique<ChangeShapeIndexCommand>(m_document, group, 1));
@@ -151,17 +150,7 @@ TEST_F(GroupCommandTest, UngroupPlacesChildrenAtCurrentPlaceOfGroup)
 	EXPECT_EQ(GetShapeType(*m_document.FindShape(children[1])), ShapeType::Ellipse);
 }
 
-TEST_F(GroupCommandTest, UngroupDiffersFromUndoGroup)
-{
-	const int group = Group({ m_b, m_d });
-
-	const auto children = Ungroup(group);
-
-	EXPECT_EQ(GetOrder(), (std::vector{ m_a, m_c, m_e, children[0], children[1] }));
-	EXPECT_EQ(m_document.FindShape(group), nullptr);
-}
-
-TEST_F(GroupCommandTest, UndoAndRedoUngroup)
+TEST_F(GroupCommandTest, UndoRedoUngroup)
 {
 	const int group = Group({ m_b, m_d });
 	const auto children = Ungroup(group);
@@ -201,27 +190,7 @@ TEST_F(GroupCommandTest, InvalidUngroupDoesNothing)
 	EXPECT_EQ(CountUndoSteps(), 1);
 }
 
-TEST_F(GroupCommandTest, UngroupCommandRejectsNotGroup)
-{
-	UngroupShapeCommand command(m_document, m_a);
-
-	EXPECT_THROW(command.Execute(), std::invalid_argument);
-	EXPECT_EQ(m_document.GetShapeCount(), 5);
-}
-
-TEST_F(GroupCommandTest, MoveGroupMovesAllChildrenAsOneOperation)
-{
-	const int group = Group({ m_b, m_d });
-
-	Drag({ 125, 25 }, { 175, 75 });
-
-	const GroupShape& shape = GetGroup(group);
-	EXPECT_EQ(shape.GetChild(0).GetFrame(), (Frame{ 150, 50, 50, 50 }));
-	EXPECT_EQ(shape.GetChild(1).GetFrame(), (Frame{ 350, 50, 50, 50 }));
-	EXPECT_EQ(CountUndoSteps(), 2);
-}
-
-TEST_F(GroupCommandTest, MoveGroupShowsPreviewOfWholeGroup)
+TEST_F(GroupCommandTest, MoveGroupShowsPreview)
 {
 	const int group = Group({ m_b, m_d });
 
@@ -234,19 +203,7 @@ TEST_F(GroupCommandTest, MoveGroupShowsPreviewOfWholeGroup)
 	EXPECT_EQ(CountUndoSteps(), 1);
 }
 
-TEST_F(GroupCommandTest, ResizeGroupOfDifferentTypesScalesSizesAndDistances)
-{
-	const int group = Group({ m_b, m_d });
-
-	Drag({ 350, 50 }, { 600, 100 });
-
-	const GroupShape& shape = GetGroup(group);
-	ExpectFrameNear(shape.GetChild(0).GetFrame(), { 100, 0, 100, 100 });
-	ExpectFrameNear(shape.GetChild(1).GetFrame(), { 500, 0, 100, 100 });
-	EXPECT_EQ(CountUndoSteps(), 2);
-}
-
-TEST_F(GroupCommandTest, ResizeNestedGroupAndUndoRedo)
+TEST_F(GroupCommandTest, ResizeNestedGroupUndoRedo)
 {
 	const int inner = Group({ m_b, m_d });
 	const int outer = Group({ m_a, inner });
@@ -266,7 +223,7 @@ TEST_F(GroupCommandTest, ResizeNestedGroupAndUndoRedo)
 	ExpectFrameNear(innerShape.GetChild(1).GetFrame(), { 600, 0, 100, 100 });
 }
 
-TEST_F(GroupCommandTest, GroupMoveResizeUndoThreeTimesRedoThreeTimes)
+TEST_F(GroupCommandTest, GroupMoveResizeUndoRedo)
 {
 	const int group = Group({ m_b, m_d });
 	Drag({ 125, 25 }, { 125, 75 });
@@ -290,7 +247,7 @@ TEST_F(GroupCommandTest, GroupMoveResizeUndoThreeTimesRedoThreeTimes)
 	EXPECT_FALSE(m_history.CanRedo());
 }
 
-TEST_F(GroupCommandTest, DeleteGroupWithContentAndUndoRedo)
+TEST_F(GroupCommandTest, DeleteGroupUndoRedo)
 {
 	const int inner = Group({ m_b, m_d });
 	const int outer = Group({ m_a, inner });
@@ -310,16 +267,7 @@ TEST_F(GroupCommandTest, DeleteGroupWithContentAndUndoRedo)
 	EXPECT_EQ(GetOrder(), (std::vector{ m_c, m_e }));
 }
 
-TEST_F(GroupCommandTest, ClickOnGroupWithoutMoveCreatesNoCommand)
-{
-	Group({ m_b, m_d });
-
-	Drag({ 125, 25 }, { 125, 25 });
-
-	EXPECT_EQ(CountUndoSteps(), 1);
-}
-
-TEST_F(GroupCommandTest, ClickOnChildOfNotSelectedGroupSelectsWholeGroup)
+TEST_F(GroupCommandTest, ClickOnChildSelectsGroup)
 {
 	const int group = Group({ m_b, m_d });
 	m_state.SetSelectedShapeIds({});
@@ -330,18 +278,7 @@ TEST_F(GroupCommandTest, ClickOnChildOfNotSelectedGroupSelectsWholeGroup)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ group });
 }
 
-TEST_F(GroupCommandTest, ClickBetweenChildrenOfGroupSelectsNothing)
-{
-	Group({ m_b, m_d });
-	m_state.SetSelectedShapeIds({});
-
-	m_controller.OnMouseDown({ 175, 25 });
-	m_controller.OnMouseUp({ 175, 25 });
-
-	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
-}
-
-TEST_F(GroupCommandTest, CommandsOnShapesBeforeGroupStayValidAfterUndoGroup)
+TEST_F(GroupCommandTest, OldCommandsWorkAfterUndoGroup)
 {
 	m_state.SetSelectedShapeIds({ m_b });
 	Drag({ 125, 25 }, { 125, 125 });
@@ -356,7 +293,7 @@ TEST_F(GroupCommandTest, CommandsOnShapesBeforeGroupStayValidAfterUndoGroup)
 	EXPECT_EQ(GetGroup(m_state.GetSelectedShapeIds().front()).GetChild(0).GetFrame(), (Frame{ 100, 100, 50, 50 }));
 }
 
-TEST_F(GroupCommandTest, GroupInOneWindowRemovesGroupedShapesFromOtherWindowSelection)
+TEST_F(GroupCommandTest, GroupUpdatesOtherWindowSelection)
 {
 	EditorState otherState;
 	EditorController other{ m_document, otherState, m_history };

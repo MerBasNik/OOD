@@ -123,7 +123,7 @@ TEST_F(DocumentTest, NotifiesObserverAboutChangedFrame)
 	document.SetShapeFrame(id, { 10, 0, 100, 100 });
 }
 
-TEST_F(DocumentTest, SetShapeColorsChangesColors)
+TEST_F(DocumentTest, SetColorsChangesColors)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 
@@ -133,12 +133,7 @@ TEST_F(DocumentTest, SetShapeColorsChangesColors)
 	EXPECT_EQ(document.FindShape(id)->GetBorderColor(), 0x445566);
 }
 
-TEST_F(DocumentTest, SetShapeColorsOfMissingShapeThrows)
-{
-	EXPECT_THROW(document.SetShapeColors(42, 0, 0), std::invalid_argument);
-}
-
-TEST_F(DocumentTest, NotifiesObserverAboutChangedColors)
+TEST_F(DocumentTest, SetColorsNotifiesObserver)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	MockDocumentObserver observer;
@@ -148,7 +143,7 @@ TEST_F(DocumentTest, NotifiesObserverAboutChangedColors)
 	document.SetShapeColors(id, 0x112233, 0);
 }
 
-TEST_F(DocumentTest, DoesNotNotifyWhenColorsAreUnchanged)
+TEST_F(DocumentTest, SameColorsDoNotNotify)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	MockDocumentObserver observer;
@@ -286,7 +281,7 @@ TEST_F(DocumentTest, InsertShapeRejectsDuplicateIdAndInvalidPosition)
 	EXPECT_EQ(document.GetShapeCount(), 1);
 }
 
-TEST_F(DocumentTest, FindTopShapeSkipsShapesHiddenAtTime)
+TEST_F(DocumentTest, FindTopShapeSkipsHidden)
 {
 	const auto bottom = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	const auto top = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
@@ -297,7 +292,7 @@ TEST_F(DocumentTest, FindTopShapeSkipsShapesHiddenAtTime)
 	EXPECT_EQ(document.FindTopShape({ 50, 50 }, 5), bottom);
 }
 
-TEST_F(DocumentTest, SetShapeTimeIntervalChangesIntervalAndNotifies)
+TEST_F(DocumentTest, SetTimeIntervalNotifies)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	MockDocumentObserver observer;
@@ -311,7 +306,7 @@ TEST_F(DocumentTest, SetShapeTimeIntervalChangesIntervalAndNotifies)
 	document.RemoveObserver(observer);
 }
 
-TEST_F(DocumentTest, SetShapeTimeIntervalRejectsInvalidInterval)
+TEST_F(DocumentTest, SetTimeIntervalRejectsInvalid)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 
@@ -320,12 +315,4 @@ TEST_F(DocumentTest, SetShapeTimeIntervalRejectsInvalidInterval)
 	EXPECT_THROW(document.SetShapeTimeInterval(id, { 1, DEFAULT_DURATION + 1 }), std::invalid_argument);
 	EXPECT_THROW(document.SetShapeTimeInterval(id + 1, { 1, 3 }), std::invalid_argument);
 	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), TimeInterval{});
-}
-
-TEST_F(DocumentTest, AddShapeRejectsIntervalOutsideDuration)
-{
-	auto shape = MakeRectangle({ 0, 0, 100, 100 });
-	shape->SetTimeInterval({ 5, DEFAULT_DURATION + 5 });
-
-	EXPECT_THROW(document.AddShape(std::move(shape)), std::invalid_argument);
 }

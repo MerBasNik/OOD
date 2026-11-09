@@ -164,7 +164,7 @@ TEST_F(ShapeListControllerTest, DropNextToItselfDoesNotAddHistory)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(ShapeListControllerTest, ToggleClickAddsAndRemovesShape)
+TEST_F(ShapeListControllerTest, ToggleClickAddsAndRemoves)
 {
 	m_controller.OnMouseDown(0);
 
@@ -177,7 +177,7 @@ TEST_F(ShapeListControllerTest, ToggleClickAddsAndRemovesShape)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ m_bottom });
 }
 
-TEST_F(ShapeListControllerTest, ToggleClickBelowRowsKeepsSelection)
+TEST_F(ShapeListControllerTest, ToggleClickOnEmptyKeepsSelection)
 {
 	m_state.SetSelectedShapeIds({ m_top });
 

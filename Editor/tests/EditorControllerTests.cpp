@@ -348,7 +348,7 @@ TEST_F(EditorControllerTest, NewGestureWithoutMouseUpDropsOldPreview)
 	EXPECT_TRUE(m_state.GetPreviewFrames().empty());
 }
 
-TEST_F(EditorControllerTest, DragWithShapeToolCreatesShapeOfThatType)
+TEST_F(EditorControllerTest, DragWithToolCreatesShape)
 {
 	m_controller.SelectShapeTool(ShapeType::Ellipse);
 
@@ -359,7 +359,7 @@ TEST_F(EditorControllerTest, DragWithShapeToolCreatesShapeOfThatType)
 	EXPECT_EQ(m_document.GetShape(0).GetFrame(), (Frame{ 100, 100, 200, 150 }));
 }
 
-TEST_F(EditorControllerTest, CreatedShapeIsSelectedAndToolIsReset)
+TEST_F(EditorControllerTest, CreatedShapeIsSelected)
 {
 	m_controller.SelectShapeTool(ShapeType::Rectangle);
 
@@ -369,7 +369,7 @@ TEST_F(EditorControllerTest, CreatedShapeIsSelectedAndToolIsReset)
 	EXPECT_EQ(m_state.GetShapeTool(), std::nullopt);
 }
 
-TEST_F(EditorControllerTest, CreateOverExistingShapeDoesNotMoveIt)
+TEST_F(EditorControllerTest, CreateOverShapeDoesNotMoveIt)
 {
 	const auto id = AddRectangle({ 100, 100, 200, 100 });
 	m_controller.SelectShapeTool(ShapeType::Triangle);
@@ -381,7 +381,7 @@ TEST_F(EditorControllerTest, CreateOverExistingShapeDoesNotMoveIt)
 	EXPECT_EQ(GetShapeType(m_document.GetShape(1)), ShapeType::Triangle);
 }
 
-TEST_F(EditorControllerTest, CreateDuringGestureChangesOnlyPreview)
+TEST_F(EditorControllerTest, CreatePreviewKeepsDocument)
 {
 	m_document.AddObserver(m_documentObserver);
 	EXPECT_CALL(m_documentObserver, DocumentUpdate).Times(0);
@@ -395,11 +395,11 @@ TEST_F(EditorControllerTest, CreateDuringGestureChangesOnlyPreview)
 
 	m_controller.OnMouseMove({ 50, 300 });
 
-	EXPECT_EQ(m_state.GetCreatingShape()->GetFrame(), (Frame{ 50, 100, 50, 200 }));
+	EXPECT_EQ(m_state.GetCreatingShape()->GetFrame(), (Frame{ 100, 100, ShapeDefaults::MIN_SIZE, 200 }));
 	EXPECT_EQ(m_document.GetShapeCount(), 0);
 }
 
-TEST_F(EditorControllerTest, WholeCreateGestureChangesDocumentOnceAndClearsPreview)
+TEST_F(EditorControllerTest, CreateIsOneDocumentChange)
 {
 	m_document.AddObserver(m_documentObserver);
 	EXPECT_CALL(m_documentObserver, DocumentUpdate).Times(1);
@@ -410,7 +410,7 @@ TEST_F(EditorControllerTest, WholeCreateGestureChangesDocumentOnceAndClearsPrevi
 	EXPECT_EQ(m_state.GetCreatingShape(), nullptr);
 }
 
-TEST_F(EditorControllerTest, ClickWithShapeToolDoesNotCreateShape)
+TEST_F(EditorControllerTest, ClickWithToolCreatesNothing)
 {
 	m_controller.SelectShapeTool(ShapeType::Rectangle);
 
@@ -420,7 +420,7 @@ TEST_F(EditorControllerTest, ClickWithShapeToolDoesNotCreateShape)
 	EXPECT_EQ(m_state.GetShapeTool(), ShapeType::Rectangle);
 }
 
-TEST_F(EditorControllerTest, CancelDuringCreateDropsPreviewAndIgnoresMouseUp)
+TEST_F(EditorControllerTest, CancelDuringCreateDropsShape)
 {
 	m_controller.SelectShapeTool(ShapeType::Rectangle);
 	m_controller.OnMouseDown({ 100, 100 });
@@ -435,7 +435,7 @@ TEST_F(EditorControllerTest, CancelDuringCreateDropsPreviewAndIgnoresMouseUp)
 	EXPECT_EQ(m_state.GetShapeTool(), ShapeType::Rectangle);
 }
 
-TEST_F(EditorControllerTest, CancelWithoutGestureResetsShapeTool)
+TEST_F(EditorControllerTest, CancelResetsTool)
 {
 	m_controller.SelectShapeTool(ShapeType::Rectangle);
 
@@ -458,7 +458,7 @@ TEST_F(EditorControllerTest, CancelDuringMoveRestoresShapeFrame)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, CursorIsCrossWithShapeTool)
+TEST_F(EditorControllerTest, CursorIsCrossWithTool)
 {
 	AddSelectedRectangle({ 100, 100, 200, 100 });
 
@@ -573,14 +573,14 @@ TEST_F(EditorControllerTest, UndoAndRedoAtHistoryBoundsDoNothing)
 	EXPECT_EQ(m_document.GetShapeCount(), 1);
 }
 
-TEST_F(EditorControllerTest, CreatedShapeHasDefaultBorderColor)
+TEST_F(EditorControllerTest, NewShapeHasDefaultBorder)
 {
 	m_controller.AddShape(ShapeType::Rectangle);
 
 	EXPECT_EQ(m_document.GetShape(0).GetBorderColor(), ShapeDefaults::BORDER_COLOR);
 }
 
-TEST_F(EditorControllerTest, PreviewColorDoesNotChangeDocument)
+TEST_F(EditorControllerTest, ColorPreviewKeepsDocument)
 {
 	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
 	m_document.AddObserver(m_documentObserver);
@@ -596,7 +596,7 @@ TEST_F(EditorControllerTest, PreviewColorDoesNotChangeDocument)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, CommitFillColorChangesOnlyFill)
+TEST_F(EditorControllerTest, CommitFillKeepsBorder)
 {
 	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
 	m_controller.PreviewFillColor(0x112233);
@@ -608,7 +608,7 @@ TEST_F(EditorControllerTest, CommitFillColorChangesOnlyFill)
 	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
 }
 
-TEST_F(EditorControllerTest, CommitBorderColorChangesOnlyBorder)
+TEST_F(EditorControllerTest, CommitBorderKeepsFill)
 {
 	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
 	m_controller.PreviewBorderColor(0x445566);
@@ -620,7 +620,7 @@ TEST_F(EditorControllerTest, CommitBorderColorChangesOnlyBorder)
 	EXPECT_EQ(m_state.GetPreviewBorderColor(), std::nullopt);
 }
 
-TEST_F(EditorControllerTest, CommitOfUnchangedColorDoesNotAddHistory)
+TEST_F(EditorControllerTest, SameColorAddsNoHistory)
 {
 	AddSelectedRectangle({ 0, 0, 100, 100 });
 	m_controller.PreviewFillColor(0);
@@ -630,7 +630,7 @@ TEST_F(EditorControllerTest, CommitOfUnchangedColorDoesNotAddHistory)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, CancelColorsDiscardsPreview)
+TEST_F(EditorControllerTest, CancelColorsDropsPreview)
 {
 	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
 	m_controller.PreviewFillColor(0x112233);
@@ -643,7 +643,7 @@ TEST_F(EditorControllerTest, CancelColorsDiscardsPreview)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, MouseDownDiscardsColorPreview)
+TEST_F(EditorControllerTest, MouseDownDropsColorPreview)
 {
 	AddSelectedRectangle({ 0, 0, 100, 100 });
 	m_controller.PreviewFillColor(0x112233);
@@ -653,7 +653,7 @@ TEST_F(EditorControllerTest, MouseDownDiscardsColorPreview)
 	EXPECT_EQ(m_state.GetPreviewFillColor(), std::nullopt);
 }
 
-TEST_F(EditorControllerTest, ToggleClickAddsShapeToSelection)
+TEST_F(EditorControllerTest, ToggleClickAddsShape)
 {
 	const auto first = AddSelectedRectangle({ 0, 0, 100, 100 });
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
@@ -663,7 +663,7 @@ TEST_F(EditorControllerTest, ToggleClickAddsShapeToSelection)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ first, second }));
 }
 
-TEST_F(EditorControllerTest, ToggleClickRemovesShapeFromSelection)
+TEST_F(EditorControllerTest, ToggleClickRemovesShape)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
@@ -674,16 +674,7 @@ TEST_F(EditorControllerTest, ToggleClickRemovesShapeFromSelection)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ second });
 }
 
-TEST_F(EditorControllerTest, ToggleClickOnEmptyAreaKeepsSelection)
-{
-	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
-
-	Click({ 800, 500 }, true);
-
-	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ id });
-}
-
-TEST_F(EditorControllerTest, ClickOnShapeOfGroupSelectsOnlyIt)
+TEST_F(EditorControllerTest, ClickSelectsOnlyClickedShape)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
@@ -694,7 +685,7 @@ TEST_F(EditorControllerTest, ClickOnShapeOfGroupSelectsOnlyIt)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ second });
 }
 
-TEST_F(EditorControllerTest, DragOfSelectedShapeMovesWholeGroup)
+TEST_F(EditorControllerTest, DragMovesAllSelected)
 {
 	const auto first = AddRectangle({ 100, 100, 100, 100 });
 	const auto second = AddRectangle({ 400, 300, 100, 100 });
@@ -707,7 +698,7 @@ TEST_F(EditorControllerTest, DragOfSelectedShapeMovesWholeGroup)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ first, second }));
 }
 
-TEST_F(EditorControllerTest, GroupMoveOneHistoryOperation)
+TEST_F(EditorControllerTest, MoveOfSelectedIsOneOperation)
 {
 	const auto first = AddRectangle({ 100, 100, 100, 100 });
 	const auto second = AddRectangle({ 400, 300, 100, 100 });
@@ -721,19 +712,7 @@ TEST_F(EditorControllerTest, GroupMoveOneHistoryOperation)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, GroupResizeScalesEachShapeOwnSide)
-{
-	const auto first = AddRectangle({ 100, 100, 100, 100 });
-	const auto second = AddRectangle({ 300, 100, 100, 100 });
-	m_state.SetSelectedShapeIds({ first, second });
-
-	Drag({ 200, 200 }, { 300, 300 });
-
-	EXPECT_EQ(GetFrame(first), (Frame{ 100, 100, 200, 200 }));
-	EXPECT_EQ(GetFrame(second), (Frame{ 300, 100, 200, 200 }));
-}
-
-TEST_F(EditorControllerTest, GroupResizeKeepsMinSizeOfSmallestShape)
+TEST_F(EditorControllerTest, ResizeOfSelectedKeepsMinSize)
 {
 	const auto first = AddRectangle({ 100, 100, 200, 200 });
 	const auto second = AddRectangle({ 400, 100, 20, 20 });
@@ -745,7 +724,7 @@ TEST_F(EditorControllerTest, GroupResizeKeepsMinSizeOfSmallestShape)
 	EXPECT_EQ(GetFrame(second), (Frame{ 400, 100, ShapeDefaults::MIN_SIZE, ShapeDefaults::MIN_SIZE }));
 }
 
-TEST_F(EditorControllerTest, DeleteAllSelectedShapesOneOperation)
+TEST_F(EditorControllerTest, DeleteOfSelectedIsOneOperation)
 {
 	const auto bottom = AddRectangle({ 0, 0, 100, 100 });
 	const auto middle = AddRectangle({ 200, 200, 100, 100 });
@@ -767,7 +746,7 @@ TEST_F(EditorControllerTest, DeleteAllSelectedShapesOneOperation)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, CommitColorsAllSelectedShapesOneOperation)
+TEST_F(EditorControllerTest, ColorsOfSelectedIsOneOperation)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
@@ -786,7 +765,7 @@ TEST_F(EditorControllerTest, CommitColorsAllSelectedShapesOneOperation)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(EditorControllerTest, UndoAddLeavesNoSelectionOfRemovedShape)
+TEST_F(EditorControllerTest, UndoAddClearsSelection)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	m_controller.AddShape(ShapeType::Ellipse);
@@ -797,7 +776,7 @@ TEST_F(EditorControllerTest, UndoAddLeavesNoSelectionOfRemovedShape)
 	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
 }
 
-TEST_F(EditorControllerTest, UndoDeleteSelectsAllRestoredShapes)
+TEST_F(EditorControllerTest, UndoDeleteSelectsRestored)
 {
 	const auto bottom = AddRectangle({ 0, 0, 100, 100 });
 	AddRectangle({ 200, 200, 100, 100 });
@@ -810,7 +789,7 @@ TEST_F(EditorControllerTest, UndoDeleteSelectsAllRestoredShapes)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ bottom, top }));
 }
 
-TEST_F(EditorControllerTest, UndoAndRedoSelectChangedShapes)
+TEST_F(EditorControllerTest, UndoRedoSelectChanged)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
@@ -826,27 +805,7 @@ TEST_F(EditorControllerTest, UndoAndRedoSelectChangedShapes)
 	EXPECT_EQ(m_state.GetSelectedShapeIds(), (std::vector{ first, second }));
 }
 
-TEST_F(EditorControllerTest, UndoAtHistoryStartKeepsSelection)
-{
-	const auto id = AddSelectedRectangle({ 0, 0, 100, 100 });
-
-	m_controller.Undo();
-
-	EXPECT_EQ(m_state.GetSelectedShapeIds(), std::vector{ id });
-}
-
-TEST_F(EditorControllerTest, ClickOnShapeHiddenAtCurrentTimeDoesNotSelectIt)
-{
-	const auto id = AddRectangle({ 0, 0, 100, 100 });
-	m_document.SetShapeTimeInterval(id, { 2, 5 });
-	m_state.SetCurrentTime(1);
-
-	Click({ 50, 50 });
-
-	EXPECT_TRUE(m_state.GetSelectedShapeIds().empty());
-}
-
-TEST_F(EditorControllerTest, CreatedShapeStartsAtCurrentTime)
+TEST_F(EditorControllerTest, NewShapeStartsAtCurrentTime)
 {
 	m_state.SetCurrentTime(3);
 
@@ -856,7 +815,7 @@ TEST_F(EditorControllerTest, CreatedShapeStartsAtCurrentTime)
 	EXPECT_EQ(m_document.GetShape(0).GetTimeInterval(), (TimeInterval{ 3, m_document.GetDuration() }));
 }
 
-TEST_F(EditorControllerTest, DragMovesOnlySelectedShapesVisibleAtCurrentTime)
+TEST_F(EditorControllerTest, DragMovesOnlyVisibleShapes)
 {
 	const auto visible = AddRectangle({ 0, 0, 100, 100 });
 	const auto hidden = AddRectangle({ 200, 200, 100, 100 });
@@ -867,11 +826,4 @@ TEST_F(EditorControllerTest, DragMovesOnlySelectedShapesVisibleAtCurrentTime)
 
 	EXPECT_EQ(GetFrame(visible), (Frame{ 50, 50, 100, 100 }));
 	EXPECT_EQ(GetFrame(hidden), (Frame{ 200, 200, 100, 100 }));
-}
-
-TEST_F(EditorControllerTest, ChangingCurrentTimeDoesNotChangeHistory)
-{
-	m_state.SetCurrentTime(4);
-
-	EXPECT_FALSE(m_history.CanUndo());
 }

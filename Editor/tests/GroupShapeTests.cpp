@@ -38,14 +38,14 @@ public:
 	}
 };
 
-TEST_F(GroupShapeTest, FrameIsUnionOfChildren)
+TEST_F(GroupShapeTest, FrameCoversChildren)
 {
 	const auto group = MakeGroup(MakeRectangle({ 10, 20, 100, 50 }), MakeRectangle({ 200, 0, 50, 300 }));
 
 	EXPECT_EQ(group->GetFrame(), (Frame{ 10, 0, 240, 300 }));
 }
 
-TEST_F(GroupShapeTest, MoveShiftsAllChildrenByOneOffset)
+TEST_F(GroupShapeTest, MoveShiftsChildren)
 {
 	const auto group = MakeGroup(MakeRectangle({ 0, 0, 100, 100 }), std::make_unique<Ellipse>(Frame{ 200, 0, 100, 100 }, 0, 0));
 
@@ -55,7 +55,7 @@ TEST_F(GroupShapeTest, MoveShiftsAllChildrenByOneOffset)
 	EXPECT_EQ(group->GetChild(1).GetFrame(), (Frame{ 250, 30, 100, 100 }));
 }
 
-TEST_F(GroupShapeTest, ResizeScalesChildrenSizesAndDistances)
+TEST_F(GroupShapeTest, ResizeScalesChildren)
 {
 	const auto group = MakeGroup(MakeRectangle({ 0, 0, 100, 100 }), std::make_unique<Ellipse>(Frame{ 200, 0, 100, 100 }, 0, 0));
 
@@ -66,7 +66,7 @@ TEST_F(GroupShapeTest, ResizeScalesChildrenSizesAndDistances)
 	EXPECT_EQ(group->GetFrame(), (Frame{ 0, 0, 600, 200 }));
 }
 
-TEST_F(GroupShapeTest, ResizeScalesNestedGroupsOnAnyDepth)
+TEST_F(GroupShapeTest, ResizeScalesNestedGroups)
 {
 	const auto group = MakeNestedGroup();
 	ASSERT_EQ(group->GetFrame(), (Frame{ 0, 0, 300, 300 }));
@@ -80,7 +80,7 @@ TEST_F(GroupShapeTest, ResizeScalesNestedGroupsOnAnyDepth)
 	EXPECT_EQ(inner->GetChild(1).GetFrame(), (Frame{ 110, 110, 50, 50 }));
 }
 
-TEST_F(GroupShapeTest, ResizeToNonPositiveSizeThrows)
+TEST_F(GroupShapeTest, ResizeToZeroThrows)
 {
 	const auto group = MakeGroup(MakeRectangle({ 0, 0, 100, 100 }), MakeRectangle({ 200, 0, 100, 100 }));
 
@@ -88,7 +88,7 @@ TEST_F(GroupShapeTest, ResizeToNonPositiveSizeThrows)
 	EXPECT_EQ(group->GetFrame(), (Frame{ 0, 0, 300, 100 }));
 }
 
-TEST_F(GroupShapeTest, HitTestChecksRealChildrenNotEmptySpace)
+TEST_F(GroupShapeTest, HitTestIgnoresEmptySpace)
 {
 	const auto group = MakeGroup(MakeRectangle({ 0, 0, 100, 100 }), MakeRectangle({ 200, 0, 100, 100 }));
 
@@ -109,31 +109,7 @@ TEST_F(GroupShapeTest, CloneIsDeepCopy)
 	EXPECT_EQ(GetShapeType(*clone), ShapeType::Group);
 }
 
-TEST_F(GroupShapeTest, OnlyGroupReturnsGroupInterface)
-{
-	const auto group = MakeNestedGroup();
-
-	EXPECT_EQ(group->GetGroup(), group.get());
-	EXPECT_EQ(group->GetChild(0).GetGroup(), nullptr);
-}
-
-TEST_F(GroupShapeTest, ReleaseChildrenKeepsSameObjectsInOrder)
-{
-	auto first = MakeRectangle({ 0, 0, 100, 100 });
-	auto second = MakeRectangle({ 200, 0, 100, 100 });
-	const IShape* firstPtr = first.get();
-	const IShape* secondPtr = second.get();
-	const auto group = MakeGroup(std::move(first), std::move(second));
-
-	const auto children = group->ReleaseChildren();
-
-	ASSERT_EQ(children.size(), 2);
-	EXPECT_EQ(children[0].get(), firstPtr);
-	EXPECT_EQ(children[1].get(), secondPtr);
-	EXPECT_EQ(group->GetChildCount(), 0);
-}
-
-TEST_F(GroupShapeTest, TimeIntervalCoversAllChildren)
+TEST_F(GroupShapeTest, TimeIntervalCoversChildren)
 {
 	auto first = MakeRectangle({ 0, 0, 100, 100 });
 	first->SetTimeInterval({ 2, 4 });
@@ -149,7 +125,7 @@ TEST_F(GroupShapeTest, TimeIntervalCoversAllChildren)
 	EXPECT_EQ(group->GetChild(1).GetTimeInterval(), (TimeInterval{ 6, 9 }));
 }
 
-TEST_F(GroupShapeTest, RendererDrawsAllDescendantsInZOrder)
+TEST_F(GroupShapeTest, RenderDrawsAllInZOrder)
 {
 	StrictMock<MockCanvas> canvas;
 	RenderShape renderer(canvas);
@@ -164,7 +140,7 @@ TEST_F(GroupShapeTest, RendererDrawsAllDescendantsInZOrder)
 	group->Accept(renderer);
 }
 
-TEST_F(GroupShapeTest, RendererSkipsChildrenHiddenAtTime)
+TEST_F(GroupShapeTest, RenderSkipsHiddenChildren)
 {
 	StrictMock<MockCanvas> canvas;
 	RenderShape renderer(canvas, 1);

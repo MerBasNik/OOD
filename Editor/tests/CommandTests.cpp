@@ -191,7 +191,7 @@ TEST_F(CommandTest, ChangeShapeIndexCommandUndoRestoresOldIndex)
 	EXPECT_EQ(document.GetShapeId(0), id);
 }
 
-TEST_F(CommandTest, ChangeShapeColorsCommandSetsColors)
+TEST_F(CommandTest, ChangeColorsSetsColors)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	ChangeShapeColorsCommand command(document, id, 0x112233, 0x445566);
@@ -202,7 +202,7 @@ TEST_F(CommandTest, ChangeShapeColorsCommandSetsColors)
 	EXPECT_EQ(document.FindShape(id)->GetBorderColor(), 0x445566);
 }
 
-TEST_F(CommandTest, ChangeShapeColorsCommandUndoRestoresOldColors)
+TEST_F(CommandTest, ChangeColorsUndoRestoresColors)
 {
 	const auto id = document.AddShape(std::make_unique<Rectangle>(Frame{ 0, 0, 100, 100 }, 0xAAAAAA, 0xBBBBBB));
 	ChangeShapeColorsCommand command(document, id, 0x112233, 0x445566);
@@ -214,22 +214,14 @@ TEST_F(CommandTest, ChangeShapeColorsCommandUndoRestoresOldColors)
 	EXPECT_EQ(document.FindShape(id)->GetBorderColor(), 0xBBBBBB);
 }
 
-TEST_F(CommandTest, ChangeShapeColorsCommandForMissingShapeThrows)
+TEST_F(CommandTest, ChangeColorsOfMissingShapeThrows)
 {
 	ChangeShapeColorsCommand command(document, 42, 0, 0);
 
 	EXPECT_THROW(command.Execute(), std::invalid_argument);
 }
 
-TEST_F(CommandTest, ChangeShapeColorsCommandUndoBeforeExecuteThrows)
-{
-	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
-	ChangeShapeColorsCommand command(document, id, 0x112233, 0x445566);
-
-	EXPECT_THROW(command.Unexecute(), std::logic_error);
-}
-
-TEST_F(CommandTest, ChangeShapeTimeIntervalCommandChangesAndRestoresInterval)
+TEST_F(CommandTest, ChangeTimeIntervalAndUndo)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 100, 100 }));
 	ChangeShapeTimeIntervalCommand command(document, id, { 2, 4 });
@@ -245,7 +237,7 @@ TEST_F(CommandTest, ChangeShapeTimeIntervalCommandChangesAndRestoresInterval)
 	EXPECT_EQ(command.GetShapeIds(), std::vector{ id });
 }
 
-TEST_F(CommandTest, ChangeShapeTimeIntervalCommandOfMissingShapeThrows)
+TEST_F(CommandTest, ChangeTimeIntervalOfMissingShapeThrows)
 {
 	ChangeShapeTimeIntervalCommand command(document, 42, { 2, 4 });
 

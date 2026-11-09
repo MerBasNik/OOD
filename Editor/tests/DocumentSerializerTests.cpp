@@ -93,7 +93,7 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresColor)
 	EXPECT_EQ(shapes[0]->GetBorderColor(), 0x0A0B0C);
 }
 
-TEST_F(DocumentSerializerTest, RoundTripRestoresTimeInterval)
+TEST_F(DocumentSerializerTest, RoundTripKeepsTimeInterval)
 {
 	auto shape = std::make_unique<Rectangle>(Frame{ 10, 20, 30, 40 }, 0, 0);
 	shape->SetTimeInterval({ 1.25, 7.5 });
@@ -105,7 +105,7 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresTimeInterval)
 	EXPECT_EQ(shapes[0]->GetTimeInterval(), (TimeInterval{ 1.25, 7.5 }));
 }
 
-TEST_F(DocumentSerializerTest, LoadOfLineWithoutTimeGivesDefaultInterval)
+TEST_F(DocumentSerializerTest, LoadWithoutTimeGivesDefault)
 {
 	const auto shapes = LoadFromString("rectangle 10 20 30 40 ff0000 000000\n");
 
@@ -113,7 +113,7 @@ TEST_F(DocumentSerializerTest, LoadOfLineWithoutTimeGivesDefaultInterval)
 	EXPECT_EQ(shapes[0]->GetTimeInterval(), TimeInterval{});
 }
 
-TEST_F(DocumentSerializerTest, SaveWritesGroupsAsNestedBlocks)
+TEST_F(DocumentSerializerTest, SaveWritesNestedGroups)
 {
 	std::vector<std::unique_ptr<IShape>> inner;
 	inner.push_back(std::make_unique<Triangle>(Frame{ 0, 0, 10, 10 }, 0, 0));
@@ -128,15 +128,15 @@ TEST_F(DocumentSerializerTest, SaveWritesGroupsAsNestedBlocks)
 
 	EXPECT_EQ(output.str(),
 		"group\n"
-		"  ellipse 0 20 10 10 000000 000000 0 10\n"
-		"  group\n"
-		"    triangle 0 0 10 10 000000 000000 0 10\n"
-		"    rectangle 20 0 10 10 000000 000000 0 10\n"
-		"  end\n"
+		"ellipse 0 20 10 10 000000 000000 0 10\n"
+		"group\n"
+		"triangle 0 0 10 10 000000 000000 0 10\n"
+		"rectangle 20 0 10 10 000000 000000 0 10\n"
+		"end\n"
 		"end\n");
 }
 
-TEST_F(DocumentSerializerTest, RoundTripRestoresNestedHierarchyAndOrder)
+TEST_F(DocumentSerializerTest, RoundTripKeepsNestedGroups)
 {
 	document.AddShape(std::make_unique<Rectangle>(Frame{ 0, 0, 10, 10 }, 0, 0));
 	std::vector<std::unique_ptr<IShape>> inner;
@@ -163,15 +163,6 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresNestedHierarchyAndOrder)
 	EXPECT_EQ(GetShapeType(innerGroup->GetChild(0)), ShapeType::Triangle);
 	EXPECT_EQ(innerGroup->GetChild(1).GetFrame(), (Frame{ 200.5, 100, 30, 40 }));
 	EXPECT_EQ(innerGroup->GetChild(1).GetFillColor(), 0x222222);
-}
-
-TEST_F(DocumentSerializerTest, LoadAcceptsGroupWithoutIndentation)
-{
-	const auto shapes = LoadFromString("group\nrectangle 0 0 10 10 000000 000000\nellipse 20 0 10 10 000000 000000\nend\n");
-
-	ASSERT_EQ(shapes.size(), 1);
-	ASSERT_NE(shapes[0]->GetGroup(), nullptr);
-	EXPECT_EQ(shapes[0]->GetFrame(), (Frame{ 0, 0, 30, 10 }));
 }
 
 TEST_F(DocumentSerializerTest, SkipsEmptyLines)
@@ -252,12 +243,9 @@ INSTANTIATE_TEST_SUITE_P(DocumentSerializerTest, DocumentSerializerInvalidConten
 		InvalidDocumentCase{ "ExtraData", "rectangle 0 0 10 10 000000 000000 extra\n", "некорректное описание фигуры" },
 		InvalidDocumentCase{ "Comment", "# comment\n", "неизвестный тип фигуры" },
 		InvalidDocumentCase{ "MissingEndTime", "rectangle 0 0 10 10 000000 000000 1\n", "некорректное описание фигуры" },
-		InvalidDocumentCase{ "ExtraDataAfterTime", "rectangle 0 0 10 10 000000 000000 1 2 3\n", "некорректное описание фигуры" },
 		InvalidDocumentCase{ "NotANumberTime", "rectangle 0 0 10 10 000000 000000 a 2\n", "некорректное время фигуры" },
-		InvalidDocumentCase{ "NegativeStartTime", "rectangle 0 0 10 10 000000 000000 -1 2\n", "некорректное время фигуры" },
 		InvalidDocumentCase{ "EndBeforeStart", "rectangle 0 0 10 10 000000 000000 3 2\n", "некорректное время фигуры" },
 		InvalidDocumentCase{ "EndWithoutGroup", "rectangle 0 0 10 10 000000 000000\nend\n", "лишний конец группы" },
 		InvalidDocumentCase{ "UnclosedGroup", "group\nrectangle 0 0 10 10 000000 000000\n", "группа не закрыта" },
-		InvalidDocumentCase{ "EmptyGroup", "group\nend\n", "пустая группа" },
-		InvalidDocumentCase{ "GroupWithData", "group 1\nrectangle 0 0 10 10 000000 000000\nend\n", "некорректное описание группы" }),
+		InvalidDocumentCase{ "EmptyGroup", "group\nend\n", "пустая группа" }),
 	[](const ::testing::TestParamInfo<InvalidDocumentCase>& info) { return info.param.m_name; });

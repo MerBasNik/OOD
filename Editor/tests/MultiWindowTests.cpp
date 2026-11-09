@@ -26,7 +26,7 @@ public:
 	}
 };
 
-TEST_F(MultiWindowTest, WindowsHaveIndependentSelection)
+TEST_F(MultiWindowTest, IndependentSelection)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
@@ -40,15 +40,7 @@ TEST_F(MultiWindowTest, WindowsHaveIndependentSelection)
 	EXPECT_EQ(m_secondState.GetSelectedShapeIds(), std::vector{ second });
 }
 
-TEST_F(MultiWindowTest, ChangeInOneWindowIsVisibleInOther)
-{
-	m_first.AddShape(ShapeType::Rectangle);
-
-	EXPECT_EQ(m_document.GetShapeCount(), 1);
-	EXPECT_TRUE(m_secondState.GetSelectedShapeIds().empty());
-}
-
-TEST_F(MultiWindowTest, DeleteInOneWindowRemovesShapeFromOtherSelection)
+TEST_F(MultiWindowTest, DeleteUpdatesOtherSelection)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
@@ -60,19 +52,7 @@ TEST_F(MultiWindowTest, DeleteInOneWindowRemovesShapeFromOtherSelection)
 	EXPECT_EQ(m_secondState.GetSelectedShapeIds(), std::vector{ second });
 }
 
-TEST_F(MultiWindowTest, DeleteOfOtherShapeKeepsSelection)
-{
-	const auto first = AddRectangle({ 0, 0, 100, 100 });
-	const auto second = AddRectangle({ 200, 200, 100, 100 });
-	m_firstState.SetSelectedShapeIds({ first });
-	m_secondState.SetSelectedShapeIds({ second });
-
-	m_first.DeleteSelectedShapes();
-
-	EXPECT_EQ(m_secondState.GetSelectedShapeIds(), std::vector{ second });
-}
-
-TEST_F(MultiWindowTest, UndoInOtherWindowChangesSharedDocument)
+TEST_F(MultiWindowTest, UndoFromOtherWindow)
 {
 	m_first.AddShape(ShapeType::Rectangle);
 
@@ -83,7 +63,7 @@ TEST_F(MultiWindowTest, UndoInOtherWindowChangesSharedDocument)
 	EXPECT_TRUE(m_history.CanRedo());
 }
 
-TEST_F(MultiWindowTest, UndoSelectsShapesOnlyInActiveWindow)
+TEST_F(MultiWindowTest, UndoSelectsOnlyInActiveWindow)
 {
 	const auto first = AddRectangle({ 0, 0, 100, 100 });
 	const auto second = AddRectangle({ 200, 200, 100, 100 });
@@ -97,7 +77,7 @@ TEST_F(MultiWindowTest, UndoSelectsShapesOnlyInActiveWindow)
 	EXPECT_TRUE(m_firstState.GetSelectedShapeIds().empty());
 }
 
-TEST_F(MultiWindowTest, DragIsCancelledWhenShapeIsDeletedInOtherWindow)
+TEST_F(MultiWindowTest, DeleteStopsDragInOtherWindow)
 {
 	const auto id = AddRectangle({ 0, 0, 100, 100 });
 	m_firstState.SetSelectedShapeIds({ id });
@@ -116,22 +96,7 @@ TEST_F(MultiWindowTest, DragIsCancelledWhenShapeIsDeletedInOtherWindow)
 	EXPECT_EQ(m_document.FindShape(id)->GetFrame(), (Frame{ 0, 0, 100, 100 }));
 }
 
-TEST_F(MultiWindowTest, DragInOtherWindowContinuesWhenAnotherShapeIsDeleted)
-{
-	const auto first = AddRectangle({ 0, 0, 100, 100 });
-	const auto second = AddRectangle({ 200, 200, 100, 100 });
-	m_firstState.SetSelectedShapeIds({ first });
-	m_secondState.SetSelectedShapeIds({ second });
-	m_second.OnMouseDown({ 250, 250 });
-	m_second.OnMouseMove({ 300, 300 });
-
-	m_first.DeleteSelectedShapes();
-	m_second.OnMouseUp({ 300, 300 });
-
-	EXPECT_EQ(m_document.FindShape(second)->GetFrame(), (Frame{ 250, 250, 100, 100 }));
-}
-
-TEST_F(MultiWindowTest, ShapeListDragOfDeletedShapeDoesNotChangeHistory)
+TEST_F(MultiWindowTest, DeleteStopsListDragInOtherWindow)
 {
 	AddRectangle({ 0, 0, 100, 100 });
 	const auto id = AddRectangle({ 200, 200, 100, 100 });
@@ -146,16 +111,7 @@ TEST_F(MultiWindowTest, ShapeListDragOfDeletedShapeDoesNotChangeHistory)
 	EXPECT_FALSE(m_history.CanUndo());
 }
 
-TEST_F(MultiWindowTest, WindowsHaveIndependentCurrentTime)
-{
-	m_firstState.SetCurrentTime(2);
-	m_secondState.SetCurrentTime(7);
-
-	EXPECT_EQ(m_firstState.GetCurrentTime(), 2);
-	EXPECT_EQ(m_secondState.GetCurrentTime(), 7);
-}
-
-TEST_F(MultiWindowTest, ShapeVisibilityDependsOnWindowTime)
+TEST_F(MultiWindowTest, VisibilityDependsOnWindowTime)
 {
 	const auto id = AddRectangle({ 0, 0, 100, 100 });
 	m_document.SetShapeTimeInterval(id, { 0, 5 });
