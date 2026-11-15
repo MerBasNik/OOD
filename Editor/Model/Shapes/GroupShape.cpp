@@ -43,11 +43,23 @@ IShape& GroupShape::GetChild(const size_t index)
 
 void GroupShape::AddChild(std::unique_ptr<IShape> child)
 {
+	InsertChild(std::move(child), m_children.size());
+}
+
+void GroupShape::InsertChild(std::unique_ptr<IShape> child, const size_t index)
+{
 	if (!child)
 	{
 		throw std::invalid_argument("Фигура не задана");
 	}
-	m_children.push_back(std::move(child));
+	m_children.insert(m_children.begin() + index, std::move(child));
+}
+
+std::unique_ptr<IShape> GroupShape::ExtractChild(const size_t index)
+{
+	auto child = std::move(m_children.at(index));
+	m_children.erase(m_children.begin() + index);
+	return child;
 }
 
 std::vector<std::unique_ptr<IShape>> GroupShape::ReleaseChildren()

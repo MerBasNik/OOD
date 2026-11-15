@@ -82,6 +82,7 @@ add_executable(Editor_tests
         tests/GroupShapeTests.cpp
         tests/GroupCommandTests.cpp
         tests/GroupEditingTests.cpp
+        tests/GroupDeletionTests.cpp
 )
 
 target_link_libraries(Editor_tests PRIVATE

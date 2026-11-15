@@ -19,8 +19,9 @@ public:
 private:
 	Document& m_document;
 	int m_shapeId;
-	std::unique_ptr<IShape> m_shape;
+	std::optional<int> m_parentId;
 	size_t m_index = 0;
+	std::unique_ptr<IShape> m_shape;
 };
 
 #endif // OOD_EDITOR_DELETESHAPECOMMAND_H

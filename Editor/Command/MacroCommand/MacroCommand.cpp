@@ -15,6 +15,13 @@ MacroCommand::MacroCommand(std::vector<std::unique_ptr<ICommand>> commands)
 	}
 }
 
+MacroCommand::MacroCommand(std::vector<std::unique_ptr<ICommand>> commands,
+	std::vector<int> shapeIds)
+	: MacroCommand(std::move(commands))
+{
+	m_shapeIds = std::move(shapeIds);
+}
+
 void MacroCommand::Execute()
 {
 	for (size_t i = 0; i < m_commands.size(); ++i)
@@ -46,6 +53,10 @@ void MacroCommand::Rollback(size_t commandIndex) const
 
 std::vector<int> MacroCommand::GetShapeIds() const
 {
+	if (m_shapeIds)
+	{
+		return *m_shapeIds;
+	}
 	std::vector<int> ids;
 	for (const auto& command : m_commands)
 	{

@@ -20,6 +20,8 @@ public:
 	const IShape& GetChild(size_t index) const;
 	IShape& GetChild(size_t index);
 	void AddChild(std::unique_ptr<IShape> child);
+	void InsertChild(std::unique_ptr<IShape> child, size_t index);
+	std::unique_ptr<IShape> ExtractChild(size_t index);
 	std::vector<std::unique_ptr<IShape>> ReleaseChildren();
 	const IShape* FindShape(int id) const override;
 	IShape* FindShape(int id) override;

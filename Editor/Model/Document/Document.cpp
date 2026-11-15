@@ -57,68 +57,124 @@ void Document::RemoveShape(const int id)
 	NotifyObservers();
 }
 
-std::unique_ptr<IShape> Document::DeleteShape(const int id)
+std::unique_ptr<IShape> Document::DeleteShape(const int id, const std::optional<int> parentId)
 {
-	const auto it = FindItem(id);
-	if (it == m_shapesInner.end())
-	{
-		throw std::invalid_argument("Фигура не найдена");
-	}
-	auto shape = std::move(*it);
-	m_shapesInner.erase(it);
+	auto shape = ExtractShape(id, parentId);
 	NotifyObservers();
 	return shape;
 }
 
-void Document::InsertShape(std::unique_ptr<IShape> shape, const size_t index)
+std::unique_ptr<IShape> Document::ExtractShape(const int id, const std::optional<int> parentId)
+{
+	const auto index = FindShapeIndex(id, parentId);
+	if (!index)
+	{
+		throw std::invalid_argument("Фигура не найдена");
+	}
+	if (parentId)
+	{
+		return GetGroup(*parentId).ExtractChild(*index);
+	}
+	auto shape = std::move(m_shapesInner[*index]);
+	m_shapesInner.erase(m_shapesInner.begin() + *index);
+	return shape;
+}
+
+GroupShape& Document::GetGroup(const int id)
+{
+	IShape* parent = GetShapeById(id);
+	if (!parent)
+	{
+		throw std::logic_error("Родительская группа не найдена");
+	}
+	return *parent->GetGroup();
+}
+
+const GroupShape& Document::GetGroup(const int id) const
+{
+	const IShape* parent = FindShape(id);
+	if (!parent)
+	{
+		throw std::logic_error("Родительская группа не найдена");
+	}
+	return *parent->GetGroup();
+}
+
+void Document::InsertShape(std::unique_ptr<IShape> shape, const size_t index, const std::optional<int> parentId)
 {
 	if (!shape)
 	{
 		throw std::invalid_argument("Фигура не задана");
 	}
-	if (index > m_shapesInner.size())
+	if (index > GetShapeCount(parentId))
 	{
 		throw std::out_of_range("Недопустимая позиция фигуры");
 	}
 	CheckShape(*shape);
-	m_shapesInner.insert(m_shapesInner.begin() + index, std::move(shape));
+	InsertShapeInto(std::move(shape), index, parentId);
 	NotifyObservers();
 }
 
-int Document::GroupShapes(const std::vector<int>& shapeIds, std::unique_ptr<IShape> group, const size_t index)
+void Document::InsertShapeInto(std::unique_ptr<IShape> shape, const size_t index, const std::optional<int> parentId)
 {
-	CheckGrouping(shapeIds, group.get(), index);
+	if (parentId)
+	{
+		GetGroup(*parentId).InsertChild(std::move(shape), index);
+	}
+	else
+	{
+		m_shapesInner.insert(m_shapesInner.begin() + index, std::move(shape));
+	}
+}
+
+int Document::GroupShapes(const std::vector<int>& shapeIds, std::unique_ptr<IShape> group, const size_t index,
+	const std::optional<int> parentId)
+{
+	CheckGrouping(shapeIds, group.get(), index, parentId);
 
 	const int id = group->GetId();
 	GroupShape& composite = *group->GetGroup();
 	for (const int shapeId : shapeIds)
 	{
-		const auto item = FindItem(shapeId);
-		composite.AddChild(std::move(*item));
-		m_shapesInner.erase(item);
+		composite.AddChild(ExtractShape(shapeId, parentId));
 	}
-	m_shapesInner.insert(m_shapesInner.begin() + index, std::move(group));
+	InsertShapeInto(std::move(group), index, parentId);
 	NotifyObservers();
 	return id;
 }
 
-std::unique_ptr<IShape> Document::UngroupShape(const int groupId, const std::vector<size_t>& childIndices)
+std::unique_ptr<IShape> Document::UngroupShape(const int groupId, const std::vector<size_t>& childIndices,
+	const std::optional<int> parentId)
 {
-	const auto item = FindItem(groupId);
-	const IShape* shape = item != m_shapesInner.end() ? item->get() : nullptr;
-	CheckUngrouping(shape, childIndices);
+	const IShape* shape = FindShapeIndex(groupId, parentId) ? FindShape(groupId) : nullptr;
+	CheckUngrouping(shape, childIndices, parentId);
 
-	const auto index = item - m_shapesInner.begin();
-	m_shapesInner.reserve(m_shapesInner.size() - 1 + childIndices.size());
-	auto group = std::move(m_shapesInner[index]);
-	m_shapesInner.erase(m_shapesInner.begin() + index);
+	auto group = ExtractShape(groupId, parentId);
 	auto children = group->GetGroup()->ReleaseChildren();
 	for (size_t i = 0; i < children.size(); ++i)
 	{
-		m_shapesInner.insert(m_shapesInner.begin() + childIndices[i], std::move(children[i]));
+		InsertShapeInto(std::move(children[i]), childIndices[i], parentId);
 	}
 	NotifyObservers();
 	return group;
+}
+
+void Document::StartUpdate()
+{
+	++m_updateDepth;
+}
+
+void Document::EndUpdate()
+{
+	if (m_updateDepth == 0)
+	{
+		throw std::logic_error("Изменение документа не начато");
+	}
+	--m_updateDepth;
+	if (m_updateDepth == 0)
+	{
+		NotifyObservers();
+	}
 }
 
 void Document::SetShapeFrame(const int id, const Frame& frame)
@@ -217,9 +273,9 @@ void Document::Clear()
 	NotifyObservers();
 }
 
-size_t Document::GetShapeCount() const
+size_t Document::GetShapeCount(const std::optional<int> parentId) const
 {
-	return m_shapesInner.size();
+	return parentId ? GetGroup(*parentId).GetChildCount() : m_shapesInner.size();
 }
 
 const IShape& Document::GetShape(const size_t index) const
@@ -306,14 +362,61 @@ std::optional<int> Document::FindTargetInShape(const IShape& shape, const Point 
 	return std::nullopt;
 }
 
-std::optional<size_t> Document::FindShapeIndex(const int id) const
+std::optional<size_t> Document::FindShapeIndex(const int id, const std::optional<int> parentId) const
 {
+	if (parentId)
+	{
+		const GroupShape& group = GetGroup(*parentId);
+		for (size_t i = 0; i < group.GetChildCount(); ++i)
+		{
+			if (group.GetChild(i).GetId() == id)
+			{
+				return i;
+			}
+		}
+		return std::nullopt;
+	}
 	const auto it = std::ranges::find_if(m_shapesInner, [id](const auto& shape) { return shape->GetId() == id; });
 	if (it == m_shapesInner.end())
 	{
 		return std::nullopt;
 	}
 	return static_cast<size_t>(it - m_shapesInner.begin());
+}
+
+std::optional<int> Document::FindParentShapeId(const int id) const
+{
+	for (const auto& root : m_shapesInner)
+	{
+		const auto parentId = FindParentInShape(*root, id);
+		if (parentId)
+		{
+			return parentId;
+		}
+	}
+	return std::nullopt;
+}
+
+std::optional<int> Document::FindParentInShape(const IShape& shape, const int id) const
+{
+	const GroupShape* group = shape.GetGroup();
+	if (!group)
+	{
+		return std::nullopt;
+	}
+	for (size_t i = 0; i < group->GetChildCount(); ++i)
+	{
+		const IShape& child = group->GetChild(i);
+		if (child.GetId() == id)
+		{
+			return group->GetId();
+		}
+		if (const auto parentId = FindParentInShape(child, id))
+		{
+			return parentId;
+		}
+	}
+	return std::nullopt;
 }
 
 std::optional<int> Document::FindTopShape(const Point point, const double time) const
@@ -372,22 +475,19 @@ void Document::CheckShape(const IShape& shape) const
 	CheckTimeInterval(shape.GetTimeInterval());
 }
 
-void Document::CheckGrouping(const std::vector<int>& shapeIds, const IShape* group, const size_t index) const
+void Document::CheckGrouping(const std::vector<int>& shapeIds, const IShape* group, const size_t index,
+	const std::optional<int> parentId) const
 {
 	const GroupShape* composite = group ? group->GetGroup() : nullptr;
 	if (!composite || composite->GetChildCount() != 0)
 	{
 		throw std::invalid_argument("Для группировки нужна пустая группа");
 	}
-	if (shapeIds.size() < 2)
-	{
-		throw std::invalid_argument("Для группировки нужны как минимум две фигуры");
-	}
 	for (size_t i = 0; i < shapeIds.size(); ++i)
 	{
-		if (!FindShapeIndex(shapeIds[i]))
+		if (!FindShapeIndex(shapeIds[i], parentId))
 		{
-			throw std::invalid_argument("Фигуры группы должны быть объектами верхнего уровня");
+			throw std::invalid_argument("Фигуры должны принадлежать одной родительской коллекции");
 		}
 		const auto previousEnd = shapeIds.begin() + i;
 		if (std::find(shapeIds.begin(), previousEnd, shapeIds[i]) != previousEnd)
@@ -395,13 +495,14 @@ void Document::CheckGrouping(const std::vector<int>& shapeIds, const IShape* gro
 			throw std::invalid_argument("Фигуры группы должны быть разными");
 		}
 	}
-	if (index > m_shapesInner.size() - shapeIds.size())
+	if (index > GetShapeCount(parentId) - shapeIds.size())
 	{
 		throw std::out_of_range("Недопустимая позиция группы");
 	}
 }
 
-void Document::CheckUngrouping(const IShape* group, const std::vector<size_t>& childIndices) const
+void Document::CheckUngrouping(const IShape* group, const std::vector<size_t>& childIndices,
+	const std::optional<int> parentId) const
 {
 	const GroupShape* composite = group ? group->GetGroup() : nullptr;
 	if (!composite)
@@ -414,7 +515,7 @@ void Document::CheckUngrouping(const IShape* group, const std::vector<size_t>& c
 	}
 	for (size_t i = 0; i < childIndices.size(); ++i)
 	{
-		if (childIndices[i] > m_shapesInner.size() - 1 + i)
+		if (childIndices[i] > GetShapeCount(parentId) - 1 + i)
 		{
 			throw std::out_of_range("Недопустимая позиция дочерней фигуры");
 		}
@@ -427,6 +528,10 @@ void Document::CheckUngrouping(const IShape* group, const std::vector<size_t>& c
 
 void Document::NotifyObservers()
 {
+	if (m_updateDepth > 0)
+	{
+		return;
+	}
 	const auto observers = m_observers;
 	for (auto* observer : observers)
 	{

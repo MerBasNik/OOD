@@ -13,6 +13,7 @@
 #include "FrameCalculator.h"
 #include "Model/EditorState/SelectionFrame.h"
 #include "Model/Shapes/Ellipse.h"
+#include "Model/Shapes/GroupShape.h"
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
 #include "ShapeDefaults.h"
@@ -40,27 +41,60 @@ void EditorController::AddShape(const ShapeType type)
 
 void EditorController::DeleteSelectedShapes()
 {
-	std::vector<int> selectedIds;
-	for (const int id : m_state.GetSelectedShapeIds())
+	const auto& selectedIds = m_state.GetSelectedShapeIds();
+	std::vector<std::unique_ptr<ICommand>> commands;
+	std::set<int> deletedIds;
+	for (size_t i = m_document.GetShapeCount(); i > 0; --i)
 	{
-		if (m_document.FindShapeIndex(id))
-		{
-			selectedIds.push_back(id);
-		}
+		AppendDeleteCommands(m_document.GetShape(i - 1), selectedIds, commands, deletedIds);
 	}
-	if (selectedIds.empty())
+	if (commands.empty())
 	{
 		return;
 	}
-	ResetPreview();
-	m_state.SetSelectedShapeIds({});
-	std::vector<std::unique_ptr<ICommand>> commands;
-	commands.reserve(selectedIds.size());
+	std::vector<int> shapeIds;
 	for (const int id : selectedIds)
 	{
-		commands.push_back(std::make_unique<DeleteShapeCommand>(m_document, id));
+		if (deletedIds.erase(id))
+		{
+			shapeIds.push_back(id);
+		}
 	}
-	ExecuteCommands(std::move(commands));
+	auto command = std::make_unique<MacroCommand>(std::move(commands), std::move(shapeIds));
+	ResetPreview();
+	m_state.SetSelectedShapeIds({});
+	ExecuteCommand(std::move(command));
+}
+
+bool EditorController::AppendDeleteCommands(const IShape& shape, const std::vector<int>& shapeIds,
+	std::vector<std::unique_ptr<ICommand>>& commands, std::set<int>& deletedIds) const
+{
+	if (std::ranges::find(shapeIds, shape.GetId()) != shapeIds.end())
+	{
+		commands.push_back(std::make_unique<DeleteShapeCommand>(m_document, shape.GetId()));
+		deletedIds.insert(shape.GetId());
+		return true;
+	}
+	const GroupShape* group = shape.GetGroup();
+	if (!group)
+	{
+		return false;
+	}
+	const size_t previousCommandCount = commands.size();
+	size_t remainingChildren = 0;
+	for (size_t i = group->GetChildCount(); i > 0; --i)
+	{
+		if (!AppendDeleteCommands(group->GetChild(i - 1), shapeIds, commands, deletedIds))
+		{
+			++remainingChildren;
+		}
+	}
+	if (commands.size() == previousCommandCount || remainingChildren >= 2)
+	{
+		return false;
+	}
+	commands.push_back(std::make_unique<UngroupShapeCommand>(m_document, shape.GetId()));
+	return remainingChildren == 0;
 }
 
 void EditorController::GroupSelectedShapes()
@@ -80,7 +114,7 @@ void EditorController::GroupSelectedShapes()
 	ResetPreview();
 	auto command = std::make_unique<GroupShapesCommand>(m_document, std::move(shapeIds));
 	const GroupShapesCommand& groupCommand = *command;
-	m_history.Execute(std::move(command));
+	ExecuteCommand(std::move(command));
 	m_state.SetSelectedShapeIds({ *groupCommand.GetGroupId() });
 }
 
@@ -100,7 +134,7 @@ void EditorController::UngroupSelectedShape()
 	ResetPreview();
 	auto command = std::make_unique<UngroupShapeCommand>(m_document, id);
 	const UngroupShapeCommand& ungroupCommand = *command;
-	m_history.Execute(std::move(command));
+	ExecuteCommand(std::move(command));
 	m_state.SetSelectedShapeIds(ungroupCommand.GetChildIds());
 }
 
@@ -167,13 +201,37 @@ void EditorController::Cancel()
 void EditorController::Undo()
 {
 	ResetPreview();
-	SelectShapes(m_history.Undo());
+	std::vector<int> shapeIds;
+	m_document.StartUpdate();
+	try
+	{
+		shapeIds = m_history.Undo();
+	}
+	catch (...)
+	{
+		m_document.EndUpdate();
+		throw;
+	}
+	m_document.EndUpdate();
+	SelectShapes(shapeIds);
 }
 
 void EditorController::Redo()
 {
 	ResetPreview();
-	SelectShapes(m_history.Redo());
+	std::vector<int> shapeIds;
+	m_document.StartUpdate();
+	try
+	{
+		shapeIds = m_history.Redo();
+	}
+	catch (...)
+	{
+		m_document.EndUpdate();
+		throw;
+	}
+	m_document.EndUpdate();
+	SelectShapes(shapeIds);
 }
 
 void EditorController::OnMouseDown(const Point point, const bool isToggle)
@@ -375,7 +433,9 @@ void EditorController::DocumentUpdate()
 {
 	for (size_t i = 0; i < m_drag.m_shapeIds.size(); ++i)
 	{
-		if (m_document.FindRootShapeId(m_drag.m_shapeIds[i]) != m_drag.m_rootIds[i])
+		const IShape* shape = m_document.FindShape(m_drag.m_shapeIds[i]);
+		if (!shape || m_document.FindRootShapeId(m_drag.m_shapeIds[i]) != m_drag.m_rootIds[i]
+			|| shape->GetFrame() != m_drag.m_startFrames[i])
 		{
 			ResetPreview();
 			break;
@@ -420,13 +480,28 @@ std::vector<Frame> EditorController::CalculateDraggedFrames(const Point point) c
 		offset, bounds, ShapeDefaults::MIN_SIZE, scalePositions);
 }
 
+void EditorController::ExecuteCommand(std::unique_ptr<ICommand> command) const
+{
+	m_document.StartUpdate();
+	try
+	{
+		m_history.Execute(std::move(command));
+	}
+	catch (...)
+	{
+		m_document.EndUpdate();
+		throw;
+	}
+	m_document.EndUpdate();
+}
+
 void EditorController::ExecuteCommands(std::vector<std::unique_ptr<ICommand>> commands) const
 {
 	if (commands.empty())
 	{
 		return;
 	}
-	m_history.Execute(std::make_unique<MacroCommand>(std::move(commands)));
+	ExecuteCommand(std::make_unique<MacroCommand>(std::move(commands)));
 }
 
 Frame EditorController::CalculateCreatedFrame(const Point point) const
@@ -538,7 +613,7 @@ void EditorController::AddSelectShape(std::unique_ptr<IShape> shape) const
 	shape->SetTimeInterval({ start, duration });
 	auto command = std::make_unique<AddShapeCommand>(m_document, std::move(shape));
 	const AddShapeCommand& addCommand = *command;
-	m_history.Execute(std::move(command));
+	ExecuteCommand(std::move(command));
 	m_state.SetSelectedShapeIds({ *addCommand.GetShapeId() });
 }
 
@@ -561,6 +636,34 @@ void EditorController::SelectShapes(const std::vector<int>& ids) const
 
 void EditorController::RemoveMissingShapesFromState()
 {
+	std::vector<int> selectedIds;
+	std::optional<int> selectedGroup;
+	for (const int id : m_state.GetSelectedShapeIds())
+	{
+		const auto rootId = m_document.FindRootShapeId(id);
+		if (!rootId)
+		{
+			continue;
+		}
+		if (selectedIds.empty() && *rootId != id)
+		{
+			selectedGroup = rootId;
+		}
+		if (selectedGroup)
+		{
+			if (*rootId != *selectedGroup || id == *selectedGroup)
+			{
+				continue;
+			}
+		}
+		else if (id != *rootId)
+		{
+			continue;
+		}
+		selectedIds.push_back(id);
+	}
+	m_state.SetSelectedShapeIds(std::move(selectedIds));
+
 	std::map<int, Frame> previewFrames;
 	for (const auto& [id, frame] : m_state.GetPreviewFrames())
 	{

@@ -18,7 +18,8 @@ void UngroupShapeCommand::Execute()
 	{
 		throw std::logic_error("Разгруппировка уже выполнена");
 	}
-	const auto index = m_document.FindShapeIndex(m_groupId);
+	m_parentId = m_document.FindParentShapeId(m_groupId);
+	const auto index = m_document.FindShapeIndex(m_groupId, m_parentId);
 	if (!index)
 	{
 		throw std::invalid_argument("Фигура не найдена");
@@ -37,7 +38,7 @@ void UngroupShapeCommand::Execute()
 		m_childIds.push_back(group->GetChild(i).GetId());
 		childIndices.push_back(m_index + i);
 	}
-	m_group = m_document.UngroupShape(m_groupId, childIndices);
+	m_group = m_document.UngroupShape(m_groupId, childIndices, m_parentId);
 }
 
 void UngroupShapeCommand::Unexecute()
@@ -46,7 +47,7 @@ void UngroupShapeCommand::Unexecute()
 	{
 		throw std::logic_error("Разгруппировка не выполнена");
 	}
-	m_document.GroupShapes(m_childIds, std::move(m_group), m_index);
+	m_document.GroupShapes(m_childIds, std::move(m_group), m_index, m_parentId);
 }
 
 std::vector<int> UngroupShapeCommand::GetShapeIds() const

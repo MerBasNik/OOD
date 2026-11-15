@@ -186,7 +186,7 @@ void ShapeListView::DrawRow(sf::RenderTarget& target, const size_t row) const
 	icon.setPosition({ ROW_PADDING, top + (ROW_HEIGHT - ICON_SIZE) / 2 });
 	target.draw(icon);
 
-	const std::string label = item.GetName() + " " + std::to_string(m_document.GetShapeId(index));
+	const std::string label = item.GetName();
 	sf::Text text(m_font, sf::String::fromUtf8(label.begin(), label.end()), FONT_SIZE);
 	text.setFillColor(TEXT_COLOR);
 	const sf::FloatRect textBounds = text.getLocalBounds();

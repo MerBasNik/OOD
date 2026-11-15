@@ -12,6 +12,7 @@
 #include "Model/Document/Document.h"
 #include "Model/EditorState/EditorState.h"
 #include <optional>
+#include <set>
 
 class EditorController : public IDocumentObserver
 {
@@ -54,7 +55,10 @@ private:
 	void RemoveMissingShapesFromState();
 	int GetClickShapeId(int rootId, Point point) const;
 	std::vector<Frame> CalculateDraggedFrames(Point point) const;
+	void ExecuteCommand(std::unique_ptr<ICommand> command) const;
 	void ExecuteCommands(std::vector<std::unique_ptr<ICommand>> commands) const;
+	bool AppendDeleteCommands(const IShape& shape, const std::vector<int>& shapeIds,
+		std::vector<std::unique_ptr<ICommand>>& commands, std::set<int>& deletedIds) const;
 	Frame CalculateCreatedFrame(Point point) const;
 	void UpdateCreateDirection(Point point);
 	static std::unique_ptr<IShape> CreateShape(ShapeType type, const Frame& frame);

@@ -22,6 +22,7 @@ public:
 private:
 	Document& m_document;
 	int m_groupId;
+	std::optional<int> m_parentId;
 	size_t m_index = 0;
 	std::unique_ptr<IShape> m_group;
 	std::vector<int> m_childIds;
