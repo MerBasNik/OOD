@@ -168,18 +168,34 @@ void EditorController::CommitColors()
 	for (const int id : m_state.GetSelectedShapeIds())
 	{
 		const IShape* shape = m_document.FindShape(id);
-		if (!shape || shape->GetGroup())
+		if (shape)
 		{
-			continue;
-		}
-		const Color newFillColor = fillColor ? *fillColor : shape->GetFillColor();
-		const Color newBorderColor = borderColor ? *borderColor : shape->GetBorderColor();
-		if (newFillColor != shape->GetFillColor() || newBorderColor != shape->GetBorderColor())
-		{
-			commands.push_back(std::make_unique<ChangeShapeColorsCommand>(m_document, id, newFillColor, newBorderColor));
+			AppendColorCommands(*shape, fillColor, borderColor, commands);
 		}
 	}
-	ExecuteCommands(std::move(commands));
+	if (!commands.empty())
+	{
+		ExecuteCommand(std::make_unique<MacroCommand>(std::move(commands), m_state.GetSelectedShapeIds()));
+	}
+}
+
+void EditorController::AppendColorCommands(const IShape& shape, const std::optional<Color> fillColor,
+	const std::optional<Color> borderColor, std::vector<std::unique_ptr<ICommand>>& commands) const
+{
+	if (const GroupShape* group = shape.GetGroup())
+	{
+		for (size_t i = 0; i < group->GetChildCount(); ++i)
+		{
+			AppendColorCommands(group->GetChild(i), fillColor, borderColor, commands);
+		}
+		return;
+	}
+	const Color newFillColor = fillColor ? (*fillColor) : shape.GetFillColor();
+	const Color newBorderColor = borderColor ? (*borderColor) : shape.GetBorderColor();
+	if (fillColor != shape.GetFillColor() || newBorderColor != shape.GetBorderColor())
+	{
+		commands.push_back(std::make_unique<ChangeShapeColorsCommand>(m_document, shape.GetId(), newFillColor, newBorderColor));
+	}
 }
 
 void EditorController::CancelColors() const

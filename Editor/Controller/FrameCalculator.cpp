@@ -94,9 +94,6 @@ std::vector<Frame> FrameCalculator::CalculateGroupResizedFrames(const std::vecto
 	const bool isTopMove = SelectionFrame::IsTopMove(handle);
 	double scaleX = rawScaleX;
 	double scaleY = rawScaleY;
-	// Для выбранных детей используем одну опору на противоположном краю общей рамки.
-	// Масштабируем относительно неё и размеры, и расстояния между фигурами.
-	// Ограничиваем масштаб по общей рамке, чтобы дети оставались внутри холста.
 	Point groupAnchor{};
 	if (scalePositions)
 	{

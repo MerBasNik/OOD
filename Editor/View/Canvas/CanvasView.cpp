@@ -161,7 +161,8 @@ std::unique_ptr<IShape> CanvasView::CreatePreview(const IShape& shape) const
 bool CanvasView::HasPreview(const IShape& shape) const
 {
 	const int id = shape.GetId();
-	if (m_state.GetPreviewFrame(id) || m_state.GetPreviewTimeInterval(id))
+	if (m_state.GetPreviewFrame(id) || m_state.GetPreviewTimeInterval(id)
+		|| (m_state.IsShapeSelected(id) && (m_state.GetPreviewFillColor() || m_state.GetPreviewBorderColor())))
 	{
 		return true;
 	}
@@ -174,14 +175,13 @@ bool CanvasView::HasPreview(const IShape& shape) const
 				return true;
 			}
 		}
-		return false;
 	}
-	return m_state.IsShapeSelected(id) && (m_state.GetPreviewFillColor() || m_state.GetPreviewBorderColor());
+	return false;
 }
 
-void CanvasView::ApplyPreview(const IShape& source, IShape& target) const
+void CanvasView::ApplyPreview(const IShape& current, IShape& target) const
 {
-	const int id = source.GetId();
+	const int id = current.GetId();
 	if (const auto frame = m_state.GetPreviewFrame(id))
 	{
 		target.SetFrame(*frame);
@@ -189,15 +189,6 @@ void CanvasView::ApplyPreview(const IShape& source, IShape& target) const
 	if (const auto interval = m_state.GetPreviewTimeInterval(id))
 	{
 		target.SetTimeInterval(*interval);
-	}
-	if (auto* group = target.GetGroup())
-	{
-		const auto* sourceGroup = source.GetGroup();
-		for (size_t i = 0; i < group->GetChildCount(); ++i)
-		{
-			ApplyPreview(sourceGroup->GetChild(i), group->GetChild(i));
-		}
-		return;
 	}
 	if (m_state.IsShapeSelected(id))
 	{
@@ -208,6 +199,14 @@ void CanvasView::ApplyPreview(const IShape& source, IShape& target) const
 		if (const auto color = m_state.GetPreviewBorderColor())
 		{
 			target.SetBorderColor(*color);
+		}
+	}
+	if (auto* group = target.GetGroup())
+	{
+		const auto* currentGroup = current.GetGroup();
+		for (size_t i = 0; i < group->GetChildCount(); ++i)
+		{
+			ApplyPreview(currentGroup->GetChild(i), group->GetChild(i));
 		}
 	}
 }

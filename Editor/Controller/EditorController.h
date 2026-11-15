@@ -57,6 +57,8 @@ private:
 	std::vector<Frame> CalculateDraggedFrames(Point point) const;
 	void ExecuteCommand(std::unique_ptr<ICommand> command) const;
 	void ExecuteCommands(std::vector<std::unique_ptr<ICommand>> commands) const;
+	void AppendColorCommands(const IShape& shape, std::optional<Color> fillColor, std::optional<Color> borderColor,
+		std::vector<std::unique_ptr<ICommand>>& commands) const;
 	bool AppendDeleteCommands(const IShape& shape, const std::vector<int>& shapeIds,
 		std::vector<std::unique_ptr<ICommand>>& commands, std::set<int>& deletedIds) const;
 	Frame CalculateCreatedFrame(Point point) const;

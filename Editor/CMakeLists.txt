@@ -81,6 +81,7 @@ add_executable(Editor_tests
         tests/ViewportTests.cpp
         tests/GroupShapeTests.cpp
         tests/GroupCommandTests.cpp
+        tests/GroupColorTests.cpp
         tests/GroupEditingTests.cpp
         tests/GroupDeletionTests.cpp
 )
