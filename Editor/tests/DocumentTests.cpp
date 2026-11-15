@@ -302,7 +302,7 @@ TEST_F(DocumentTest, SetTimeIntervalNotifies)
 	document.SetShapeTimeInterval(id, { 1, 3 });
 	document.SetShapeTimeInterval(id, { 1, 3 });
 
-	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), (TimeInterval{ 1, 3 }));
+	EXPECT_EQ(document.GetShapeTimeInterval(id), (TimeInterval{ 1, 3 }));
 	document.RemoveObserver(observer);
 }
 
@@ -314,5 +314,5 @@ TEST_F(DocumentTest, SetTimeIntervalRejectsInvalid)
 	EXPECT_THROW(document.SetShapeTimeInterval(id, { 3, 3 }), std::invalid_argument);
 	EXPECT_THROW(document.SetShapeTimeInterval(id, { 1, DEFAULT_DURATION + 1 }), std::invalid_argument);
 	EXPECT_THROW(document.SetShapeTimeInterval(id + 1, { 1, 3 }), std::invalid_argument);
-	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), TimeInterval{});
+	EXPECT_EQ(document.GetShapeTimeInterval(id), TimeInterval{});
 }

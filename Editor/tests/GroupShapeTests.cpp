@@ -38,6 +38,35 @@ public:
 	}
 };
 
+TEST_F(GroupShapeTest, ExtractAndInsertTransfer)
+{
+	const auto group = MakeGroup(MakeRectangle({ 0, 0, 40, 40 }), MakeRectangle({ 100, 0, 40, 40 }));
+	const IShape* first = &group->GetChild(0);
+	const IShape* second = &group->GetChild(1);
+	auto extracted = group->ExtractChild(0);
+	ASSERT_EQ(group->GetChildCount(), 1);
+	EXPECT_EQ(extracted.get(), first);
+	EXPECT_EQ(&group->GetChild(0), second);
+	EXPECT_EQ(group->GetFrame(), second->GetFrame());
+
+	group->InsertChild(std::move(extracted), 1);
+	ASSERT_EQ(group->GetChildCount(), 2);
+	EXPECT_EQ(&group->GetChild(0), second);
+	EXPECT_EQ(&group->GetChild(1), first);
+}
+
+TEST_F(GroupShapeTest, EmptyChildAndInvalidLeaveTheGroup)
+{
+	const auto group = MakeGroup(MakeRectangle({ 0, 0, 40, 40 }), MakeRectangle({ 100, 0, 40, 40 }));
+	const IShape* first = &group->GetChild(0);
+	const IShape* second = &group->GetChild(1);
+	EXPECT_THROW(group->InsertChild(nullptr, 0), std::invalid_argument);
+	EXPECT_THROW(group->ExtractChild(2), std::out_of_range);
+	ASSERT_EQ(group->GetChildCount(), 2);
+	EXPECT_EQ(&group->GetChild(0), first);
+	EXPECT_EQ(&group->GetChild(1), second);
+}
+
 TEST_F(GroupShapeTest, FrameCoversChildren)
 {
 	const auto group = MakeGroup(MakeRectangle({ 10, 20, 100, 50 }), MakeRectangle({ 200, 0, 50, 300 }));
@@ -111,18 +140,19 @@ TEST_F(GroupShapeTest, CloneIsDeepCopy)
 
 TEST_F(GroupShapeTest, TimeIntervalCoversChildren)
 {
+	Timeline timeline;
 	auto first = MakeRectangle({ 0, 0, 100, 100 });
-	first->SetTimeInterval({ 2, 4 });
+	timeline.SetInterval(*first, { 2, 4 });
 	auto second = MakeRectangle({ 200, 0, 100, 100 });
-	second->SetTimeInterval({ 5, 8 });
+	timeline.SetInterval(*second, { 5, 8 });
 	const auto group = MakeGroup(std::move(first), std::move(second));
 
-	EXPECT_EQ(group->GetTimeInterval(), (TimeInterval{ 2, 8 }));
+	EXPECT_EQ(timeline.GetInterval(*group), (TimeInterval{ 2, 8 }));
 
-	group->SetTimeInterval({ 3, 9 });
+	timeline.SetInterval(*group, { 3, 9 });
 
-	EXPECT_EQ(group->GetChild(0).GetTimeInterval(), (TimeInterval{ 3, 5 }));
-	EXPECT_EQ(group->GetChild(1).GetTimeInterval(), (TimeInterval{ 6, 9 }));
+	EXPECT_EQ(timeline.GetInterval(group->GetChild(0)), (TimeInterval{ 3, 5 }));
+	EXPECT_EQ(timeline.GetInterval(group->GetChild(1)), (TimeInterval{ 6, 9 }));
 }
 
 TEST_F(GroupShapeTest, RenderDrawsAllInZOrder)
@@ -143,9 +173,10 @@ TEST_F(GroupShapeTest, RenderDrawsAllInZOrder)
 TEST_F(GroupShapeTest, RenderSkipsHiddenChildren)
 {
 	StrictMock<MockCanvas> canvas;
-	RenderShape renderer(canvas, 1);
+	Timeline timeline;
+	RenderShape renderer(canvas, timeline, 1);
 	auto hidden = MakeRectangle({ 200, 0, 100, 100 });
-	hidden->SetTimeInterval({ 5, 8 });
+	timeline.SetInterval(*hidden, { 5, 8 });
 	const auto group = MakeGroup(MakeRectangle({ 0, 0, 100, 100 }), std::move(hidden));
 	EXPECT_CALL(canvas, DrawRectangle(Frame{ 0, 0, 100, 100 }, 0, 0));
 

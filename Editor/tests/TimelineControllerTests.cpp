@@ -22,13 +22,14 @@ public:
 	int AddRectangle(const TimeInterval& interval)
 	{
 		auto shape = std::make_unique<Rectangle>(Frame{ 0, 0, 100, 100 }, 0, 0);
-		shape->SetTimeInterval(interval);
-		return m_document.AddShape(std::move(shape));
+		const int id = m_document.AddShape(std::move(shape));
+		m_document.SetShapeTimeInterval(id, interval);
+		return id;
 	}
 
 	TimeInterval GetInterval(const int id) const
 	{
-		return m_document.FindShape(id)->GetTimeInterval();
+		return m_document.GetShapeTimeInterval(id);
 	}
 
 	std::vector<int> GetLayerOrder() const

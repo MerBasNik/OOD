@@ -227,13 +227,13 @@ TEST_F(CommandTest, ChangeTimeIntervalAndUndo)
 	ChangeShapeTimeIntervalCommand command(document, id, { 2, 4 });
 
 	command.Execute();
-	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), (TimeInterval{ 2, 4 }));
+	EXPECT_EQ(document.GetShapeTimeInterval(id), (TimeInterval{ 2, 4 }));
 
 	command.Unexecute();
-	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), TimeInterval{});
+	EXPECT_EQ(document.GetShapeTimeInterval(id), TimeInterval{});
 
 	command.Execute();
-	EXPECT_EQ(document.FindShape(id)->GetTimeInterval(), (TimeInterval{ 2, 4 }));
+	EXPECT_EQ(document.GetShapeTimeInterval(id), (TimeInterval{ 2, 4 }));
 	EXPECT_EQ(command.GetShapeIds(), std::vector{ id });
 }
 

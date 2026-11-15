@@ -17,17 +17,19 @@ class DocumentSerializerTest : public ::testing::Test
 public:
 	Document document{ 1000, 600 };
 
-	static std::vector<std::unique_ptr<IShape>> LoadFromString(const std::string& text)
+	static std::unique_ptr<Document> LoadFromString(const std::string& text)
 	{
 		std::istringstream input(text);
-		return DocumentSerializer::Load(input);
+		auto loaded = std::make_unique<Document>(1000, 600);
+		DocumentSerializer::Load(input, *loaded);
+		return loaded;
 	}
 
-	std::vector<std::unique_ptr<IShape>> SaveAndLoad() const
+	std::unique_ptr<Document> SaveAndLoad() const
 	{
 		std::stringstream stream;
 		DocumentSerializer::Save(document, stream);
-		return DocumentSerializer::Load(stream);
+		return LoadFromString(stream.str());
 	}
 };
 
@@ -54,7 +56,7 @@ TEST_F(DocumentSerializerTest, SaveEmptyDocumentWritesNothing)
 
 TEST_F(DocumentSerializerTest, LoadEmptyInputGivesNoShapes)
 {
-	EXPECT_TRUE(LoadFromString("").empty());
+	EXPECT_TRUE(LoadFromString("")->GetShapeCount() == 0);
 }
 
 TEST_F(DocumentSerializerTest, RoundTripRestoresTypesInLayerOrder)
@@ -65,10 +67,10 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresTypesInLayerOrder)
 
 	const auto shapes = SaveAndLoad();
 
-	ASSERT_EQ(shapes.size(), 3);
-	EXPECT_EQ(GetShapeType(*shapes[0]), ShapeType::Triangle);
-	EXPECT_EQ(GetShapeType(*shapes[1]), ShapeType::Rectangle);
-	EXPECT_EQ(GetShapeType(*shapes[2]), ShapeType::Ellipse);
+	ASSERT_EQ(shapes->GetShapeCount(), 3);
+	EXPECT_EQ(GetShapeType(shapes->GetShape(0)), ShapeType::Triangle);
+	EXPECT_EQ(GetShapeType(shapes->GetShape(1)), ShapeType::Rectangle);
+	EXPECT_EQ(GetShapeType(shapes->GetShape(2)), ShapeType::Ellipse);
 }
 
 TEST_F(DocumentSerializerTest, RoundTripRestoresFractionalFrameExactly)
@@ -78,8 +80,8 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresFractionalFrameExactly)
 
 	const auto shapes = SaveAndLoad();
 
-	ASSERT_EQ(shapes.size(), 1);
-	EXPECT_EQ(shapes[0]->GetFrame(), frame);
+	ASSERT_EQ(shapes->GetShapeCount(), 1);
+	EXPECT_EQ(shapes->GetShape(0).GetFrame(), frame);
 }
 
 TEST_F(DocumentSerializerTest, RoundTripRestoresColor)
@@ -88,29 +90,29 @@ TEST_F(DocumentSerializerTest, RoundTripRestoresColor)
 
 	const auto shapes = SaveAndLoad();
 
-	ASSERT_EQ(shapes.size(), 1);
-	EXPECT_EQ(shapes[0]->GetFillColor(), 0xABCDEF);
-	EXPECT_EQ(shapes[0]->GetBorderColor(), 0x0A0B0C);
+	ASSERT_EQ(shapes->GetShapeCount(), 1);
+	EXPECT_EQ(shapes->GetShape(0).GetFillColor(), 0xABCDEF);
+	EXPECT_EQ(shapes->GetShape(0).GetBorderColor(), 0x0A0B0C);
 }
 
 TEST_F(DocumentSerializerTest, RoundTripKeepsTimeInterval)
 {
 	auto shape = std::make_unique<Rectangle>(Frame{ 10, 20, 30, 40 }, 0, 0);
-	shape->SetTimeInterval({ 1.25, 7.5 });
-	document.AddShape(std::move(shape));
+	const int id = document.AddShape(std::move(shape));
+	document.SetShapeTimeInterval(id, { 1.25, 7.5 });
 
 	const auto shapes = SaveAndLoad();
 
-	ASSERT_EQ(shapes.size(), 1);
-	EXPECT_EQ(shapes[0]->GetTimeInterval(), (TimeInterval{ 1.25, 7.5 }));
+	ASSERT_EQ(shapes->GetShapeCount(), 1);
+	EXPECT_EQ(shapes->GetShapeTimeInterval(shapes->GetShapeId(0)), (TimeInterval{ 1.25, 7.5 }));
 }
 
 TEST_F(DocumentSerializerTest, LoadWithoutTimeGivesDefault)
 {
 	const auto shapes = LoadFromString("rectangle 10 20 30 40 ff0000 000000\n");
 
-	ASSERT_EQ(shapes.size(), 1);
-	EXPECT_EQ(shapes[0]->GetTimeInterval(), TimeInterval{});
+	ASSERT_EQ(shapes->GetShapeCount(), 1);
+	EXPECT_EQ(shapes->GetShapeTimeInterval(shapes->GetShapeId(0)), TimeInterval{});
 }
 
 TEST_F(DocumentSerializerTest, SaveWritesNestedGroups)
@@ -150,10 +152,10 @@ TEST_F(DocumentSerializerTest, RoundTripKeepsNestedGroups)
 
 	const auto shapes = SaveAndLoad();
 
-	ASSERT_EQ(shapes.size(), 3);
-	EXPECT_EQ(GetShapeType(*shapes[0]), ShapeType::Rectangle);
-	EXPECT_EQ(GetShapeType(*shapes[2]), ShapeType::Ellipse);
-	const GroupShape* outerGroup = shapes[1]->GetGroup();
+	ASSERT_EQ(shapes->GetShapeCount(), 3);
+	EXPECT_EQ(GetShapeType(shapes->GetShape(0)), ShapeType::Rectangle);
+	EXPECT_EQ(GetShapeType(shapes->GetShape(2)), ShapeType::Ellipse);
+	const GroupShape* outerGroup = shapes->GetShape(1).GetGroup();
 	ASSERT_NE(outerGroup, nullptr);
 	ASSERT_EQ(outerGroup->GetChildCount(), 2);
 	EXPECT_EQ(GetShapeType(outerGroup->GetChild(0)), ShapeType::Ellipse);
@@ -169,13 +171,13 @@ TEST_F(DocumentSerializerTest, SkipsEmptyLines)
 {
 	const auto shapes = LoadFromString("\ntriangle 1 2 3 4 000000 000000\n\n");
 
-	ASSERT_EQ(shapes.size(), 1);
-	EXPECT_EQ(GetShapeType(*shapes[0]), ShapeType::Triangle);
+	ASSERT_EQ(shapes->GetShapeCount(), 1);
+	EXPECT_EQ(GetShapeType(shapes->GetShape(0)), ShapeType::Triangle);
 }
 
 TEST_F(DocumentSerializerTest, LoadFromMissingFileThrows)
 {
-	EXPECT_THROW(DocumentSerializer::LoadFromFile("/abc/file.draw"), std::runtime_error);
+	EXPECT_THROW(DocumentSerializer::LoadFromFile("/abc/file.draw", document), std::runtime_error);
 }
 
 TEST_F(DocumentSerializerTest, SaveToFileReplacesPreviousVersionWithoutTempFile)
@@ -186,7 +188,9 @@ TEST_F(DocumentSerializerTest, SaveToFileReplacesPreviousVersionWithoutTempFile)
 
 	DocumentSerializer::SaveToFile(document, path);
 
-	EXPECT_EQ(DocumentSerializer::LoadFromFile(path).size(), 1);
+	Document loaded{ 1000, 600 };
+	DocumentSerializer::LoadFromFile(path, loaded);
+	EXPECT_EQ(loaded.GetShapeCount(), 1);
 	EXPECT_FALSE(std::filesystem::exists(path.string() + ".tmp"));
 	std::filesystem::remove(path);
 }

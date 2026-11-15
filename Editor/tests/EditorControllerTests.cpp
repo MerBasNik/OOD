@@ -4,6 +4,7 @@
 
 #include "Controller/EditorController.h"
 #include "Controller/ShapeDefaults.h"
+#include "Mock/MockCommand.h"
 #include "Mock/MockDocumentObserver.h"
 #include "Mock/ResizeCase.h"
 #include "Mock/ShapeTypeVisitor.h"
@@ -812,7 +813,7 @@ TEST_F(EditorControllerTest, NewShapeStartsAtCurrentTime)
 	m_controller.AddShape(ShapeType::Rectangle);
 
 	ASSERT_EQ(m_document.GetShapeCount(), 1);
-	EXPECT_EQ(m_document.GetShape(0).GetTimeInterval(), (TimeInterval{ 3, m_document.GetDuration() }));
+	EXPECT_EQ(m_document.GetShapeTimeInterval(m_document.GetShapeId(0)), (TimeInterval{ 3, m_document.GetDuration() }));
 }
 
 TEST_F(EditorControllerTest, DragMovesOnlyVisibleShapes)

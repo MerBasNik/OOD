@@ -2,8 +2,10 @@
 // Created by Вадим Патрушев on 01.11.2026.
 //
 
+#include "Command/DeleteShapeCommand/DeleteShapeCommand.h"
 #include "Command/MacroCommand/MacroCommand.h"
 #include "Mock/MockCommand.h"
+#include "Mock/MockDocumentObserver.h"
 #include <gtest/gtest.h>
 
 using ::testing::InSequence;
