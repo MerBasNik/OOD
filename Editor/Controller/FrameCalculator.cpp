@@ -84,7 +84,7 @@ std::vector<Frame> FrameCalculator::CalculateGroupMovedFrames(const std::vector<
 }
 
 std::vector<Frame> FrameCalculator::CalculateGroupResizedFrames(const std::vector<Frame>& startFrames, const size_t index,
-	const ResizeHandle handle, const Point offset, const Frame& bounds, const double minSize)
+	const ResizeHandle handle, const Point offset, const Frame& bounds, const double minSize, const bool scalePositions)
 {
 	const Frame& startFrame = startFrames.at(index);
 	const Frame resizedFrame = CalculateResizedFrame(startFrame, handle, offset, bounds, minSize);
@@ -94,19 +94,44 @@ std::vector<Frame> FrameCalculator::CalculateGroupResizedFrames(const std::vecto
 	const bool isTopMove = SelectionFrame::IsTopMove(handle);
 	double scaleX = rawScaleX;
 	double scaleY = rawScaleY;
+	// Для выбранных детей используем одну опору на противоположном краю общей рамки.
+	// Масштабируем относительно неё и размеры, и расстояния между фигурами.
+	// Ограничиваем масштаб по общей рамке, чтобы дети оставались внутри холста.
+	Point groupAnchor{};
+	if (scalePositions)
+	{
+		const Frame group = GetBoundingFrame(startFrames);
+		groupAnchor = { isLeftMove ? group.GetRight() : group.m_left, isTopMove ? group.GetBottom() : group.m_top };
+		scaleX = ClampScale(scaleX, group.m_left, group.GetRight(), isLeftMove, bounds.m_left, bounds.GetRight(), 0);
+		scaleY = ClampScale(scaleY, group.m_top, group.GetBottom(), isTopMove, bounds.m_top, bounds.GetBottom(), 0);
+	}
 	for (const auto& frame : startFrames)
 	{
-		scaleX = ClampScale(scaleX, frame.m_left, frame.GetRight(), isLeftMove, bounds.m_left, bounds.GetRight(), minSize);
-		scaleY = ClampScale(scaleY, frame.m_top, frame.GetBottom(), isTopMove, bounds.m_top, bounds.GetBottom(), minSize);
+		const double minWidth = scalePositions ? std::min(minSize, frame.m_width) : minSize;
+		const double minHeight = scalePositions ? std::min(minSize, frame.m_height) : minSize;
+		scaleX = ClampScale(scaleX, frame.m_left, frame.GetRight(), isLeftMove, bounds.m_left, bounds.GetRight(), minWidth);
+		scaleY = ClampScale(scaleY, frame.m_top, frame.GetBottom(), isTopMove, bounds.m_top, bounds.GetBottom(), minHeight);
 	}
 
 	std::vector<Frame> frames;
 	frames.reserve(startFrames.size());
 	for (const auto& frame : startFrames)
 	{
-		frames.push_back(ScaleFrame(frame, handle, scaleX, scaleY));
+		Point anchor;
+		if (scalePositions)
+		{
+			anchor = groupAnchor;
+		}
+		else
+		{
+			anchor = Point{
+				isLeftMove ? frame.GetRight() : frame.m_left,
+				isTopMove ? frame.GetBottom() : frame.m_top
+			};
+		}
+		frames.push_back(ScaleFrame(frame, scaleX, scaleY, anchor));
 	}
-	if (scaleX == rawScaleX && scaleY == rawScaleY)
+	if (!scalePositions && scaleX == rawScaleX && scaleY == rawScaleY)
 	{
 		frames[index] = resizedFrame;
 	}
@@ -157,14 +182,9 @@ double FrameCalculator::ClampScale(const double scale, const double low, const d
 	return std::clamp(scale, minSize / length, available / length);
 }
 
-Frame FrameCalculator::ScaleFrame(const Frame& frame, const ResizeHandle handle, const double scaleX, const double scaleY)
+Frame FrameCalculator::ScaleFrame(const Frame& frame, const double scaleX, const double scaleY, const Point anchor)
 {
-	const double width = frame.m_width * scaleX;
-	const double height = frame.m_height * scaleY;
-	return {
-		SelectionFrame::IsLeftMove(handle) ? frame.GetRight() - width : frame.m_left,
-		SelectionFrame::IsTopMove(handle) ? frame.GetBottom() - height : frame.m_top,
-		width,
-		height,
-	};
+	return { anchor.m_x + (frame.m_left - anchor.m_x) * scaleX,
+		anchor.m_y + (frame.m_top - anchor.m_y) * scaleY,
+		frame.m_width * scaleX, frame.m_height * scaleY };
 }

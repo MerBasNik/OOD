@@ -331,7 +331,7 @@ void TimelineView::DrawRow(sf::RenderTarget& target, const size_t row) const
 	{
 		DrawRowSelection(target, top);
 	}
-	DrawRowLabel(target, shape, id, top);
+	DrawRowLabel(target, shape, top);
 	DrawTimeBar(target, row, shape, isSelected, top);
 	DrawRowSeparator(target, top);
 }
@@ -344,7 +344,7 @@ void TimelineView::DrawRowSelection(sf::RenderTarget& target, const float top) c
 	target.draw(selection);
 }
 
-void TimelineView::DrawRowLabel(sf::RenderTarget& target, const IShape& shape, const int id, const float top) const
+void TimelineView::DrawRowLabel(sf::RenderTarget& target, const IShape& shape, const float top) const
 {
 	ShapeListItemVisitor item(m_icons);
 	shape.Accept(item);
@@ -354,7 +354,7 @@ void TimelineView::DrawRowLabel(sf::RenderTarget& target, const IShape& shape, c
 	icon.setPosition({ m_rect.position.x + ROW_PADDING, top + (ROW_HEIGHT - ICON_SIZE) / 2 });
 	target.draw(icon);
 
-	const std::string label = item.GetName() + " " + std::to_string(id);
+	const std::string label = item.GetName();
 	sf::Text text(m_font, sf::String::fromUtf8(label.begin(), label.end()), FONT_SIZE);
 	text.setFillColor(TEXT_COLOR);
 	const sf::FloatRect textBounds = text.getLocalBounds();

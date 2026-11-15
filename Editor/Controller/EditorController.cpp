@@ -40,7 +40,14 @@ void EditorController::AddShape(const ShapeType type)
 
 void EditorController::DeleteSelectedShapes()
 {
-	const auto selectedIds = m_state.GetSelectedShapeIds();
+	std::vector<int> selectedIds;
+	for (const int id : m_state.GetSelectedShapeIds())
+	{
+		if (m_document.FindShapeIndex(id))
+		{
+			selectedIds.push_back(id);
+		}
+	}
 	if (selectedIds.empty())
 	{
 		return;
@@ -61,7 +68,7 @@ void EditorController::GroupSelectedShapes()
 	std::vector<int> shapeIds;
 	for (const int id : m_state.GetSelectedShapeIds())
 	{
-		if (m_document.FindShape(id))
+		if (m_document.FindShapeIndex(id))
 		{
 			shapeIds.push_back(id);
 		}
@@ -86,7 +93,7 @@ void EditorController::UngroupSelectedShape()
 	}
 	const int id = selectedIds.front();
 	const IShape* shape = m_document.FindShape(id);
-	if (!shape || !shape->GetGroup())
+	if (!shape || !shape->GetGroup() || !m_document.FindShapeIndex(id))
 	{
 		return;
 	}
@@ -179,9 +186,21 @@ void EditorController::OnMouseDown(const Point point, const bool isToggle)
 	if (isToggle)
 	{
 		ResetPreview();
-		if (const auto shapeId = m_document.FindTopShape(point, m_state.GetCurrentTime()))
+		if (const auto rootId = m_document.FindTopShape(point, m_state.GetCurrentTime()))
 		{
-			m_state.ToggleShapeSelection(*shapeId);
+			const int id = GetClickShapeId(*rootId, point);
+			const auto& selected = m_state.GetSelectedShapeIds();
+			if (!selected.empty())
+			{
+				const auto selectedRoot = m_document.FindRootShapeId(selected.front());
+				const bool selectedChild = selectedRoot && *selectedRoot != selected.front();
+				const bool clickedChild = id != *rootId;
+				if (selectedChild != clickedChild || (clickedChild && selectedRoot != rootId))
+				{
+					m_state.SetSelectedShapeIds({});
+				}
+			}
+			m_state.ToggleShapeSelection(id);
 		}
 		return;
 	}
@@ -193,13 +212,19 @@ void EditorController::OnMouseDown(const Point point, const bool isToggle)
 		StartDrag(DragMode::Resize, *hit.m_shapeId, point, *hit.m_handle);
 		break;
 	case HitArea::SelectionBorder:
-	case HitArea::Shape:
-		if (!m_state.IsShapeSelected(*hit.m_shapeId))
+	case HitArea::Shape: {
+		const bool wasSelected = m_state.IsShapeSelected(*hit.m_shapeId);
+		if (!wasSelected)
 		{
 			m_state.SetSelectedShapeIds({ *hit.m_shapeId });
 		}
 		StartDrag(DragMode::Move, *hit.m_shapeId, point);
+		if (wasSelected && hit.m_area == HitArea::Shape && m_document.FindShapeIndex(*hit.m_shapeId).has_value())
+		{
+			m_drag.m_clickTarget = m_document.FindTargetShape(*hit.m_shapeId, point, m_state.GetCurrentTime());
+		}
 		break;
+	}
 	case HitArea::Empty:
 		ResetPreview();
 		m_state.SetSelectedShapeIds({});
@@ -219,6 +244,10 @@ void EditorController::OnMouseMove(const Point point)
 		break;
 	case DragMode::Move:
 	case DragMode::Resize: {
+		if (point != m_drag.m_startPoint)
+		{
+			m_drag.m_clickTarget.reset();
+		}
 		const auto frames = CalculateDraggedFrames(point);
 		std::map<int, Frame> previewFrames;
 		for (size_t i = 0; i < frames.size(); ++i)
@@ -247,6 +276,21 @@ void EditorController::OnMouseUp(const Point point)
 	}
 }
 
+int EditorController::GetClickShapeId(const int rootId, const Point point) const
+{
+	const auto& selected = m_state.GetSelectedShapeIds();
+	const bool isEditingChildren = !selected.empty() && selected.front() != rootId
+		&& m_document.FindRootShapeId(selected.front()) == rootId;
+	if (isEditingChildren)
+	{
+		if (const auto child = m_document.FindTargetShape(rootId, point, m_state.GetCurrentTime()))
+		{
+			return *child;
+		}
+	}
+	return rootId;
+}
+
 HitResult EditorController::HitTest(const Point point) const
 {
 	const auto& selectedIds = m_state.GetSelectedShapeIds();
@@ -268,9 +312,9 @@ HitResult EditorController::HitTest(const Point point) const
 		}
 	}
 
-	if (const auto shapeId = m_document.FindTopShape(point, m_state.GetCurrentTime()))
+	if (const auto rootId = m_document.FindTopShape(point, m_state.GetCurrentTime()))
 	{
-		return { HitArea::Shape, shapeId, std::nullopt };
+		return { HitArea::Shape, GetClickShapeId(*rootId, point), std::nullopt };
 	}
 	return {};
 }
@@ -329,7 +373,15 @@ CursorType EditorController::GetCursorType(const Point point) const
 
 void EditorController::DocumentUpdate()
 {
-	if (IsDraggedShapeMissing())
+	for (size_t i = 0; i < m_drag.m_shapeIds.size(); ++i)
+	{
+		if (m_document.FindRootShapeId(m_drag.m_shapeIds[i]) != m_drag.m_rootIds[i])
+		{
+			ResetPreview();
+			break;
+		}
+	}
+	if (m_drag.m_clickTarget && !m_document.FindShape(*m_drag.m_clickTarget))
 	{
 		ResetPreview();
 	}
@@ -363,8 +415,9 @@ std::vector<Frame> EditorController::CalculateDraggedFrames(const Point point) c
 	{
 		return FrameCalculator::CalculateGroupMovedFrames(m_drag.m_startFrames, offset, bounds);
 	}
+	const bool scalePositions = m_drag.m_shapeIds.size() > 1 && !m_document.FindShapeIndex(m_drag.m_shapeIds.front());
 	return FrameCalculator::CalculateGroupResizedFrames(m_drag.m_startFrames, m_drag.m_shapeIndex, m_drag.m_handle,
-		offset, bounds, ShapeDefaults::MIN_SIZE);
+		offset, bounds, ShapeDefaults::MIN_SIZE, scalePositions);
 }
 
 void EditorController::ExecuteCommands(std::vector<std::unique_ptr<ICommand>> commands) const
@@ -422,6 +475,7 @@ void EditorController::StartDrag(const DragMode mode, const int id, const Point 
 			drag.m_shapeIndex = drag.m_shapeIds.size();
 		}
 		drag.m_shapeIds.push_back(selectedId);
+		drag.m_rootIds.push_back(*m_document.FindRootShapeId(selectedId));
 		drag.m_startFrames.push_back(*frame);
 	}
 	m_drag = std::move(drag);
@@ -459,7 +513,10 @@ void EditorController::FinishDrag(const Point point)
 	ResetPreview();
 	if (drag.m_mode == DragMode::Move && point == drag.m_startPoint)
 	{
-		m_state.SetSelectedShapeIds({ drag.m_shapeIds[drag.m_shapeIndex] });
+		if (!drag.m_shapeIds.empty())
+		{
+			m_state.SetSelectedShapeIds({ drag.m_clickTarget.value_or(drag.m_shapeIds[drag.m_shapeIndex]) });
+		}
 		return;
 	}
 
@@ -504,16 +561,6 @@ void EditorController::SelectShapes(const std::vector<int>& ids) const
 
 void EditorController::RemoveMissingShapesFromState()
 {
-	std::vector<int> selectedIds;
-	for (const int id : m_state.GetSelectedShapeIds())
-	{
-		if (m_document.FindShape(id))
-		{
-			selectedIds.push_back(id);
-		}
-	}
-	m_state.SetSelectedShapeIds(std::move(selectedIds));
-
 	std::map<int, Frame> previewFrames;
 	for (const auto& [id, frame] : m_state.GetPreviewFrames())
 	{
@@ -533,16 +580,4 @@ void EditorController::RemoveMissingShapesFromState()
 		}
 	}
 	m_state.SetPreviewTimeIntervals(std::move(previewTimeIntervals));
-}
-
-bool EditorController::IsDraggedShapeMissing() const
-{
-	for (const int id : m_drag.m_shapeIds)
-	{
-		if (!m_document.FindShape(id))
-		{
-			return true;
-		}
-	}
-	return false;
 }

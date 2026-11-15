@@ -7,13 +7,9 @@
 
 #include "IDocumentObserver.h"
 #include "Model/Shapes/IShape.h"
-#include "Model/Types/DocumentItem.h"
-
 #include <memory>
 #include <optional>
 #include <vector>
-
-constexpr int START_ID = 1;
 
 class Document
 {
@@ -27,7 +23,9 @@ public:
 	int AddShapeAt(std::unique_ptr<IShape> shape, size_t index);
 	void RemoveShape(int id);
 	std::unique_ptr<IShape> DeleteShape(int id);
-	void InsertShape(int id, std::unique_ptr<IShape> shape, size_t index);
+	void InsertShape(std::unique_ptr<IShape> shape, size_t index);
+	int GroupShapes(const std::vector<int>& shapeIds, std::unique_ptr<IShape> group, size_t index);
+	std::unique_ptr<IShape> UngroupShape(int groupId, const std::vector<size_t>& childIndices);
 	void SetShapeFrame(int id, const Frame& frame);
 	void SetShapeColors(int id, Color fillColor, Color borderColor);
 	void SetShapeIndex(int id, size_t index);
@@ -38,7 +36,9 @@ public:
 	const IShape& GetShape(size_t index) const;
 	int GetShapeId(size_t index) const;
 	const IShape* FindShape(int id) const;
+	std::optional<int> FindTargetShape(int rootId, Point point, double time) const;
 	std::optional<size_t> FindShapeIndex(int id) const;
+	std::optional<int> FindRootShapeId(int id) const;
 	std::optional<int> FindTopShape(Point point, double time) const;
 	void AddObserver(IDocumentObserver& observer);
 	void RemoveObserver(IDocumentObserver& observer);
@@ -46,14 +46,17 @@ public:
 private:
 	Frame m_bounds;
 	double m_duration;
-	std::vector<DocumentItem> m_shapesInner;
-	int m_nextId = START_ID;
+	std::vector<std::unique_ptr<IShape>> m_shapesInner;
 	std::vector<IDocumentObserver*> m_observers;
 
-	std::vector<DocumentItem>::iterator FindItem(int id);
+	std::vector<std::unique_ptr<IShape>>::iterator FindItem(int id);
+	IShape* GetShapeById(int id);
+	std::optional<int> FindTargetInShape(const IShape& shape, Point point, double time) const;
 	void CheckFrame(const Frame& frame) const;
 	void CheckTimeInterval(const TimeInterval& timeInterval) const;
 	void CheckShape(const IShape& shape) const;
+	void CheckGrouping(const std::vector<int>& shapeIds, const IShape* group, size_t index) const;
+	void CheckUngrouping(const IShape* group, const std::vector<size_t>& childIndices) const;
 	void NotifyObservers();
 };
 

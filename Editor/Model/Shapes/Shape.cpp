@@ -5,10 +5,26 @@
 #include "Shape.h"
 
 Shape::Shape(const Frame& frame, const Color fillColor, const Color borderColor)
-	: m_frame(frame)
+	: m_id(GenerateShapeId())
+	, m_frame(frame)
 	, m_fillColor(fillColor)
 	, m_borderColor(borderColor)
 {
+}
+
+int Shape::GetId() const
+{
+	return m_id;
+}
+
+const IShape* Shape::FindShape(const int id) const
+{
+	return m_id == id ? this : nullptr;
+}
+
+IShape* Shape::FindShape(const int id)
+{
+	return m_id == id ? this : nullptr;
 }
 
 Frame Shape::GetFrame() const

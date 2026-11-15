@@ -63,7 +63,7 @@ private:
 	void DrawTimeScale(sf::RenderTarget& target) const;
 	void DrawRow(sf::RenderTarget& target, size_t row) const;
 	void DrawRowSelection(sf::RenderTarget& target, float top) const;
-	void DrawRowLabel(sf::RenderTarget& target, const IShape& shape, int id, float top) const;
+	void DrawRowLabel(sf::RenderTarget& target, const IShape& shape, float top) const;
 	void DrawTimeBar(sf::RenderTarget& target, size_t row, const IShape& shape, bool isSelected, float top) const;
 	void DrawRowSeparator(sf::RenderTarget& target, float top) const;
 	void DrawDropIndicator(sf::RenderTarget& target, size_t slot) const;

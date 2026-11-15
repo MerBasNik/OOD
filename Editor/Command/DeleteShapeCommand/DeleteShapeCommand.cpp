@@ -25,7 +25,7 @@ void DeleteShapeCommand::Unexecute()
 {
 	if (m_shape)
 	{
-		m_document.InsertShape(m_shapeId, std::move(m_shape), m_index);
+		m_document.InsertShape(std::move(m_shape), m_index);
 	}
 }
 

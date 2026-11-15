@@ -7,12 +7,23 @@
 #include <stdexcept>
 #include <utility>
 
+GroupShape::GroupShape()
+	: m_id(GenerateShapeId())
+{
+}
+
 GroupShape::GroupShape(std::vector<std::unique_ptr<IShape>> children)
+	: GroupShape()
 {
 	for (auto& child : children)
 	{
 		AddChild(std::move(child));
 	}
+}
+
+int GroupShape::GetId() const
+{
+	return m_id;
 }
 
 size_t GroupShape::GetChildCount() const
@@ -21,6 +32,11 @@ size_t GroupShape::GetChildCount() const
 }
 
 const IShape& GroupShape::GetChild(const size_t index) const
+{
+	return *m_children.at(index);
+}
+
+IShape& GroupShape::GetChild(const size_t index)
 {
 	return *m_children.at(index);
 }
@@ -37,6 +53,38 @@ void GroupShape::AddChild(std::unique_ptr<IShape> child)
 std::vector<std::unique_ptr<IShape>> GroupShape::ReleaseChildren()
 {
 	return std::exchange(m_children, {});
+}
+
+const IShape* GroupShape::FindShape(const int id) const
+{
+	if (m_id == id)
+	{
+		return this;
+	}
+	for (const auto& child : m_children)
+	{
+		if (const auto* found = child->FindShape(id))
+		{
+			return found;
+		}
+	}
+	return nullptr;
+}
+
+IShape* GroupShape::FindShape(const int id)
+{
+	if (m_id == id)
+	{
+		return this;
+	}
+	for (auto& child : m_children)
+	{
+		if (auto* found = child->FindShape(id))
+		{
+			return found;
+		}
+	}
+	return nullptr;
 }
 
 bool GroupShape::HitTest(const Point point) const

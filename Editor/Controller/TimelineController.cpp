@@ -53,6 +53,15 @@ void TimelineController::OnMouseDown(const std::optional<size_t> row, const doub
 	const int id = GetShapeIdAtRow(*row);
 	if (isToggle)
 	{
+		const auto& selected = m_state.GetSelectedShapeIds();
+		for (const int selectedId : selected)
+		{
+			if (!m_document.FindShapeIndex(selectedId))
+			{
+				m_state.SetSelectedShapeIds({});
+				break;
+			}
+		}
 		m_state.ToggleShapeSelection(id);
 		return;
 	}

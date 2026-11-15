@@ -19,6 +19,7 @@ public:
 	CanvasView(const CanvasView&) = delete;
 	CanvasView& operator=(const CanvasView&) = delete;
 	void Draw(sf::RenderTarget& target) const;
+	std::unique_ptr<IShape> CreatePreview(const IShape& shape) const;
 	Point ToDocumentPoint(sf::Vector2f point) const;
 	bool IsContains(sf::Vector2f point) const;
 	void ZoomAt(sf::Vector2f point, float delta);
@@ -41,6 +42,8 @@ private:
 
 	void DrawBackground(sf::RenderTarget& target) const;
 	void DrawShapes(sf::RenderTarget& target) const;
+	bool HasPreview(const IShape& shape) const;
+	void ApplyPreview(const IShape& source, IShape& target) const;
 	void DrawSelection(sf::RenderTarget& target) const;
 	bool IsShapeVisible(int id) const;
 	void DrawSelectionFrame(sf::RenderTarget& target, const Frame& frame) const;

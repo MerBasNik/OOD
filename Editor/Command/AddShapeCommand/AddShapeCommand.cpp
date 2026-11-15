@@ -23,7 +23,7 @@ void AddShapeCommand::Execute()
 	}
 	if (m_shapeId)
 	{
-		m_document.InsertShape(*m_shapeId, std::move(m_shape), m_index);
+		m_document.InsertShape(std::move(m_shape), m_index);
 		return;
 	}
 	m_index = m_document.GetShapeCount();

@@ -27,15 +27,16 @@ bool EditorState::IsShapeSelected(const int id) const
 
 void EditorState::ToggleShapeSelection(const int id)
 {
+	auto selected = m_selectedShapeIds;
 	if (IsShapeSelected(id))
 	{
-		std::erase(m_selectedShapeIds, id);
+		std::erase(selected, id);
 	}
 	else
 	{
-		m_selectedShapeIds.push_back(id);
+		selected.push_back(id);
 	}
-	NotifyObservers();
+	SetSelectedShapeIds(std::move(selected));
 }
 
 const std::map<int, Frame>& EditorState::GetPreviewFrames() const

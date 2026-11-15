@@ -6,6 +6,7 @@
 #include "Canvas.h"
 #include "Model/EditorState/SelectionFrame.h"
 #include "Model/Rendering/RenderShape.h"
+#include "Model/Shapes/GroupShape.h"
 #include <cmath>
 
 const sf::Color CANVAS_COLOR = sf::Color::White;
@@ -121,9 +122,6 @@ void CanvasView::DrawShapes(sf::RenderTarget& target) const
 {
 	Canvas canvas(target, m_rect.position);
 	RenderShape renderer(canvas, m_state.GetCurrentTime());
-	const auto previewFillColor = m_state.GetPreviewFillColor();
-	const auto previewBorderColor = m_state.GetPreviewBorderColor();
-	const bool hasColorPreview = previewFillColor || previewBorderColor;
 	for (size_t i = 0; i < m_document.GetShapeCount(); ++i)
 	{
 		const IShape& shape = m_document.GetShape(i);
@@ -132,23 +130,10 @@ void CanvasView::DrawShapes(sf::RenderTarget& target) const
 		{
 			continue;
 		}
-		const auto previewFrame = m_state.GetPreviewFrame(id);
-		const auto previewTimeInterval = m_state.GetPreviewTimeInterval(id);
-		const bool hasShapeColorPreview = hasColorPreview && m_state.IsShapeSelected(id) && !shape.GetGroup();
-		if (previewFrame || previewTimeInterval || hasShapeColorPreview)
+		const auto preview = CreatePreview(shape);
+		if (preview)
 		{
-			const auto preview = shape.Clone();
-			preview->SetFrame(previewFrame ? *previewFrame : shape.GetFrame());
-			if (previewTimeInterval)
-			{
-				preview->SetTimeInterval(*previewTimeInterval);
-			}
-			if (hasShapeColorPreview)
-			{
-				preview->SetFillColor(previewFillColor ? *previewFillColor : shape.GetFillColor());
-				preview->SetBorderColor(previewBorderColor ? *previewBorderColor : shape.GetBorderColor());
-			}
-			preview->Accept(renderer);
+			(*preview).Accept(renderer);
 		}
 		else
 		{
@@ -159,6 +144,71 @@ void CanvasView::DrawShapes(sf::RenderTarget& target) const
 	if (creatingShape)
 	{
 		creatingShape->Accept(renderer);
+	}
+}
+
+std::unique_ptr<IShape> CanvasView::CreatePreview(const IShape& shape) const
+{
+	if (!HasPreview(shape))
+	{
+		return nullptr;
+	}
+	auto preview = shape.Clone();
+	ApplyPreview(shape, *preview);
+	return preview;
+}
+
+bool CanvasView::HasPreview(const IShape& shape) const
+{
+	const int id = shape.GetId();
+	if (m_state.GetPreviewFrame(id) || m_state.GetPreviewTimeInterval(id))
+	{
+		return true;
+	}
+	if (const auto* group = shape.GetGroup())
+	{
+		for (size_t i = 0; i < group->GetChildCount(); ++i)
+		{
+			if (HasPreview(group->GetChild(i)))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	return m_state.IsShapeSelected(id) && (m_state.GetPreviewFillColor() || m_state.GetPreviewBorderColor());
+}
+
+void CanvasView::ApplyPreview(const IShape& source, IShape& target) const
+{
+	const int id = source.GetId();
+	if (const auto frame = m_state.GetPreviewFrame(id))
+	{
+		target.SetFrame(*frame);
+	}
+	if (const auto interval = m_state.GetPreviewTimeInterval(id))
+	{
+		target.SetTimeInterval(*interval);
+	}
+	if (auto* group = target.GetGroup())
+	{
+		const auto* sourceGroup = source.GetGroup();
+		for (size_t i = 0; i < group->GetChildCount(); ++i)
+		{
+			ApplyPreview(sourceGroup->GetChild(i), group->GetChild(i));
+		}
+		return;
+	}
+	if (m_state.IsShapeSelected(id))
+	{
+		if (const auto color = m_state.GetPreviewFillColor())
+		{
+			target.SetFillColor(*color);
+		}
+		if (const auto color = m_state.GetPreviewBorderColor())
+		{
+			target.SetBorderColor(*color);
+		}
 	}
 }
 
@@ -178,8 +228,13 @@ void CanvasView::DrawSelection(sf::RenderTarget& target) const
 
 bool CanvasView::IsShapeVisible(const int id) const
 {
+	const IShape* shape = m_document.FindShape(id);
+	if (!shape)
+	{
+		return false;
+	}
 	const auto preview = m_state.GetPreviewTimeInterval(id);
-	const TimeInterval interval = preview ? *preview : m_document.FindShape(id)->GetTimeInterval();
+	const TimeInterval interval = preview ? *preview : shape->GetTimeInterval();
 	return interval.IsContains(m_state.GetCurrentTime());
 }
 

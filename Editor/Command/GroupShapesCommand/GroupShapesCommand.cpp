@@ -28,26 +28,9 @@ void GroupShapesCommand::Execute()
 	if (!m_groupId)
 	{
 		SortShapesByLayer();
+		m_groupIndex = m_document.GetShapeCount() - m_shapeIds.size();
 	}
-
-	std::vector<std::unique_ptr<IShape>> children;
-	for (size_t i = m_shapeIds.size(); i-- > 0;)
-	{
-		const auto shape = m_shapeIds[i];
-		children.push_back(m_document.DeleteShape(shape));
-	}
-	for (auto it = children.rbegin(); it != children.rend(); ++it )
-	{
-		m_group->GetGroup()->AddChild(std::move(*it));
-	}
-
-	if (m_groupId)
-	{
-		m_document.InsertShape(*m_groupId, std::move(m_group), m_groupIndex);
-		return;
-	}
-	m_groupIndex = m_document.GetShapeCount();
-	m_groupId = m_document.AddShape(std::move(m_group));
+	m_groupId = m_document.GroupShapes(m_shapeIds, std::move(m_group), m_groupIndex);
 }
 
 void GroupShapesCommand::Unexecute()
@@ -56,22 +39,12 @@ void GroupShapesCommand::Unexecute()
 	{
 		throw std::runtime_error("Группировка не выполнена");
 	}
-	m_group = m_document.DeleteShape(*m_groupId);
-	auto children = m_group->GetGroup()->ReleaseChildren();
-	for (size_t i = 0; i < children.size(); ++i)
-	{
-		m_document.InsertShape(m_shapeIds[i], std::move(children[i]), m_indices[i]);
-	}
+	m_group = m_document.UngroupShape(*m_groupId, m_indices);
 }
 
 std::vector<int> GroupShapesCommand::GetShapeIds() const
 {
-	std::vector<int> ids = m_shapeIds;
-	if (m_groupId)
-	{
-		ids.push_back(*m_groupId);
-	}
-	return ids;
+	return m_group ? m_shapeIds : std::vector{ *m_groupId };
 }
 
 std::optional<int> GroupShapesCommand::GetGroupId() const

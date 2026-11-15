@@ -11,6 +11,10 @@ class Shape : public IShape
 {
 public:
 	Shape(const Frame& frame, Color fillColor, Color borderColor);
+	Shape& operator=(const Shape&) = delete;
+	int GetId() const override;
+	const IShape* FindShape(int id) const override;
+	IShape* FindShape(int id) override;
 	Frame GetFrame() const override;
 	void SetFrame(const Frame& frame) override;
 	Color GetFillColor() const override;
@@ -23,6 +27,7 @@ public:
 	const GroupShape* GetGroup() const override;
 
 private:
+	int m_id;
 	Frame m_frame;
 	Color m_fillColor;
 	Color m_borderColor;

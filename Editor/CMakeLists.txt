@@ -62,6 +62,8 @@ target_link_libraries(Editor PRIVATE
 )
 
 add_executable(Editor_tests
+        View/Canvas/Canvas.cpp
+        View/Canvas/CanvasView.cpp
         tests/ShapeTests.cpp
         tests/DocumentTests.cpp
         tests/SelectionFrameTests.cpp
@@ -79,10 +81,14 @@ add_executable(Editor_tests
         tests/ViewportTests.cpp
         tests/GroupShapeTests.cpp
         tests/GroupCommandTests.cpp
+        tests/GroupEditingTests.cpp
 )
 
 target_link_libraries(Editor_tests PRIVATE
         Editor_lib
+        ${SFML_GRAPHICS_LIB}
+        ${SFML_WINDOW_LIB}
+        ${SFML_SYSTEM_LIB}
         GTest::gtest
         GTest::gmock
         GTest::gtest_main

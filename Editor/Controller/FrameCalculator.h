@@ -21,14 +21,14 @@ public:
 	static std::optional<bool> IsCreateForward(double start, double current, double minSize, std::optional<bool> wasForward);
 	static std::vector<Frame> CalculateGroupMovedFrames(const std::vector<Frame>& startFrames, Point offset, const Frame& bounds);
 	static std::vector<Frame> CalculateGroupResizedFrames(const std::vector<Frame>& startFrames, size_t index,
-		ResizeHandle handle, Point offset, const Frame& bounds, double minSize);
+		ResizeHandle handle, Point offset, const Frame& bounds, double minSize, bool scalePositions = false);
 
 private:
 	static std::pair<double, double> CalculateCreatedRange(double start, double current, double min, double max,
 		double minSize, bool isForward);
 	static Frame GetBoundingFrame(const std::vector<Frame>& frames);
 	static double ClampScale(double scale, double low, double high, bool isLowMove, double boundsLow, double boundsHigh, double minSize);
-	static Frame ScaleFrame(const Frame& frame, ResizeHandle handle, double scaleX, double scaleY);
+	static Frame ScaleFrame(const Frame& frame, double scaleX, double scaleY, Point anchor);
 };
 
 #endif // OOD_EDITOR_FRAMECALCULATOR_H

@@ -21,6 +21,15 @@ void ShapeListController::OnMouseDown(const std::optional<size_t> row, const boo
 	{
 		if (isShapeRow)
 		{
+			const auto& selected = m_state.GetSelectedShapeIds();
+			for (const int selectedId : selected)
+			{
+				if (!m_document.FindShapeIndex(selectedId))
+				{
+					m_state.SetSelectedShapeIds({});
+					break;
+				}
+			}
 			m_state.ToggleShapeSelection(m_document.GetShapeId(RowToIndex(*row)));
 		}
 		return;

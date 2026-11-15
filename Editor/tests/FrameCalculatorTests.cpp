@@ -104,3 +104,30 @@ TEST_F(FrameCalculatorTest, GroupResizeIsLimitedByBounds)
 
 	EXPECT_EQ(frames, (std::vector<Frame>{ START, { 0, 300, 50, 50 } }));
 }
+
+TEST_F(FrameCalculatorTest, GroupResizeCanScaleSpacingFromCommonAnchor)
+{
+	const auto frames = FrameCalculator::CalculateGroupResizedFrames(
+		{ { 100, 100, 50, 50 }, { 300, 200, 50, 50 } }, 0,
+		ResizeHandle::BottomRight, { 50, 50 }, BOUNDS, MIN_SIZE, true);
+
+	EXPECT_EQ(frames, (std::vector<Frame>{ { 100, 100, 100, 100 }, { 500, 300, 100, 100 } }));
+}
+
+TEST_F(FrameCalculatorTest, CommonAnchorResizeKeepsWholeSelectionInsideBounds)
+{
+	const auto frames = FrameCalculator::CalculateGroupResizedFrames(
+		{ { 100, 100, 50, 50 }, { 250, 250, 50, 50 } }, 1,
+		ResizeHandle::TopLeft, { -500, -500 }, BOUNDS, MIN_SIZE, true);
+
+	EXPECT_EQ(frames, (std::vector<Frame>{ { 0, 0, 75, 75 }, { 225, 225, 75, 75 } }));
+}
+
+TEST_F(FrameCalculatorTest, CommonAnchorResizeDoesNotEnlargeAlreadySmallSiblingWithoutMovement)
+{
+	const std::vector<Frame> original{ { 100, 100, 5, 5 }, { 200, 200, 20, 20 } };
+	const auto frames = FrameCalculator::CalculateGroupResizedFrames(original, 1,
+		ResizeHandle::BottomRight, { 0, 0 }, BOUNDS, MIN_SIZE, true);
+
+	EXPECT_EQ(frames, original);
+}

@@ -18,6 +18,9 @@ class IShape
 {
 public:
 	virtual ~IShape() = default;
+	virtual int GetId() const = 0;
+	virtual const IShape* FindShape(int id) const = 0;
+	virtual IShape* FindShape(int id) = 0;
 	virtual bool HitTest(Point point) const = 0;
 	virtual std::unique_ptr<IShape> Clone() const = 0;
 	virtual Frame GetFrame() const = 0;
@@ -31,6 +34,12 @@ public:
 	virtual void SetTimeInterval(TimeInterval timeInterval) = 0;
 	virtual GroupShape* GetGroup() = 0;
 	virtual const GroupShape* GetGroup() const = 0;
+
+	inline static int m_nextShapeId = 1;
+	static int GenerateShapeId()
+	{
+		return m_nextShapeId++;
+	}
 };
 
 #endif // OOD_EDITOR_ISHAPE_H

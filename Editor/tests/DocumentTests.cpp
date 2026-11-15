@@ -266,18 +266,18 @@ TEST_F(DocumentTest, InsertShapeKeepsIdAndPosition)
 	const auto top = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
 	auto shape = document.DeleteShape(bottom);
 
-	document.InsertShape(bottom, std::move(shape), 0);
+	document.InsertShape(std::move(shape), 0);
 
 	EXPECT_EQ(document.GetShapeId(0), bottom);
 	EXPECT_EQ(document.GetShapeId(1), top);
 }
 
-TEST_F(DocumentTest, InsertShapeRejectsDuplicateIdAndInvalidPosition)
+TEST_F(DocumentTest, InsertShapeRejectsNullAndInvalidPosition)
 {
 	const auto id = document.AddShape(MakeRectangle({ 0, 0, 10, 10 }));
 
-	EXPECT_THROW(document.InsertShape(id, MakeRectangle({ 0, 0, 10, 10 }), 0), std::invalid_argument);
-	EXPECT_THROW(document.InsertShape(id + 1, MakeRectangle({ 0, 0, 10, 10 }), 2), std::out_of_range);
+	EXPECT_THROW(document.InsertShape(nullptr, 0), std::invalid_argument);
+	EXPECT_THROW(document.InsertShape(MakeRectangle({ 0, 0, 10, 10 }), 2), std::out_of_range);
 	EXPECT_EQ(document.GetShapeCount(), 1);
 }
 

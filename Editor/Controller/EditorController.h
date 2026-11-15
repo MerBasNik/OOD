@@ -52,7 +52,7 @@ private:
 	void AddSelectShape(std::unique_ptr<IShape> shape) const;
 	void SelectShapes(const std::vector<int>& ids) const;
 	void RemoveMissingShapesFromState();
-	bool IsDraggedShapeMissing() const;
+	int GetClickShapeId(int rootId, Point point) const;
 	std::vector<Frame> CalculateDraggedFrames(Point point) const;
 	void ExecuteCommands(std::vector<std::unique_ptr<ICommand>> commands) const;
 	Frame CalculateCreatedFrame(Point point) const;

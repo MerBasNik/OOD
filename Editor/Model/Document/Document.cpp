@@ -3,8 +3,10 @@
 //
 
 #include "Document.h"
+#include "Model/Shapes/GroupShape.h"
 #include <algorithm>
 #include <stdexcept>
+#include <utility>
 
 constexpr double BOUNDS_TOLERANCE = 1e-6;
 
@@ -39,15 +41,8 @@ int Document::AddShapeAt(std::unique_ptr<IShape> shape, const size_t index)
 	{
 		throw std::invalid_argument("Фигура не задана");
 	}
-	if (index > m_shapesInner.size())
-	{
-		throw std::out_of_range("Недопустимая позиция фигуры");
-	}
-	CheckShape(*shape);
-
-	const int id = m_nextId++;
-	m_shapesInner.insert(m_shapesInner.begin() + static_cast<std::ptrdiff_t>(index), { id, std::move(shape) });
-	NotifyObservers();
+	const int id = shape->GetId();
+	InsertShape(std::move(shape), index);
 	return id;
 }
 
@@ -69,77 +64,108 @@ std::unique_ptr<IShape> Document::DeleteShape(const int id)
 	{
 		throw std::invalid_argument("Фигура не найдена");
 	}
-	auto shape = std::move(it->m_shape);
+	auto shape = std::move(*it);
 	m_shapesInner.erase(it);
 	NotifyObservers();
 	return shape;
 }
 
-void Document::InsertShape(const int id, std::unique_ptr<IShape> shape, const size_t index)
+void Document::InsertShape(std::unique_ptr<IShape> shape, const size_t index)
 {
 	if (!shape)
 	{
 		throw std::invalid_argument("Фигура не задана");
-	}
-	if (FindItem(id) != m_shapesInner.end())
-	{
-		throw std::invalid_argument("Фигура с таким id уже есть");
 	}
 	if (index > m_shapesInner.size())
 	{
 		throw std::out_of_range("Недопустимая позиция фигуры");
 	}
 	CheckShape(*shape);
-
-	m_shapesInner.insert(m_shapesInner.begin() + static_cast<std::ptrdiff_t>(index), { id, std::move(shape) });
+	m_shapesInner.insert(m_shapesInner.begin() + index, std::move(shape));
 	NotifyObservers();
+}
+
+int Document::GroupShapes(const std::vector<int>& shapeIds, std::unique_ptr<IShape> group, const size_t index)
+{
+	CheckGrouping(shapeIds, group.get(), index);
+
+	const int id = group->GetId();
+	GroupShape& composite = *group->GetGroup();
+	for (const int shapeId : shapeIds)
+	{
+		const auto item = FindItem(shapeId);
+		composite.AddChild(std::move(*item));
+		m_shapesInner.erase(item);
+	}
+	m_shapesInner.insert(m_shapesInner.begin() + index, std::move(group));
+	NotifyObservers();
+	return id;
+}
+
+std::unique_ptr<IShape> Document::UngroupShape(const int groupId, const std::vector<size_t>& childIndices)
+{
+	const auto item = FindItem(groupId);
+	const IShape* shape = item != m_shapesInner.end() ? item->get() : nullptr;
+	CheckUngrouping(shape, childIndices);
+
+	const auto index = item - m_shapesInner.begin();
+	m_shapesInner.reserve(m_shapesInner.size() - 1 + childIndices.size());
+	auto group = std::move(m_shapesInner[index]);
+	m_shapesInner.erase(m_shapesInner.begin() + index);
+	auto children = group->GetGroup()->ReleaseChildren();
+	for (size_t i = 0; i < children.size(); ++i)
+	{
+		m_shapesInner.insert(m_shapesInner.begin() + childIndices[i], std::move(children[i]));
+	}
+	NotifyObservers();
+	return group;
 }
 
 void Document::SetShapeFrame(const int id, const Frame& frame)
 {
-	const auto it = FindItem(id);
-	if (it == m_shapesInner.end())
+	IShape* shape = GetShapeById(id);
+	if (!shape)
 	{
 		throw std::invalid_argument("Фигура не найдена");
 	}
 	CheckFrame(frame);
-	if (it->m_shape->GetFrame() == frame)
+	if (shape->GetFrame() == frame)
 	{
 		return;
 	}
-	it->m_shape->SetFrame(frame);
+	shape->SetFrame(frame);
 	NotifyObservers();
 }
 
 void Document::SetShapeColors(const int id, const Color fillColor, const Color borderColor)
 {
-	const auto it = FindItem(id);
-	if (it == m_shapesInner.end())
+	IShape* shape = GetShapeById(id);
+	if (!shape)
 	{
 		throw std::invalid_argument("Фигура не найдена");
 	}
-	if (it->m_shape->GetFillColor() == fillColor && it->m_shape->GetBorderColor() == borderColor)
+	if (shape->GetFillColor() == fillColor && shape->GetBorderColor() == borderColor)
 	{
 		return;
 	}
-	it->m_shape->SetFillColor(fillColor);
-	it->m_shape->SetBorderColor(borderColor);
+	shape->SetFillColor(fillColor);
+	shape->SetBorderColor(borderColor);
 	NotifyObservers();
 }
 
 void Document::SetShapeTimeInterval(const int id, const TimeInterval& timeInterval)
 {
-	const auto it = FindItem(id);
-	if (it == m_shapesInner.end())
+	IShape* shape = GetShapeById(id);
+	if (!shape)
 	{
 		throw std::invalid_argument("Фигура не найдена");
 	}
 	CheckTimeInterval(timeInterval);
-	if (it->m_shape->GetTimeInterval() == timeInterval)
+	if (shape->GetTimeInterval() == timeInterval)
 	{
 		return;
 	}
-	it->m_shape->SetTimeInterval(timeInterval);
+	shape->SetTimeInterval(timeInterval);
 	NotifyObservers();
 }
 
@@ -154,7 +180,7 @@ void Document::SetShapeIndex(const int id, const size_t index)
 	{
 		throw std::out_of_range("Недопустимая позиция фигуры");
 	}
-	const auto target = m_shapesInner.begin() + static_cast<std::ptrdiff_t>(index);
+	const auto target = m_shapesInner.begin() + index;
 	if (shape == target)
 	{
 		return;
@@ -181,13 +207,7 @@ void Document::ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes)
 		CheckShape(*shape);
 	}
 
-	std::vector<DocumentItem> items;
-	items.reserve(shapes.size());
-	for (auto& shape : shapes)
-	{
-		items.push_back({ m_nextId++, std::move(shape) });
-	}
-	m_shapesInner = std::move(items);
+	m_shapesInner = std::move(shapes);
 	NotifyObservers();
 }
 
@@ -204,23 +224,91 @@ size_t Document::GetShapeCount() const
 
 const IShape& Document::GetShape(const size_t index) const
 {
-	return *m_shapesInner.at(index).m_shape;
+	return *m_shapesInner.at(index);
 }
 
 int Document::GetShapeId(const size_t index) const
 {
-	return m_shapesInner.at(index).m_id;
+	return m_shapesInner.at(index)->GetId();
 }
 
 const IShape* Document::FindShape(const int id) const
 {
-	const auto it = std::ranges::find(m_shapesInner, id, &DocumentItem::m_id);
-	return it != m_shapesInner.end() ? it->m_shape.get() : nullptr;
+	for (const auto& root : m_shapesInner)
+	{
+		if (const auto* found = std::as_const(*root).FindShape(id))
+		{
+			return found;
+		}
+	}
+	return nullptr;
+}
+
+IShape* Document::GetShapeById(const int id)
+{
+	for (auto& root : m_shapesInner)
+	{
+		if (auto* found = root->FindShape(id))
+		{
+			return found;
+		}
+	}
+	return nullptr;
+}
+
+std::optional<int> Document::FindRootShapeId(const int id) const
+{
+	for (const auto& root : m_shapesInner)
+	{
+		if (std::as_const(*root).FindShape(id))
+		{
+			return root->GetId();
+		}
+	}
+	return std::nullopt;
+}
+
+std::optional<int> Document::FindTargetShape(const int rootId, const Point point, const double time) const
+{
+	const IShape* root = FindShape(rootId);
+	if (!root)
+	{
+		return std::nullopt;
+	}
+	return FindTargetInShape(*root, point, time);
+}
+
+std::optional<int> Document::FindTargetInShape(const IShape& shape, const Point point, const double time) const
+{
+	if (!shape.GetTimeInterval().IsContains(time))
+	{
+		return std::nullopt;
+	}
+
+	const GroupShape* group = shape.GetGroup();
+	if (!group)
+	{
+		if (shape.HitTest(point))
+		{
+			return shape.GetId();
+		}
+		return std::nullopt;
+	}
+
+	for (size_t i = group->GetChildCount(); i > 0; --i)
+	{
+		const auto targetId = FindTargetInShape(group->GetChild(i - 1), point, time);
+		if (targetId)
+		{
+			return targetId;
+		}
+	}
+	return std::nullopt;
 }
 
 std::optional<size_t> Document::FindShapeIndex(const int id) const
 {
-	const auto it = std::ranges::find(m_shapesInner, id, &DocumentItem::m_id);
+	const auto it = std::ranges::find_if(m_shapesInner, [id](const auto& shape) { return shape->GetId() == id; });
 	if (it == m_shapesInner.end())
 	{
 		return std::nullopt;
@@ -232,9 +320,9 @@ std::optional<int> Document::FindTopShape(const Point point, const double time) 
 {
 	for (auto it = m_shapesInner.rbegin(); it != m_shapesInner.rend(); ++it)
 	{
-		if (it->m_shape->GetTimeInterval().IsContains(time) && it->m_shape->HitTest(point))
+		if (FindTargetShape((*it)->GetId(), point, time).has_value())
 		{
-			return it->m_id;
+			return (*it)->GetId();
 		}
 	}
 	return std::nullopt;
@@ -253,9 +341,9 @@ void Document::RemoveObserver(IDocumentObserver& observer)
 	std::erase(m_observers, &observer);
 }
 
-std::vector<DocumentItem>::iterator Document::FindItem(const int id)
+std::vector<std::unique_ptr<IShape>>::iterator Document::FindItem(const int id)
 {
-	return std::ranges::find(m_shapesInner, id, &DocumentItem::m_id);
+	return std::ranges::find_if(m_shapesInner, [id](const auto& shape) { return shape->GetId() == id; });
 }
 
 void Document::CheckFrame(const Frame& frame) const
@@ -282,6 +370,59 @@ void Document::CheckShape(const IShape& shape) const
 {
 	CheckFrame(shape.GetFrame());
 	CheckTimeInterval(shape.GetTimeInterval());
+}
+
+void Document::CheckGrouping(const std::vector<int>& shapeIds, const IShape* group, const size_t index) const
+{
+	const GroupShape* composite = group ? group->GetGroup() : nullptr;
+	if (!composite || composite->GetChildCount() != 0)
+	{
+		throw std::invalid_argument("Для группировки нужна пустая группа");
+	}
+	if (shapeIds.size() < 2)
+	{
+		throw std::invalid_argument("Для группировки нужны как минимум две фигуры");
+	}
+	for (size_t i = 0; i < shapeIds.size(); ++i)
+	{
+		if (!FindShapeIndex(shapeIds[i]))
+		{
+			throw std::invalid_argument("Фигуры группы должны быть объектами верхнего уровня");
+		}
+		const auto previousEnd = shapeIds.begin() + i;
+		if (std::find(shapeIds.begin(), previousEnd, shapeIds[i]) != previousEnd)
+		{
+			throw std::invalid_argument("Фигуры группы должны быть разными");
+		}
+	}
+	if (index > m_shapesInner.size() - shapeIds.size())
+	{
+		throw std::out_of_range("Недопустимая позиция группы");
+	}
+}
+
+void Document::CheckUngrouping(const IShape* group, const std::vector<size_t>& childIndices) const
+{
+	const GroupShape* composite = group ? group->GetGroup() : nullptr;
+	if (!composite)
+	{
+		throw std::invalid_argument("Группа не найдена");
+	}
+	if (childIndices.size() != composite->GetChildCount())
+	{
+		throw std::invalid_argument("Для каждого ребёнка должна быть задана позиция");
+	}
+	for (size_t i = 0; i < childIndices.size(); ++i)
+	{
+		if (childIndices[i] > m_shapesInner.size() - 1 + i)
+		{
+			throw std::out_of_range("Недопустимая позиция дочерней фигуры");
+		}
+		if (i > 0 && childIndices[i] <= childIndices[i - 1])
+		{
+			throw std::out_of_range("Позиции дочерних фигур должны идти по возрастанию");
+		}
+	}
 }
 
 void Document::NotifyObservers()

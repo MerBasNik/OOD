@@ -17,6 +17,8 @@ struct DragState
 	ResizeHandle m_handle = ResizeHandle::TopLeft;
 	Point m_startPoint{};
 	std::vector<int> m_shapeIds;
+	std::vector<int> m_rootIds;
+	std::optional<int> m_clickTarget;
 	std::vector<Frame> m_startFrames;
 	size_t m_shapeIndex = 0;
 	std::optional<bool> m_isCreateForwardX;
