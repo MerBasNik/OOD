@@ -7,9 +7,9 @@
 #include "View/ShapeIcons.h"
 #include <list>
 
-const sf::Color WORKSPACE_COLOR(210, 210, 210);
-const char* DEFAULT_FILE_NAME = "editor.draw";
-const float WHEEL_SCROLL_STEP = 40.f;
+constexpr sf::Color WORKSPACE_COLOR(210, 210, 210);
+constexpr std::string DEFAULT_FILE_NAME = "editor.draw";
+constexpr float WHEEL_SCROLL_STEP = 40.f;
 
 EditorWindow::EditorWindow(
 	IApplication& application,
@@ -355,8 +355,7 @@ void EditorWindow::HandleMouseReleased(const sf::Vector2f point)
 
 void EditorWindow::HandleKeyPressed(const sf::Event::KeyPressed& key)
 {
-	const bool isCommand = key.control || key.system;
-	if (isCommand)
+	if (key.control || key.system)
 	{
 		switch (key.code)
 		{
@@ -471,12 +470,9 @@ bool EditorWindow::IsMouseOverTimeline() const
 void EditorWindow::UpdateCursor(const sf::Vector2f point)
 {
 	const bool isFree = m_mouseCapture == MouseCapture::None && !m_colorPicker.IsContains(point);
-	const bool isTimelineCursor = m_mouseCapture == MouseCapture::Timeline
-		|| (isFree && m_timelineView.IsContains(point));
-	const bool isCanvasCursor = m_mouseCapture == MouseCapture::Canvas
-		|| (isFree && !m_toolbar.IsContains(point) && !m_shapeListView.IsContains(point)
-			&& !m_timelineView.IsContains(point));
-	CursorType type = CursorType::Arrow;
+	const bool isTimelineCursor = m_mouseCapture == MouseCapture::Timeline || isFree;
+	const bool isCanvasCursor = m_mouseCapture == MouseCapture::Canvas || isFree;
+	auto type = CursorType::Arrow;
 	if (isTimelineCursor)
 	{
 		type = m_timelineView.GetCursorType(point);
@@ -540,11 +536,7 @@ void EditorWindow::UpdateTitle()
 
 std::string EditorWindow::GetTitle() const
 {
-	std::string title = m_appDocument->GetName();
-	if (const auto path = m_appDocument->GetFilePath())
-	{
-		title += " (" + path->filename().string() + ")";
-	}
+	const std::string title = m_appDocument->GetName();
 	return title + " — окно " + std::to_string(m_windowNumber);
 }
 

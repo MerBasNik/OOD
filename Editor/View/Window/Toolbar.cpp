@@ -137,7 +137,7 @@ bool Toolbar::IsVisible(const Button& button)
 	return !button.m_isVisible || button.m_isVisible();
 }
 
-bool Toolbar::IsContains(const sf::Vector2f point) const
+bool Toolbar::IsContains(const sf::Vector2f point)
 {
 	return point.y >= 0 && point.y < HEIGHT;
 }

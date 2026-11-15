@@ -176,7 +176,7 @@ void EditorState::RemoveObserver(IEditorStateObserver& observer)
 	std::erase(m_observers, &observer);
 }
 
-void EditorState::NotifyObservers()
+void EditorState::NotifyObservers() const
 {
 	const auto observers = m_observers;
 	for (auto* observer : observers)

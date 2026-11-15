@@ -25,7 +25,7 @@ public:
 	void Draw(sf::RenderTarget& target) const;
 	bool SetHoverPoint(std::optional<sf::Vector2f> point);
 	bool HandleClick(sf::Vector2f point) const;
-	bool IsContains(sf::Vector2f point) const;
+	static bool IsContains(sf::Vector2f point);
 	const sf::Font& GetFont() const;
 
 private:

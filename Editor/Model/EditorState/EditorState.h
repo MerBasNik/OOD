@@ -53,7 +53,7 @@ private:
 	std::unique_ptr<IShape> m_creatingShape;
 	std::vector<IEditorStateObserver*> m_observers;
 
-	void NotifyObservers();
+	void NotifyObservers() const;
 };
 
 #endif // OOD_EDITOR_EDITORSTATE_H

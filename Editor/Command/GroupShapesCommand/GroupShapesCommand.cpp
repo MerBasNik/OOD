@@ -5,6 +5,7 @@
 #include "GroupShapesCommand.h"
 #include "Model/Shapes/GroupShape.h"
 #include <algorithm>
+#include <ranges>
 #include <stdexcept>
 
 GroupShapesCommand::GroupShapesCommand(Document& document, std::vector<int> shapeIds)
@@ -32,9 +33,10 @@ void GroupShapesCommand::Execute()
 	std::vector<std::unique_ptr<IShape>> children;
 	for (size_t i = m_shapeIds.size(); i-- > 0;)
 	{
-		children.push_back(m_document.DeleteShape(m_shapeIds[i]));
+		const auto shape = m_shapeIds[i];
+		children.push_back(m_document.DeleteShape(shape));
 	}
-	for (auto it = children.rbegin(); it != children.rend(); ++it)
+	for (auto it = children.rbegin(); it != children.rend(); ++it )
 	{
 		m_group->GetGroup()->AddChild(std::move(*it));
 	}
@@ -52,7 +54,7 @@ void GroupShapesCommand::Unexecute()
 {
 	if (m_group || !m_groupId)
 	{
-		throw std::logic_error("Группировка не выполнена");
+		throw std::runtime_error("Группировка не выполнена");
 	}
 	m_group = m_document.DeleteShape(*m_groupId);
 	auto children = m_group->GetGroup()->ReleaseChildren();
@@ -90,10 +92,7 @@ void GroupShapesCommand::SortShapesByLayer()
 		items.emplace_back(*index, id);
 	}
 	std::ranges::sort(items);
-	if (std::ranges::adjacent_find(items) != items.end())
-	{
-		throw std::invalid_argument("Фигура указана несколько раз");
-	}
+
 	m_shapeIds.clear();
 	m_indices.clear();
 	for (const auto& [index, id] : items)
