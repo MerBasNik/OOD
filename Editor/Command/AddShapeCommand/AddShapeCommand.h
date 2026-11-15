@@ -11,7 +11,7 @@
 class AddShapeCommand : public ICommand
 {
 public:
-	AddShapeCommand(Document& document, std::unique_ptr<IShape> shape);
+	AddShapeCommand(Document& document, std::unique_ptr<IShape> shape, std::optional<TimeInterval> interval = std::nullopt);
 	void Execute() override;
 	void Unexecute() override;
 	std::vector<int> GetShapeIds() const override;
@@ -22,6 +22,7 @@ private:
 	std::unique_ptr<IShape> m_shape;
 	std::optional<int> m_shapeId;
 	size_t m_index = 0;
+	std::map<int, TimeInterval> m_intervals;
 };
 
 #endif // OOD_EDITOR_ADDSHAPECOMMAND_H

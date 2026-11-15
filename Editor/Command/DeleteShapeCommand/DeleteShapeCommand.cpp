@@ -23,6 +23,7 @@ void DeleteShapeCommand::Execute()
 		return;
 	}
 	m_index = *index;
+	m_intervals = m_document.GetTimeline().GetIntervals(*m_document.FindShape(m_shapeId));
 	m_shape = m_document.DeleteShape(m_shapeId, m_parentId);
 }
 
@@ -30,7 +31,7 @@ void DeleteShapeCommand::Unexecute()
 {
 	if (m_shape)
 	{
-		m_document.InsertShape(std::move(m_shape), m_index, m_parentId);
+		m_document.InsertShape(std::move(m_shape), m_index, m_parentId, m_intervals);
 	}
 }
 

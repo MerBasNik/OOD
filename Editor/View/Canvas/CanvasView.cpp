@@ -82,6 +82,11 @@ void CanvasView::ResetZoom()
 	SetIsChange();
 }
 
+double CanvasView::GetZoom() const
+{
+	return m_viewport.GetZoom();
+}
+
 bool CanvasView::IsChange() const
 {
 	return m_isChange;
@@ -121,12 +126,13 @@ void CanvasView::DrawBackground(sf::RenderTarget& target) const
 void CanvasView::DrawShapes(sf::RenderTarget& target) const
 {
 	Canvas canvas(target, m_rect.position);
-	RenderShape renderer(canvas, m_state.GetCurrentTime());
+	const Timeline timeline = CreatePreviewTimeline();
+	RenderShape renderer(canvas, timeline, m_state.GetCurrentTime());
 	for (size_t i = 0; i < m_document.GetShapeCount(); ++i)
 	{
 		const IShape& shape = m_document.GetShape(i);
 		const int id = m_document.GetShapeId(i);
-		if (!IsShapeVisible(id))
+		if (!IsShapeVisible(id, timeline))
 		{
 			continue;
 		}
@@ -161,7 +167,7 @@ std::unique_ptr<IShape> CanvasView::CreatePreview(const IShape& shape) const
 bool CanvasView::HasPreview(const IShape& shape) const
 {
 	const int id = shape.GetId();
-	if (m_state.GetPreviewFrame(id) || m_state.GetPreviewTimeInterval(id)
+	if (m_state.GetPreviewFrame(id)
 		|| (m_state.IsShapeSelected(id) && (m_state.GetPreviewFillColor() || m_state.GetPreviewBorderColor())))
 	{
 		return true;
@@ -186,10 +192,6 @@ void CanvasView::ApplyPreview(const IShape& current, IShape& target) const
 	{
 		target.SetFrame(*frame);
 	}
-	if (const auto interval = m_state.GetPreviewTimeInterval(id))
-	{
-		target.SetTimeInterval(*interval);
-	}
 	if (m_state.IsShapeSelected(id))
 	{
 		if (const auto color = m_state.GetPreviewFillColor())
@@ -213,10 +215,11 @@ void CanvasView::ApplyPreview(const IShape& current, IShape& target) const
 
 void CanvasView::DrawSelection(sf::RenderTarget& target) const
 {
+	const Timeline timeline = CreatePreviewTimeline();
 	for (const int id : m_state.GetSelectedShapeIds())
 	{
 		const IShape* shape = m_document.FindShape(id);
-		if (!shape || !IsShapeVisible(id))
+		if (!shape || !IsShapeVisible(id, timeline))
 		{
 			continue;
 		}
@@ -225,16 +228,27 @@ void CanvasView::DrawSelection(sf::RenderTarget& target) const
 	}
 }
 
-bool CanvasView::IsShapeVisible(const int id) const
+bool CanvasView::IsShapeVisible(const int id, const Timeline& timeline) const
 {
 	const IShape* shape = m_document.FindShape(id);
 	if (!shape)
 	{
 		return false;
 	}
-	const auto preview = m_state.GetPreviewTimeInterval(id);
-	const TimeInterval interval = preview ? *preview : shape->GetTimeInterval();
-	return interval.IsContains(m_state.GetCurrentTime());
+	return timeline.GetInterval(*shape).IsContains(m_state.GetCurrentTime());
+}
+
+Timeline CanvasView::CreatePreviewTimeline() const
+{
+	Timeline timeline = m_document.GetTimeline();
+	for (const auto& [id, interval] : m_state.GetPreviewTimeIntervals())
+	{
+		if (const IShape* shape = m_document.FindShape(id))
+		{
+			timeline.SetInterval(*shape, interval);
+		}
+	}
+	return timeline;
 }
 
 void CanvasView::DrawSelectionFrame(sf::RenderTarget& target, const Frame& frame) const

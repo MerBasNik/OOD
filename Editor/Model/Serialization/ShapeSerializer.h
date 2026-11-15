@@ -6,6 +6,7 @@
 #define OOD_EDITOR_SHAPESERIALIZER_H
 
 #include "Model/Shapes/IShape.h"
+#include "Model/Timeline/Timeline.h"
 #include <ostream>
 #include <string>
 
@@ -18,7 +19,7 @@ public:
 	static inline const std::string GROUP_NAME = "group";
 	static inline const std::string GROUP_END_NAME = "end";
 
-	explicit ShapeSerializer(std::ostream& output);
+	ShapeSerializer(std::ostream& output, const Timeline& timeline);
 	void Visit(const Rectangle& rectangle) override;
 	void Visit(const Ellipse& ellipse) override;
 	void Visit(const Triangle& triangle) override;
@@ -26,6 +27,7 @@ public:
 
 private:
 	std::ostream& m_output;
+	const Timeline& m_timeline;
 
 	void Write(const std::string& typeName, const IShape& shape);
 };

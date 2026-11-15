@@ -32,6 +32,7 @@ EditorWindow::EditorWindow(
 		  sf::String::fromUtf8(m_title.begin(), m_title.end()))
 	, m_colorPicker(m_toolbar.GetFont(), [this] { m_controller.CommitColors(); }, [this] { m_controller.CancelColors(); })
 	, m_canvasView(m_document, state, sf::FloatRect({ 0.f, Toolbar::HEIGHT }, { static_cast<float>(m_document.GetBounds().m_width), static_cast<float>(m_document.GetBounds().m_height) }))
+	, m_canvasZoomControls(m_canvasView, m_toolbar.GetFont(), { static_cast<float>(m_document.GetBounds().m_width) - CanvasZoomControls::WIDTH - 8, Toolbar::HEIGHT + static_cast<float>(m_document.GetBounds().m_height) - CanvasZoomControls::HEIGHT - 8 })
 	, m_shapeListView(m_document, state, shapeListController, sf::FloatRect({ static_cast<float>(m_document.GetBounds().m_width), Toolbar::HEIGHT }, { ShapeListView::WIDTH, static_cast<float>(m_document.GetBounds().m_height) }))
 	, m_timelineView(m_document, state, timelineController, sf::FloatRect({ 0.f, Toolbar::HEIGHT + static_cast<float>(m_document.GetBounds().m_height) }, { static_cast<float>(m_document.GetBounds().m_width) + ShapeListView::WIDTH, TimelineView::HEIGHT }))
 {
@@ -119,7 +120,9 @@ bool EditorWindow::HasSelectedShapes() const
 void EditorWindow::UpdateToolbarHover(const std::optional<sf::Vector2f> point)
 {
 	const bool isFree = point && m_mouseCapture == MouseCapture::None && !m_colorPicker.IsContains(*point);
-	if (m_toolbar.SetHoverPoint(isFree ? point : std::nullopt))
+	const bool toolbarChanged = m_toolbar.SetHoverPoint(isFree ? point : std::nullopt);
+	const bool zoomChanged = m_canvasZoomControls.SetHoverPoint(isFree ? point : std::nullopt);
+	if (toolbarChanged || zoomChanged)
 	{
 		m_canvasView.SetIsChange();
 	}
@@ -293,6 +296,11 @@ void EditorWindow::HandleMousePressed(const sf::Vector2f point)
 	if (m_toolbar.HandleClick(point))
 	{
 		m_mouseCapture = MouseCapture::None;
+	}
+	else if (m_canvasZoomControls.HandleClick(point))
+	{
+		m_mouseCapture = MouseCapture::None;
+		m_canvasView.SetIsChange();
 	}
 	else if (m_shapeListView.IsContains(point))
 	{
@@ -469,7 +477,8 @@ bool EditorWindow::IsMouseOverTimeline() const
 
 void EditorWindow::UpdateCursor(const sf::Vector2f point)
 {
-	const bool isFree = m_mouseCapture == MouseCapture::None && !m_colorPicker.IsContains(point);
+	const bool isFree = m_mouseCapture == MouseCapture::None && !m_colorPicker.IsContains(point)
+		&& !m_canvasZoomControls.IsContains(point);
 	const bool isTimelineCursor = m_mouseCapture == MouseCapture::Timeline || isFree;
 	const bool isCanvasCursor = m_mouseCapture == MouseCapture::Canvas || isFree;
 	auto type = CursorType::Arrow;
@@ -505,6 +514,7 @@ void EditorWindow::Render()
 	m_shapeListView.Draw(m_window);
 	m_timelineView.Draw(m_window);
 	m_toolbar.Draw(m_window);
+	m_canvasZoomControls.Draw(m_window);
 	m_colorPicker.Draw(m_window);
 	m_window.display();
 	m_canvasView.SetDontChange();

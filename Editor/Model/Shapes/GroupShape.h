@@ -35,8 +35,6 @@ public:
 	void SetFillColor(Color color) override;
 	void SetBorderColor(Color color) override;
 	void Accept(IShapeVisitor& visitor) const override;
-	TimeInterval GetTimeInterval() const override;
-	void SetTimeInterval(TimeInterval timeInterval) override;
 	GroupShape* GetGroup() override;
 	const GroupShape* GetGroup() const override;
 

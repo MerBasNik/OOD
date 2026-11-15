@@ -8,8 +8,14 @@
 #include "Model/Shapes/Rectangle.h"
 #include "Model/Shapes/Triangle.h"
 
-RenderShape::RenderShape(ICanvas& canvas, const std::optional<double> time)
+RenderShape::RenderShape(ICanvas& canvas)
 	: m_canvas(canvas)
+{
+}
+
+RenderShape::RenderShape(ICanvas& canvas, const Timeline& timeline, const double time)
+	: m_canvas(canvas)
+	, m_timeline(&timeline)
 	, m_time(time)
 {
 }
@@ -34,7 +40,7 @@ void RenderShape::Visit(const GroupShape& group)
 	for (size_t i = 0; i < group.GetChildCount(); ++i)
 	{
 		const IShape& child = group.GetChild(i);
-		if (!m_time || child.GetTimeInterval().IsContains(*m_time))
+		if (!m_timeline || m_timeline->GetInterval(child).IsContains(m_time))
 		{
 			child.Accept(*this);
 		}

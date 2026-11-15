@@ -22,6 +22,7 @@ private:
 	std::optional<int> m_parentId;
 	size_t m_index = 0;
 	std::unique_ptr<IShape> m_shape;
+	std::map<int, TimeInterval> m_intervals;
 };
 
 #endif // OOD_EDITOR_DELETESHAPECOMMAND_H

@@ -13,7 +13,7 @@
 
 const Color MAX_COLOR = 0xffffff;
 
-std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, const size_t lineNumber)
+std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, Timeline& timeline)
 {
 	std::istringstream stream(line);
 	std::string typeName;
@@ -47,7 +47,7 @@ std::unique_ptr<IShape> DocumentSerializer::ParseShape(const std::string& line, 
 	{
 		shape = std::make_unique<Triangle>(frame, fillColor, borderColor);
 	}
-	shape->SetTimeInterval(timeInterval);
+	timeline.SetInterval(*shape, timeInterval);
 	return shape;
 }
 
@@ -81,15 +81,16 @@ TimeInterval DocumentSerializer::ParseTimeInterval(std::istringstream& stream, c
 
 void DocumentSerializer::Save(const Document& document, std::ostream& output)
 {
-	ShapeSerializer serializer(output);
+	ShapeSerializer serializer(output, document.GetTimeline());
 	for (size_t i = 0; i < document.GetShapeCount(); ++i)
 	{
 		document.GetShape(i).Accept(serializer);
 	}
 }
 
-std::vector<std::unique_ptr<IShape>> DocumentSerializer::Load(std::istream& input)
+void DocumentSerializer::Load(std::istream& input, Document& document)
 {
+	Timeline timeline(document.GetDuration());
 	std::vector<std::vector<std::unique_ptr<IShape>>> levels(1);
 	std::string line;
 	size_t lineNumber = 0;
@@ -130,7 +131,14 @@ std::vector<std::unique_ptr<IShape>> DocumentSerializer::Load(std::istream& inpu
 		}
 		else
 		{
-			levels.back().push_back(ParseShape(line, lineNumber));
+			try
+			{
+				levels.back().push_back(ParseShape(line, timeline));
+			}
+			catch (const std::invalid_argument& error)
+			{
+				throw std::runtime_error(error.what());
+			}
 		}
 	}
 	if (input.bad())
@@ -141,7 +149,14 @@ std::vector<std::unique_ptr<IShape>> DocumentSerializer::Load(std::istream& inpu
 	{
 		throw std::runtime_error("группа не закрыта");
 	}
-	return std::move(levels.front());
+	try
+	{
+		document.ReplaceShapes(std::move(levels.front()), timeline.GetIntervals());
+	}
+	catch (const std::invalid_argument& error)
+	{
+		throw std::runtime_error(error.what());
+	}
 }
 
 void DocumentSerializer::SaveToFile(const Document& document, const std::filesystem::path& path)
@@ -164,12 +179,12 @@ void DocumentSerializer::SaveToFile(const Document& document, const std::filesys
 	}
 }
 
-std::vector<std::unique_ptr<IShape>> DocumentSerializer::LoadFromFile(const std::filesystem::path& path)
+void DocumentSerializer::LoadFromFile(const std::filesystem::path& path, Document& document)
 {
 	std::ifstream input(path);
 	if (!input)
 	{
 		throw std::runtime_error("Не удалось открыть файл: " + path.string());
 	}
-	return Load(input);
+	Load(input, document);
 }

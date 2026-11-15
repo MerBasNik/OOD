@@ -12,12 +12,8 @@ constexpr double BOUNDS_TOLERANCE = 1e-6;
 
 Document::Document(const double width, const double height, const double duration)
 	: m_bounds{ 0, 0, width, height }
-	, m_duration(duration)
+	, m_timeline(duration)
 {
-	if (m_duration <= 0)
-	{
-		throw std::invalid_argument("Длительность документа должна быть положительной");
-	}
 }
 
 Frame Document::GetBounds() const
@@ -27,7 +23,22 @@ Frame Document::GetBounds() const
 
 double Document::GetDuration() const
 {
-	return m_duration;
+	return m_timeline.GetDuration();
+}
+
+const Timeline& Document::GetTimeline() const
+{
+	return m_timeline;
+}
+
+TimeInterval Document::GetShapeTimeInterval(const int id) const
+{
+	const IShape* shape = FindShape(id);
+	if (!shape)
+	{
+		throw std::invalid_argument("Фигура не найдена");
+	}
+	return m_timeline.GetInterval(*shape);
 }
 
 int Document::AddShape(std::unique_ptr<IShape> shape)
@@ -53,6 +64,7 @@ void Document::RemoveShape(const int id)
 	{
 		return;
 	}
+	m_timeline.RemoveShape(**it);
 	m_shapesInner.erase(it);
 	NotifyObservers();
 }
@@ -60,6 +72,7 @@ void Document::RemoveShape(const int id)
 std::unique_ptr<IShape> Document::DeleteShape(const int id, const std::optional<int> parentId)
 {
 	auto shape = ExtractShape(id, parentId);
+	m_timeline.RemoveShape(*shape);
 	NotifyObservers();
 	return shape;
 }
@@ -100,7 +113,8 @@ const GroupShape& Document::GetGroup(const int id) const
 	return *parent->GetGroup();
 }
 
-void Document::InsertShape(std::unique_ptr<IShape> shape, const size_t index, const std::optional<int> parentId)
+void Document::InsertShape(std::unique_ptr<IShape> shape, const size_t index, const std::optional<int> parentId,
+	const std::map<int, TimeInterval>& intervals)
 {
 	if (!shape)
 	{
@@ -111,6 +125,7 @@ void Document::InsertShape(std::unique_ptr<IShape> shape, const size_t index, co
 		throw std::out_of_range("Недопустимая позиция фигуры");
 	}
 	CheckShape(*shape);
+	m_timeline.SetIntervals(intervals);
 	InsertShapeInto(std::move(shape), index, parentId);
 	NotifyObservers();
 }
@@ -216,12 +231,11 @@ void Document::SetShapeTimeInterval(const int id, const TimeInterval& timeInterv
 	{
 		throw std::invalid_argument("Фигура не найдена");
 	}
-	CheckTimeInterval(timeInterval);
-	if (shape->GetTimeInterval() == timeInterval)
+	if (m_timeline.GetInterval(*shape) == timeInterval)
 	{
 		return;
 	}
-	shape->SetTimeInterval(timeInterval);
+	m_timeline.SetInterval(*shape, timeInterval);
 	NotifyObservers();
 }
 
@@ -252,7 +266,7 @@ void Document::SetShapeIndex(const int id, const size_t index)
 	NotifyObservers();
 }
 
-void Document::ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes)
+void Document::ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes, const std::map<int, TimeInterval>& intervals)
 {
 	for (const auto& shape : shapes)
 	{
@@ -263,13 +277,17 @@ void Document::ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes)
 		CheckShape(*shape);
 	}
 
+	Timeline timeline(GetDuration());
+	timeline.SetIntervals(intervals);
 	m_shapesInner = std::move(shapes);
+	m_timeline = std::move(timeline);
 	NotifyObservers();
 }
 
 void Document::Clear()
 {
 	m_shapesInner.clear();
+	m_timeline.Clear();
 	NotifyObservers();
 }
 
@@ -336,7 +354,7 @@ std::optional<int> Document::FindTargetShape(const int rootId, const Point point
 
 std::optional<int> Document::FindTargetInShape(const IShape& shape, const Point point, const double time) const
 {
-	if (!shape.GetTimeInterval().IsContains(time))
+	if (!m_timeline.GetInterval(shape).IsContains(time))
 	{
 		return std::nullopt;
 	}
@@ -461,18 +479,9 @@ void Document::CheckFrame(const Frame& frame) const
 	}
 }
 
-void Document::CheckTimeInterval(const TimeInterval& timeInterval) const
-{
-	if (timeInterval.m_start < 0 || timeInterval.m_end > m_duration || timeInterval.m_start >= timeInterval.m_end)
-	{
-		throw std::invalid_argument("Недопустимый интервал времени фигуры");
-	}
-}
-
 void Document::CheckShape(const IShape& shape) const
 {
 	CheckFrame(shape.GetFrame());
-	CheckTimeInterval(shape.GetTimeInterval());
 }
 
 void Document::CheckGrouping(const std::vector<int>& shapeIds, const IShape* group, const size_t index,

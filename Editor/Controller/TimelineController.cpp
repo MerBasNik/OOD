@@ -161,10 +161,10 @@ void TimelineController::StartDrag(const int id, const double time, const Timeli
 	m_startTime = time;
 	for (const int selectedId : m_state.GetSelectedShapeIds())
 	{
-		if (const IShape* shape = m_document.FindShape(selectedId))
+		if (m_document.FindShape(selectedId))
 		{
 			m_shapeIds.push_back(selectedId);
-			m_startIntervals.push_back(shape->GetTimeInterval());
+			m_startIntervals.push_back(m_document.GetShapeTimeInterval(selectedId));
 		}
 	}
 }

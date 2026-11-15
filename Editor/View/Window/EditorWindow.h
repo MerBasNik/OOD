@@ -10,14 +10,15 @@
 #include "Controller/EditorController.h"
 #include "Enums/MouseCapture.h"
 #include "Toolbar.h"
-#include <optional>
 #include "View/Canvas/CanvasView.h"
+#include "View/Canvas/CanvasZoomControls.h"
 #include "View/ShapeList/ShapeListView.h"
 #include "View/Timeline/TimelineView.h"
 #include <SFML/Graphics.hpp>
 #include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 
 class EditorWindow
@@ -48,6 +49,7 @@ private:
 	sf::FloatRect m_fillButtonRect;
 	sf::FloatRect m_borderButtonRect;
 	CanvasView m_canvasView;
+	CanvasZoomControls m_canvasZoomControls;
 	ShapeListView m_shapeListView;
 	TimelineView m_timelineView;
 	std::map<CursorType, sf::Cursor> m_cursors;

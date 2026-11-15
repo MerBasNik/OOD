@@ -15,12 +15,13 @@ AppDocument::AppDocument(const double width, const double height, std::string na
 
 std::shared_ptr<AppDocument> AppDocument::Load(const std::filesystem::path& path, const double width, const double height, std::string name)
 {
-	auto shapes = DocumentSerializer::LoadFromFile(path);
 	auto appDocument = std::make_shared<AppDocument>(width, height, std::move(name));
+	DocumentSerializer::LoadFromFile(path, appDocument->m_document);
 	const Frame bounds = appDocument->m_document.GetBounds();
-	for (const auto& shape : shapes)
+	for (size_t i = 0; i < appDocument->m_document.GetShapeCount(); ++i)
 	{
-		const Frame frame = shape->GetFrame();
+		const IShape& shape = appDocument->m_document.GetShape(i);
+		const Frame frame = shape.GetFrame();
 		if (!bounds.IsContainsFrame(frame))
 		{
 			throw std::runtime_error("Фигура выходит за пределы холста");
@@ -29,7 +30,7 @@ std::shared_ptr<AppDocument> AppDocument::Load(const std::filesystem::path& path
 		{
 			throw std::runtime_error("Размер фигуры меньше минимально допустимого");
 		}
-		const TimeInterval timeInterval = shape->GetTimeInterval();
+		const TimeInterval timeInterval = appDocument->m_document.GetShapeTimeInterval(shape.GetId());
 		if (timeInterval.m_end > appDocument->m_document.GetDuration())
 		{
 			throw std::runtime_error("Время фигуры выходит за длительность документа");
@@ -40,7 +41,6 @@ std::shared_ptr<AppDocument> AppDocument::Load(const std::filesystem::path& path
 		}
 	}
 
-	appDocument->m_document.ReplaceShapes(std::move(shapes));
 	appDocument->m_filePath = path;
 	return appDocument;
 }

@@ -57,16 +57,6 @@ void Shape::SetBorderColor(const Color color)
 	m_borderColor = color;
 }
 
-TimeInterval Shape::GetTimeInterval() const
-{
-	return m_timeInterval;
-}
-
-void Shape::SetTimeInterval(const TimeInterval timeInterval)
-{
-	m_timeInterval = timeInterval;
-}
-
 GroupShape* Shape::GetGroup()
 {
 	return nullptr;

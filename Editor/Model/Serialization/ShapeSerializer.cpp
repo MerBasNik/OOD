@@ -11,8 +11,9 @@
 
 const int SET_PRECISION = 17;
 
-ShapeSerializer::ShapeSerializer(std::ostream& output)
+ShapeSerializer::ShapeSerializer(std::ostream& output, const Timeline& timeline)
 	: m_output(output)
+	, m_timeline(timeline)
 {
 }
 
@@ -44,7 +45,7 @@ void ShapeSerializer::Visit(const GroupShape& group)
 void ShapeSerializer::Write(const std::string& typeName, const IShape& shape)
 {
 	const Frame frame = shape.GetFrame();
-	const TimeInterval timeInterval = shape.GetTimeInterval();
+	const TimeInterval timeInterval = m_timeline.GetInterval(shape);
 	m_output << typeName << " "
 			 << std::setprecision(SET_PRECISION) << frame.m_left << " " << frame.m_top << " "
 			 << frame.m_width << " " << frame.m_height << " "

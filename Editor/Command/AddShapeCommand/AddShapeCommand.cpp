@@ -5,7 +5,7 @@
 #include "AddShapeCommand.h"
 #include <stdexcept>
 
-AddShapeCommand::AddShapeCommand(Document& document, std::unique_ptr<IShape> shape)
+AddShapeCommand::AddShapeCommand(Document& document, std::unique_ptr<IShape> shape, const std::optional<TimeInterval> interval)
 	: m_document(document)
 	, m_shape(std::move(shape))
 {
@@ -13,6 +13,9 @@ AddShapeCommand::AddShapeCommand(Document& document, std::unique_ptr<IShape> sha
 	{
 		throw std::invalid_argument("Фигура не задана");
 	}
+	Timeline timeline(document.GetDuration());
+	timeline.SetInterval(*m_shape, interval.value_or(TimeInterval{ 0, document.GetDuration() }));
+	m_intervals = timeline.GetIntervals(*m_shape);
 }
 
 void AddShapeCommand::Execute()
@@ -23,11 +26,13 @@ void AddShapeCommand::Execute()
 	}
 	if (m_shapeId)
 	{
-		m_document.InsertShape(std::move(m_shape), m_index);
+		m_document.InsertShape(std::move(m_shape), m_index, std::nullopt, m_intervals);
 		return;
 	}
 	m_index = m_document.GetShapeCount();
-	m_shapeId = m_document.AddShape(std::move(m_shape));
+	const int id = m_shape->GetId();
+	m_document.InsertShape(std::move(m_shape), m_index, std::nullopt, m_intervals);
+	m_shapeId = id;
 }
 
 void AddShapeCommand::Unexecute()
@@ -36,6 +41,7 @@ void AddShapeCommand::Unexecute()
 	{
 		throw std::logic_error("Добавление фигуры не выполнено");
 	}
+	m_intervals = m_document.GetTimeline().GetIntervals(*m_document.FindShape(*m_shapeId));
 	m_shape = m_document.DeleteShape(*m_shapeId);
 }
 

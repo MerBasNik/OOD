@@ -5,6 +5,7 @@ add_library(Editor_lib STATIC
         Model/Shapes/Triangle.cpp
         Model/Shapes/GroupShape.cpp
         Model/Document/Document.cpp
+        Model/Timeline/Timeline.cpp
         Model/EditorState/EditorState.cpp
         Model/EditorState/SelectionFrame.cpp
         Model/Serialization/DocumentSerializer.cpp
@@ -37,6 +38,7 @@ add_executable(Editor
         Application/AppWindow.cpp
         View/Canvas/Canvas.cpp
         View/Canvas/CanvasView.cpp
+        View/Canvas/CanvasZoomControls.cpp
         View/ShapeList/ShapeListView.cpp
         View/ShapeList/ShapeListItemVisitor.cpp
         View/Timeline/TimelineView.cpp
@@ -64,6 +66,8 @@ target_link_libraries(Editor PRIVATE
 add_executable(Editor_tests
         View/Canvas/Canvas.cpp
         View/Canvas/CanvasView.cpp
+        View/Canvas/CanvasZoomControls.cpp
+        tests/CanvasZoomControlsTests.cpp
         tests/ShapeTests.cpp
         tests/DocumentTests.cpp
         tests/SelectionFrameTests.cpp
@@ -78,9 +82,11 @@ add_executable(Editor_tests
         tests/AppDocumentTests.cpp
         tests/MultiWindowTests.cpp
         tests/TimelineControllerTests.cpp
+        tests/TimelineTests.cpp
         tests/ViewportTests.cpp
         tests/GroupShapeTests.cpp
         tests/GroupCommandTests.cpp
+        tests/GroupResizeTests.cpp
         tests/GroupColorTests.cpp
         tests/GroupEditingTests.cpp
         tests/GroupDeletionTests.cpp

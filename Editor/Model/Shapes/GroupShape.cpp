@@ -189,39 +189,6 @@ void GroupShape::Accept(IShapeVisitor& visitor) const
 	visitor.Visit(*this);
 }
 
-TimeInterval GroupShape::GetTimeInterval() const
-{
-	if (m_children.empty())
-	{
-		return { 0, 0 };
-	}
-	TimeInterval interval = m_children.front()->GetTimeInterval();
-	for (const auto& child : m_children)
-	{
-		const TimeInterval childInterval = child->GetTimeInterval();
-		interval.m_start = std::min(interval.m_start, childInterval.m_start);
-		interval.m_end = std::max(interval.m_end, childInterval.m_end);
-	}
-	return interval;
-}
-
-void GroupShape::SetTimeInterval(const TimeInterval timeInterval)
-{
-	const TimeInterval oldInterval = GetTimeInterval();
-	if (oldInterval.GetDuration() <= 0 || timeInterval.GetDuration() <= 0)
-	{
-		throw std::invalid_argument("Длительность группы должна быть положительной");
-	}
-	for (const auto& child : m_children)
-	{
-		const TimeInterval childInterval = child->GetTimeInterval();
-		child->SetTimeInterval({
-			Scale(childInterval.m_start, oldInterval.m_start, oldInterval.m_end, timeInterval.m_start, timeInterval.m_end),
-			Scale(childInterval.m_end, oldInterval.m_start, oldInterval.m_end, timeInterval.m_start, timeInterval.m_end),
-		});
-	}
-}
-
 GroupShape* GroupShape::GetGroup()
 {
 	return this;

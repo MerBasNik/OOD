@@ -14,12 +14,7 @@ ChangeShapeTimeIntervalCommand::ChangeShapeTimeIntervalCommand(Document& documen
 
 void ChangeShapeTimeIntervalCommand::Execute()
 {
-	const IShape* shape = m_document.FindShape(m_shapeId);
-	if (!shape)
-	{
-		throw std::invalid_argument("Фигура не найдена");
-	}
-	const auto timeInterval = shape->GetTimeInterval();
+	const auto timeInterval = m_document.GetShapeTimeInterval(m_shapeId);
 	m_document.SetShapeTimeInterval(m_shapeId, m_timeInterval);
 	m_lastTimeInterval = timeInterval;
 }

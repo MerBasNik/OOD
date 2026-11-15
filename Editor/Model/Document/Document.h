@@ -7,6 +7,7 @@
 
 #include "IDocumentObserver.h"
 #include "Model/Shapes/IShape.h"
+#include "Model/Timeline/Timeline.h"
 #include <memory>
 #include <optional>
 #include <vector>
@@ -19,11 +20,14 @@ public:
 	Document& operator=(const Document&) = delete;
 	Frame GetBounds() const;
 	double GetDuration() const;
+	const Timeline& GetTimeline() const;
+	TimeInterval GetShapeTimeInterval(int id) const;
 	int AddShape(std::unique_ptr<IShape> shape);
 	int AddShapeAt(std::unique_ptr<IShape> shape, size_t index);
 	void RemoveShape(int id);
 	std::unique_ptr<IShape> DeleteShape(int id, std::optional<int> parentId = std::nullopt);
-	void InsertShape(std::unique_ptr<IShape> shape, size_t index, std::optional<int> parentId = std::nullopt);
+	void InsertShape(std::unique_ptr<IShape> shape, size_t index, std::optional<int> parentId = std::nullopt,
+		const std::map<int, TimeInterval>& intervals = {});
 	int GroupShapes(const std::vector<int>& shapeIds, std::unique_ptr<IShape> group, size_t index,
 		std::optional<int> parentId = std::nullopt);
 	std::unique_ptr<IShape> UngroupShape(int groupId, const std::vector<size_t>& childIndices,
@@ -34,7 +38,7 @@ public:
 	void SetShapeColors(int id, Color fillColor, Color borderColor);
 	void SetShapeIndex(int id, size_t index);
 	void SetShapeTimeInterval(int id, const TimeInterval& timeInterval);
-	void ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes);
+	void ReplaceShapes(std::vector<std::unique_ptr<IShape>> shapes, const std::map<int, TimeInterval>& intervals = {});
 	void Clear();
 	size_t GetShapeCount(std::optional<int> parentId = std::nullopt) const;
 	const IShape& GetShape(size_t index) const;
@@ -50,7 +54,7 @@ public:
 
 private:
 	Frame m_bounds;
-	double m_duration;
+	Timeline m_timeline;
 	std::vector<std::unique_ptr<IShape>> m_shapesInner;
 	std::vector<IDocumentObserver*> m_observers;
 	size_t m_updateDepth = 0;
@@ -64,7 +68,6 @@ private:
 	std::optional<int> FindParentInShape(const IShape& shape, int id) const;
 	std::optional<int> FindTargetInShape(const IShape& shape, Point point, double time) const;
 	void CheckFrame(const Frame& frame) const;
-	void CheckTimeInterval(const TimeInterval& timeInterval) const;
 	void CheckShape(const IShape& shape) const;
 	void CheckGrouping(const std::vector<int>& shapeIds, const IShape* group, size_t index,
 		std::optional<int> parentId) const;

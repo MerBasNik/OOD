@@ -467,7 +467,7 @@ void EditorController::DocumentUpdate()
 std::optional<Frame> EditorController::GetShapeFrame(const int id) const
 {
 	const IShape* shape = m_document.FindShape(id);
-	if (!shape || !shape->GetTimeInterval().IsContains(m_state.GetCurrentTime()))
+	if (!shape || !m_document.GetShapeTimeInterval(id).IsContains(m_state.GetCurrentTime()))
 	{
 		return std::nullopt;
 	}
@@ -626,8 +626,7 @@ void EditorController::AddSelectShape(std::unique_ptr<IShape> shape) const
 {
 	const double duration = m_document.GetDuration();
 	const double start = std::min(m_state.GetCurrentTime(), duration - ShapeDefaults::MIN_DURATION);
-	shape->SetTimeInterval({ start, duration });
-	auto command = std::make_unique<AddShapeCommand>(m_document, std::move(shape));
+	auto command = std::make_unique<AddShapeCommand>(m_document, std::move(shape), TimeInterval{ start, duration });
 	const AddShapeCommand& addCommand = *command;
 	ExecuteCommand(std::move(command));
 	m_state.SetSelectedShapeIds({ *addCommand.GetShapeId() });

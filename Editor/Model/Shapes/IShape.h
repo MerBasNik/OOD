@@ -8,7 +8,6 @@
 #include "IShapeVisitor.h"
 #include "Model/Types/Color.h"
 #include "Model/Types/Frame.h"
-#include "Model/Types/TimeInterval.h"
 
 #include <memory>
 
@@ -30,8 +29,6 @@ public:
 	virtual void SetFillColor(Color color) = 0;
 	virtual void SetBorderColor(Color color) = 0;
 	virtual void Accept(IShapeVisitor& visitor) const = 0;
-	virtual TimeInterval GetTimeInterval() const = 0;
-	virtual void SetTimeInterval(TimeInterval timeInterval) = 0;
 	virtual GroupShape* GetGroup() = 0;
 	virtual const GroupShape* GetGroup() const = 0;
 

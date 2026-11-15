@@ -279,7 +279,7 @@ TimeInterval TimelineView::GetShownTimeInterval(const size_t row) const
 {
 	const size_t index = RowToIndex(row);
 	const auto preview = m_state.GetPreviewTimeInterval(m_document.GetShapeId(index));
-	return preview ? *preview : m_document.GetShape(index).GetTimeInterval();
+	return preview ? *preview : m_document.GetShapeTimeInterval(m_document.GetShapeId(index));
 }
 
 void TimelineView::DrawTimeScale(sf::RenderTarget& target) const

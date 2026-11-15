@@ -20,6 +20,7 @@ public:
 	CanvasView& operator=(const CanvasView&) = delete;
 	void Draw(sf::RenderTarget& target) const;
 	std::unique_ptr<IShape> CreatePreview(const IShape& shape) const;
+	Timeline CreatePreviewTimeline() const;
 	Point ToDocumentPoint(sf::Vector2f point) const;
 	bool IsContains(sf::Vector2f point) const;
 	void ZoomAt(sf::Vector2f point, float delta);
@@ -27,6 +28,7 @@ public:
 	void ZoomIn();
 	void ZoomOut();
 	void ResetZoom();
+	double GetZoom() const;
 	bool IsChange() const;
 	void SetIsChange();
 	void SetDontChange();
@@ -45,7 +47,7 @@ private:
 	bool HasPreview(const IShape& shape) const;
 	void ApplyPreview(const IShape& source, IShape& target) const;
 	void DrawSelection(sf::RenderTarget& target) const;
-	bool IsShapeVisible(int id) const;
+	bool IsShapeVisible(int id, const Timeline& timeline) const;
 	void DrawSelectionFrame(sf::RenderTarget& target, const Frame& frame) const;
 	sf::Vector2f ToTargetPoint(Point point) const;
 	sf::View GetCanvasView(const sf::RenderTarget& target) const;
