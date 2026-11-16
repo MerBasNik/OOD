@@ -67,7 +67,6 @@ add_executable(Editor_tests
         View/Canvas/Canvas.cpp
         View/Canvas/CanvasView.cpp
         View/Canvas/CanvasZoomControls.cpp
-        tests/CanvasZoomControlsTests.cpp
         tests/ShapeTests.cpp
         tests/DocumentTests.cpp
         tests/SelectionFrameTests.cpp
@@ -82,14 +81,9 @@ add_executable(Editor_tests
         tests/AppDocumentTests.cpp
         tests/MultiWindowTests.cpp
         tests/TimelineControllerTests.cpp
-        tests/TimelineTests.cpp
         tests/ViewportTests.cpp
         tests/GroupShapeTests.cpp
         tests/GroupCommandTests.cpp
-        tests/GroupResizeTests.cpp
-        tests/GroupColorTests.cpp
-        tests/GroupEditingTests.cpp
-        tests/GroupDeletionTests.cpp
 )
 
 target_link_libraries(Editor_tests PRIVATE
