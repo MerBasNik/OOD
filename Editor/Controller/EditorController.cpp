@@ -81,20 +81,20 @@ bool EditorController::AppendDeleteCommands(const IShape& shape, const std::vect
 		return false;
 	}
 	const size_t previousCommandCount = commands.size();
-	size_t remainingChildren = 0;
+	size_t children = 0;
 	for (size_t i = group->GetChildCount(); i > 0; --i)
 	{
 		if (!AppendDeleteCommands(group->GetChild(i - 1), shapeIds, commands, deletedIds))
 		{
-			++remainingChildren;
+			++children;
 		}
 	}
-	if (commands.size() == previousCommandCount || remainingChildren >= 2)
+	if (commands.size() == previousCommandCount || children >= 2)
 	{
 		return false;
 	}
 	commands.push_back(std::make_unique<UngroupShapeCommand>(m_document, shape.GetId()));
-	return remainingChildren == 0;
+	return children == 0;
 }
 
 void EditorController::GroupSelectedShapes()
