@@ -19,7 +19,7 @@ public:
 	bool SetHoverPoint(std::optional<sf::Vector2f> point);
 
 private:
-	CanvasView& m_canvas;
+	CanvasView& m_canvasView;
 	const sf::Font& m_font;
 	sf::Vector2f m_position;
 	std::optional<sf::Vector2f> m_hoverPoint;

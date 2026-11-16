@@ -2,7 +2,7 @@
 #include <cmath>
 
 CanvasZoomControls::CanvasZoomControls(CanvasView& canvas, const sf::Font& font, const sf::Vector2f position)
-	: m_canvas(canvas)
+	: m_canvasView(canvas)
 	, m_font(font)
 	, m_position(position)
 {
@@ -11,7 +11,7 @@ CanvasZoomControls::CanvasZoomControls(CanvasView& canvas, const sf::Font& font,
 void CanvasZoomControls::Draw(sf::RenderTarget& target) const
 {
 	DrawButton(target, 0, "-");
-	DrawButton(target, 1, std::to_string(std::lround(m_canvas.GetZoom() * 100)) + "%");
+	DrawButton(target, 1, std::to_string(std::lround(m_canvasView.GetZoom() * 100)) + "%");
 	DrawButton(target, 2, "+");
 }
 
@@ -41,15 +41,15 @@ bool CanvasZoomControls::HandleClick(const sf::Vector2f point)
 	}
 	if (GetButtonRect(0).contains(point))
 	{
-		m_canvas.ZoomOut();
+		m_canvasView.ZoomOut();
 	}
 	else if (GetButtonRect(1).contains(point))
 	{
-		m_canvas.ResetZoom();
+		m_canvasView.ResetZoom();
 	}
 	else if (GetButtonRect(2).contains(point))
 	{
-		m_canvas.ZoomIn();
+		m_canvasView.ZoomIn();
 	}
 	return true;
 }
