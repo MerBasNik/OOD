@@ -511,15 +511,6 @@ void EditorController::ExecuteCommand(std::unique_ptr<ICommand> command) const
 	m_document.EndUpdate();
 }
 
-void EditorController::ExecuteCommands(std::vector<std::unique_ptr<ICommand>> commands) const
-{
-	if (commands.empty())
-	{
-		return;
-	}
-	ExecuteCommand(std::make_unique<MacroCommand>(std::move(commands)));
-}
-
 Frame EditorController::CalculateCreatedFrame(const Point point) const
 {
 	return FrameCalculator::CalculateCreatedFrame(m_drag.m_startPoint, point, m_document.GetBounds(), ShapeDefaults::MIN_SIZE,
@@ -619,7 +610,7 @@ void EditorController::FinishDrag(const Point point)
 			commands.push_back(std::make_unique<ChangeShapeFrameCommand>(m_document, drag.m_shapeIds[i], frames[i]));
 		}
 	}
-	ExecuteCommands(std::move(commands));
+	ExecuteCommand(std::make_unique<MacroCommand>(std::move(commands)));
 }
 
 void EditorController::AddSelectShape(std::unique_ptr<IShape> shape) const
